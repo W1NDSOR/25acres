@@ -1,0 +1,1341 @@
+    1  sudo vi /etc/netplan/00-installer-config.yaml 
+    2  sudo netplan apply 
+    3  sudo vi /etc/netplan/00-installer-config.yaml 
+    4  sudo netplan apply 
+    5  sudo apt-get upgrade -y
+    6  passwd 
+    7  exit
+    8  passwd
+    9  exit
+   10  exitr
+   11  exit
+   12  ls
+   13  whoami
+   14  ls
+   15  ls -la
+   16  sudo
+   17  sudo su
+   18  exit
+   19  sudo su
+   20  exit
+   21  su -
+   22  su -\
+   23  si -
+   24  su -
+   25  sudo apt update
+   26  sudo dpkg -l | grep -E "gdm3|lightdm|sddm|xdm|kdm|lxdm"
+   27  ls /usr/share/xsessions/
+   28  free -h
+   29  ls
+   30  cd 1
+   31  ls -a
+   32  cd ..
+   33  ls
+   34  cd ..
+   35  ls
+   36  ls -a
+   37  cd /home/iiitd/
+   38  ls
+   39  ls -l
+   40  nano 1
+   41  mkdir backend
+   42  ls
+   43  cd backend/
+   44  ls
+   45  sudo su
+   46  exit
+   47  ls
+   48  sudo apt install nginx
+   49  sudo systemctl start nginx
+   50  sudo systemctl enable nginx
+   51  [200~sudo apt install python3 python3-pip~
+   52  sudo apt install python3 python3-pip
+   53  sudo reboot now
+   54  pip3 install Django
+   55  wget -qO - https://www.mongodb.org/static/pgp/server-4.4.asc | sudo apt-key add -
+   56  echo "deb [ arch=amd64,arm64 ] https://repo.mongodb.org/apt/ubuntu focal/mongodb-org/4.4 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-4.4.list
+   57  sudo apt update
+   58  sudo apt install -y mongodb-org
+   59  sudo apt install python3 python3-pip python3-venv libpq-dev
+   60  ls
+   61  cd backend
+   62  ls
+   63  cd ..
+   64  cd frontend
+   65  mkdir frontend
+   66  cd frontend/
+   67  python3 -m venv venv
+   68  source venv/bin/activate
+   69  pip install django
+   70  django-admin startproject mysite .
+   71  python manage.py migrate
+   72  pip install gunicorn
+   73  exit
+   74  pip install gunicorn
+   75  source venv/bin/activate
+   76  sudo nano /etc/nginx/sites-available/mysite
+   77  sudo apt install certbot python3-certbot-nginx
+   78  sudo certbot --nginx -d 192.168.2.235
+   79  sudo openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout /etc/ssl/private/nginx-selfsigned.key -out /etc/ssl/certs/nginx-selfsigned.crt
+   80  ls
+   81  cd frontend/
+   82  ls
+   83  pwd
+   84  cd /etc/nginx/sites-available/
+   85  ls
+   86  nano default 
+   87  gedit
+   88  sudo apt install gedit
+   89  ls
+   90  nano default 
+   91  sudo nano default 
+   92  sudo nano default1
+   93  mv default default_org
+   94  nano mv default default_org
+   95  sudo mv default default_org
+   96  sudo mv default1 default
+   97  ls
+   98  cat default
+   99  [200~sudo ln -s /etc/nginx/sites-available/mysite /etc/nginx/sites-enabled
+  100  ln -s /etc/nginx/sites-available/mysite /etc/nginx/sites-enabled
+  101  sudo ln -s /etc/nginx/sites-available/mysite /etc/nginx/sites-enabled
+  102  sudo nginx -t
+  103  sudo systemctl reload nginx
+  104  sudo nginx -t
+  105  ls
+  106  sudo mv default 25acres
+  107  ;s
+  108  ls
+  109  sudo ln -s /etc/nginx/sites-available/mysite /etc/nginx/sites-enabled
+  110  sudo ln -s /etc/nginx/sites-available/25acres /etc/nginx/sites-enabled
+  111  cd /home/iiitd/
+  112  ls
+  113  cd frontend/
+  114  ls
+  115  mv mysite 25acres
+  116  cd 25acres/
+  117  ls
+  118  nano settings.py 
+  119  cd /etc/nginx
+  120  ls
+  121  cd sites-available/
+  122  ls
+  123  nano 25acres 
+  124  sudo nano 25acres 
+  125  sudo nginx -t
+  126  cd ..
+  127  nano nginx.conf 
+  128  cd sites-available/
+  129  ls
+  130  cp default_org default
+  131  duso cp default_org default
+  132  sudo cp default_org default
+  133  sudo nginx -t
+  134  cd ../sites-enabled/
+  135  ls
+  136  sudo rm mysite 
+  137  sudo nginx -t
+  138  ls -l /etc/ssl/certs/nginx-selfsigned.crt
+  139  ls -l /etc/ssl/private/nginx-selfsigned.key
+  140  sudo ls -l /etc/ssl/private/nginx-selfsigned.key
+  141  sudo nano /etc/nginx/sites-enabled/25acres
+  142  cd /etc/ssl/
+  143  ls
+  144  sudo nano /etc/nginx/sites-enabled/25acres
+  145  sudo nginx -t
+  146  sudo nano /etc/nginx/sites-enabled/25acres
+  147  sudo nginx -t
+  148  sudo nano /etc/nginx/sites-enabled/25acres
+  149  sudo nginx -t
+  150  sudo ufw allow 443/tcp
+  151  sudo nano /etc/nginx/sites-enabled/25acres
+  152  sudo tail /var/log/nginx/error.log
+  153  time
+  154  date
+  155  sudo systemctl status nginx
+  156  date
+  157  sudo netstat -tuln | grep 443
+  158  sudo ss -tuln | grep 443
+  159  sudo ufw status
+  160  sudo nginx -t
+  161  sudo systemctl restart nginx
+  162  sudo systemctl status gunicorn
+  163  sudo systemctl start gunicorn
+  164  sudo nano /etc/systemd/system/gunicorn.service
+  165  sudo systemctl enable gunicorn
+  166  sudo systemctl start gunicorn
+  167  sudo systemctl status gunicorn
+  168  cd /home/iiitd/frontend/venv/bin/
+  169  ls
+  170  cd ..
+  171  ls
+  172  cd 25acres/
+  173  ls
+  174  cd ..
+  175  ls
+  176  sudo nano /etc/systemd/system/gunicorn.service
+  177  sudo systemctl daemon-reload
+  178  sudo systemctl start gunicorn
+  179  sudo systemctl status gunicorn
+  180  ls
+  181  python manage.py runserver 8000
+  182  python3 manage.py runserver 8000
+  183  nano /home/iiitd/frontend/25acres/25acres/wsgi.py
+  184  ls
+  185  cd 25acres/
+  186  ls
+  187  cd w
+  188  nano wsgi.py 
+  189  python3 manage.py runserver 8000
+  190  cd ..
+  191  python3 manage.py runserver 8000
+  192  source venv/bin/activate
+  193  python3 manage.py runserver 8000
+  194  nano 25acres/settings.py 
+  195  cd ..
+  196  ls
+  197  cd frontend/
+  198  ls
+  199  cd ..
+  200  deactivate
+  201  rm -rf frontend/
+  202  mkdir fr
+  203  mkdir frontend
+  204  rm fr
+  205  rm -rf fr
+  206  cd frontend/
+  207  ls
+  208  django-admin startproject 25acres
+  209  django-admin startproject acres25
+  210  ls
+  211  mkdir windsor
+  212  cd windsor/
+  213  mkdir twentyfiveacres
+  214  mkdir restapi
+  215  python3 -m venv venv
+  216  source venv/bin/activate
+  217  pip install django
+  218  cd restapi/
+  219  django-admin startproject restapi .
+  220  python manage.py runserver
+  221  cd ../twentyfiveacres/
+  222  django-admin startproject twentyfiveacres .
+  223  python manage.py runserver
+  224  lsw
+  225  ls
+  226  cd ..
+  227  lls
+  228  ls
+  229  cd ..
+  230  ls
+  231  rm -rf backend frontend/
+  232  ls
+  233  rm -rf twentyfiveacres/
+  234  ls
+  235  cd windsor/
+  236  ls
+  237  cd twentyfiveacres/
+  238  python manage.py migrate
+  239  pip install gunicorn
+  240  sudo nano /etc/nginx/sites-available/twentyfiveacres
+  241  wget
+  242  wget is.am/5hx9
+  243  ls
+  244  sudo mv 5hx9 /etc/nginx/sites-available/twentiveacres
+  245  sudo nano /etc/nginx/sites-available/twentyfiveacres
+  246  cd /etc/nginx/sites-available/twentyfiveacres
+  247  cd /etc/nginx/sites-available/
+  248  ls
+  249  rm default.org
+  250  rm default_org
+  251  ls
+  252  rm default_org
+  253  sudo rm default_org
+  254  ls
+  255  nano twentiveacres 
+  256  nano 25acres 
+  257  ls
+  258  sudo rm twentiveacres 
+  259  sudo mv 25acres twentyfiveacres
+  260  ls
+  261  nano tw
+  262  ls
+  263  nano twentyfiveacres 
+  264  ls
+  265  sudo ln -s /etc/nginx/sites-available/mysite /etc/nginx/sites-enabled
+  266  sudo nginx -t
+  267  ls
+  268  cd ..
+  269  cd sites-enabled/
+  270  ls
+  271  rm 25acres 
+  272  sudo rm 25acres 
+  273  cd ..
+  274  cd sites-available/
+  275  sudo systemctl reload nginx
+  276  sudo ln -s /etc/nginx/sites-available/mysite /etc/nginx/sites-enabled
+  277  sudo nginx -t
+  278  cd ../sites-available/
+  279  ls
+  280  cd ../sites-enabled/
+  281  ls
+  282  sudo rm mysite 
+  283  cd ../sites-available/
+  284  sudo ln -s /etc/nginx/sites-available/mysite /etc/nginx/sites-enabled
+  285  sudo nginx -t
+  286  ls
+  287  sudo nano twentyfiveacres 
+  288  sudo ln -s /etc/nginx/sites-available/mysite /etc/nginx/sites-enabled
+  289  ls
+  290  ls -a
+  291  cd ..
+  292  cd sites-enabled/
+  293  ls
+  294  sudo rm mysite 
+  295  cd ../sites-available/
+  296  sudo ln -s /etc/nginx/sites-available/twentyfiveacres /etc/nginx/sites-enabled
+  297  sudo nginx -t
+  298  sudo systemctl reload nginx
+  299  sudo nano /etc/systemd/system/gunicorn.service
+  300  sudo systemctl enable gunicorn
+  301  sudo systemctl start gunicorn
+  302  sudo systemctl status gunicorn
+  303  sudo nano /etc/systemd/system/gunicorn.service
+  304  sudo systemctl status gunicorn
+  305  sudo systemctl enable gunicorn
+  306  sudo systemctl start gunicorn
+  307  sudo systemctl status gunicorn
+  308  sudo nano /etc/nginx/sites-available/default
+  309  sudo nano /etc/nginx/sites-available/twentyfiveacres
+  310  sudo systemctl daemon-reload
+  311  sudo systemctl restart gunicorn
+  312  sudo systemctl reload nginx
+  313  sudo systemctl status gunicorn
+  314  sudo nginx -t
+  315  sudo systemctl status gunicorn
+  316  sudo cat /var/log/nginx/error.log
+  317  sudo chown www-data:www-data /home/iiitd/windsor/twentyfiveacres/gunicorn.sock
+  318  sudo systemctl restart nginx
+  319  sudo cat /var/log/nginx/error.log
+  320  sudo chown www-data:www-data /home/iiitd/windsor/twentyfiveacres/gunicorn.sock
+  321  exit
+  322  ls
+  323  python3 -m venv twentyfiveacres-env
+  324  ls
+  325  cd twentyfiveacres-env/
+  326  ls
+  327  cd ..
+  328  ls
+  329  rm -rf twentyfiveacres-env/
+  330  ls
+  331  mkdir twentyfiveacres
+  332  ls
+  333  cd twentyfiveacres/
+  334  ls
+  335  virtualenv env
+  336  virtualenv -p python3 envname
+  337  python3 -m venv venv
+  338  source venv/bin/activate
+  339  pip install django
+  340  django-admin startproject twentyfiveacres .
+  341  pip install django djangorestframework
+  342  django-admin startapp backend
+  343  ls
+  344  nano twentyfiveacres/settings.py 
+  345  export PYTHONPATH=$PYTHONPATH:/home/iiitd/windsor/twentyfiveacres
+  346  exitgunicorn twentyfiveacres.wsgi:application --bind unix:/home/iiitd/windsor/twentyfiveacres/gunicorn.sock
+  347  gunicorn twentyfiveacres.wsgi:application --bind unix:/home/iiitd/windsor/twentyfiveacres/gunicorn.sock
+  348  sudo nano /etc/systemd/system/gunicorn.service
+  349  sudo systemctl daemon-reload
+  350  sudo systemctl restart gunicorn
+  351  gunicorn twentyfiveacres.wsgi:application --bind 0.0.0.0:8001
+  352  nano twentyfiveacres/settings.py 
+  353  gunicorn twentyfiveacres.wsgi:application --bind 0.0.0.0:8001
+  354  sudo systemctl daemon-reload
+  355  sudo systemctl restart gunicorn
+  356  sudo journalctl -u gunicorn
+  357  sudo nano /etc/nginx/sites-available/
+  358  sudo nano /etc/nginx/sites-available/twentyfiveacres 
+  359  sudo systemctl reload nginx
+  360  "journalctl -xeu nginx.service
+  361  journalctl -xeu nginx.service
+  362  sudo nginx -t
+  363  sudo nano /etc/nginx/sites-available/twentyfiveacres 
+  364  sudo nginx -t
+  365  sudo systemctl reload nginx
+  366  sudo journalctl -u gunicorn
+  367  sudo chown www-data:www-data /home/iiitd/windsor/twentyfiveacres/gunicorn.sock
+  368  sudo chmod +x /home/iiitd/windsor
+  369  sudo systemctl restart gunicorn
+  370  sudo systemctl restart nginx
+  371  sudo cat /var/log/nginx/error.log
+  372  sudo chown -R iiitd:www-data /home/iiitd/windsor/twentyfiveacres/
+  373  sudo chmod 750 /home/iiitd/windsor/twentyfiveacres/
+  374  sudo chown iiitd:www-data /home/iiitd/windsor/twentyfiveacres/gunicorn.sock
+  375  sudo chmod 770 /home/iiitd/windsor/twentyfiveacres/gunicorn.sock
+  376  sudo systemctl restart gunicorn
+  377  sudo systemctl restart nginx
+  378  sudo cat /var/log/nginx/error.log
+  379  sudo systemctl stop gunicorn
+  380  cd /home/iiitd/windsor/twentyfiveacres
+  381  source ../venv/bin/activate
+  382  gunicorn --log-level debug 25acres.wsgi:application --bind unix:/home/iiitd/windsor/twentyfiveacres/gunicorn.sock
+  383  ls
+  384  cd twentyfiveacres/
+  385  ls
+  386  nano settings.py 
+  387  nano wsgi.py 
+  388  nano asgi.py.py 
+  389  (venv) iiitd@fcs03:~/windsor/twentyfiveacres$ gunicorn --log-level debug twentyfiveacres.wsgi:application --bind unix:/home/iiitd/windsor/twentyfiveacres/gunicorn.sock
+  390  gunicorn --log-level debug twentyfiveacres.wsgi:application --bind unix:/home/iiitd/windsor/twentyfiveacres/gunicorn.sock
+  391  sudo cd /etc/systemd/
+  392  cd /etc/systemd/
+  393  ls
+  394  cd system/
+  395  ;s
+  396  ls
+  397  sudo nano gunicorn.service 
+  398  sudo systemctl enable gunicorn
+  399  sudo systemctl start gunicorn
+  400  sudo systemctl status gunicorn
+  401  sudo cat /var/log/nginx/error.log
+  402  gunicorn --log-level debug twentyfiveacres.wsgi:application --bind unix:/home/iiitd/windsor/twentyfiveacres/gunicorn.sock
+  403  cd /home/iiitd/windsor/
+  404  ls
+  405  cd twentyfiveacres/
+  406  ls
+  407  sudo nano gunicorn.service 
+  408  sudo nano /etc/systemd/system/gunicorn.service 
+  409  ls ia
+  410  ls -a
+  411  cd twentyfiveacres/
+  412  ls -a
+  413  cd ..
+  414  python3 manage.py runserver
+  415  python -c "import sys; print(sys.path)"
+  416  Check if the module is in the Python path. While in the virtual environment, run:
+  417  bash
+  418  sudo tail -n 20 /var/log/nginx/error.log
+  419  sudo systemctl status gunicorn
+  420  sudo ufw status
+  421  sudo nano /etc/systemd/system/gunicorn.service
+  422  sudo systemctl daemon-reload
+  423  sudo systemctl restart gunicorn
+  424  sudo nano /etc/nginx/sites-available/default
+  425  sudo nano /etc/nginx/sites-available/twentyfiveacres 
+  426  sudo nginx -t
+  427  sudo systemctl reload nginx
+  428  cd windsor/twentyfiveacres/
+  429  ls
+  430  python manage.py startapp videoplayer
+  431  python3 manage.py startapp videoplayer
+  432  nano twentyfiveacres/settings.py 
+  433  cd videoplayer/
+  434  ls
+  435  nano views.py 
+  436  ls
+  437  nano url.py
+  438  ls
+  439  nano urls.py
+  440  cd ../twentyfiveacres/urls.py
+  441  nano ../twentyfiveacres/urls.py
+  442  mkdir templates
+  443  cd templates/
+  444  mkdir videoplayer
+  445  cd videoplayer/
+  446  nano html.html
+  447  nano video.html
+  448  cd ..
+  449  ls
+  450  mkdir static
+  451  mkdir videoplayer
+  452  ls
+  453  rm -rf videoplayer/
+  454  cd static/
+  455  ls
+  456  touch videoplayer/rick.mp4
+  457  mkdir videoplayer
+  458  cd ..
+  459  cd templates/
+  460  cd t
+  461  ls
+  462  cd videoplayer/
+  463  ls
+  464  nano video.html
+  465  pwd
+  466  cp /home/iiitd/rick.mp4 /home/iiitd/windsor/twentyfiveacres/videoplayer/static/videoplayer/
+  467  sudo systemctl restart gunicorn
+  468  sudo systemctl reload nginx
+  469  sudo journalctl -u gunicorn
+  470  nano /home/iiitd/windsor/twentyfiveacres/twentyfiveacres/urls.py
+  471  sudo systemctl restart gunicorn
+  472  nano windsor/twentyfiveacres/twentyfiveacres/settings.py 
+  473  sudo systemctl restart gunicorn
+  474  cd windsor/twentyfiveacres/videoplayer/
+  475  ls
+  476  nano templates/videoplayer/video.html 
+  477  sudo systemctl restart gunicorn
+  478  mv /home/iiitd/this.jpg /home/iiitd/windsor/twentyfiveacres/videoplayer/static/videoplayer/
+  479  cd static/videoplayer/
+  480  ls
+  481  cd ..
+  482  nano templates/videoplayer/video.html 
+  483  sudo systemctl restart gunicorn
+  484  nano /etc/nginx/sites-available/twentyfiveacres 
+  485  sudo nano /etc/nginx/sites-available/twentyfiveacres 
+  486  sudo nginx -t
+  487  sudo systemctl restart nginx
+  488  cd windsor/twentyfiveacres/
+  489  py manage.py collectstatic
+  490  python manage.py collectstatic
+  491  python3 manage.py collectstatic
+  492  ls
+  493  mkdir static
+  494  python3 manage.py collectstatic
+  495  ls
+  496  cd twentyfiveacres/
+  497  ls
+  498  cd ..
+  499  ls
+  500  mkdir static_collected
+  501  nano twentyfiveacres/settings.py 
+  502  ls
+  503  python3 manage.py collectstatic
+  504  nano /etc/nginx/sites-available/
+  505  sudo nano /etc/nginx/sites-available/twentyfiveacres 
+  506  sudo systemctl reload nginx
+  507  sudo chown -R www-data:www-data /home/iiitd/windsor/twentyfiveacres/static_collected/
+  508  sudo systemctl restart nginx
+  509  sudo tail /var/log/nginx/error.log
+  510  cd windsor/
+  511  ls
+  512  rm -rf restapi/
+  513  ;s
+  514  cd ..
+  515  zip -r windsor.zip windsor
+  516  sudo apt install zip
+  517  zip -r windsor.zip windsor
+  518  sudo cp /etc/nginx/sites-available/twentyfiveacres /home/iiitd/
+  519  sudo cp /etc/systemd/system/gunicorn.service /home/iiitd/
+  520  ls
+  521  cd windsor/twentyfiveacres/videoplayer/templates/videoplayer/
+  522  ls
+  523  nano video.html 
+  524  rm video.html 
+  525  nano video.html
+  526  rm video.html 
+  527  nano video.html
+  528  rm video.html 
+  529  nano video.html
+  530  cat /var/log/nginx/error.log
+  531  cd /home/iiitd/windsor/twentyfiveacres/static_collected/
+  532  ls
+  533  cd videoplayer/
+  534  ls
+  535  sudo nano /etc/nginx/sites-available/twentyfiveacres 
+  536  sudo systemctl reload nginx
+  537  sudo systemctl reload gunicorn
+  538  sudo systemctl restart gunicorn
+  539  sudo chmod +x /home/iiitd
+  540  sudo chmod +x /home/iiitd/windsor
+  541  sudo chmod +x /home/iiitd/windsor/twentyfiveacres
+  542  sudo chmod -R +r /home/iiitd/windsor/twentyfiveacres/static_collected
+  543  nano windsor/twentyfiveacres/twentyfiveacres/settings.py 
+  544  sudo sudo systemctl restart gunicorn
+  545  [200~sudo systemctl restart nginx
+  546  sudo systemctl restart nginx
+  547  cd windsor/
+  548  cd tw
+  549  cd twentyfiveacres/
+  550  python3 manage.py runserver 8001
+  551  python3 manage.py runserver 0.0.0.0:8000
+  552  python3 manage.py runserver 0.0.0.0:8001
+  553  ls
+  554  cd videoplayer/
+  555  ls
+  556  cd templates/
+  557  ls
+  558  cd videoplayer/
+  559  ls
+  560  nano video.html
+  561  rm video.html 
+  562  nano video.html
+  563  ls
+  564  nano video.html 
+  565  rm video.html 
+  566  nano video.html
+  567  cat video.html 
+  568  python3 manage.py runserver 0.0.0.0:8001
+  569  cd ..
+  570  python3 manage.py runserver 0.0.0.0:8001
+  571  ls
+  572  mv 25.png /home/iiitd/windsor/twentyfiveacres/videoplayer/static/videoplayer/logo.png
+  573  cd /home/iiitd/windsor/twentyfiveacres/videoplayer/static/videoplayer/
+  574  ls
+  575  cd ../../..
+  576  ls
+  577  python3 manage.py collectstatic
+  578  sudo python3 manage.py collectstatic
+  579  cd .
+  580  cd ..
+  581  source venv/bin/activate
+  582  cd twentyfiveacres/
+  583  sudo python3 manage.py collectstatic
+  584  python3 manage.py collectstatic
+  585  sudo chown -R iiitd:iiitd /home/iiitd/windsor/twentyfiveacres/static_collected/
+  586  python3 manage.py collectstatic
+  587  deactivate
+  588  sudo nano /etc/nginx/sites-available/twentyfiveacres 
+  589  sudo systemctl reload nginx
+  590  sudo tail -f /var/log/nginx/access.log
+  591  sudo systemctl reload nginx
+  592  sudo systemctl restart gunicorn
+  593  sudo nano /etc/nginx/sites-available/twentyfiveacres 
+  594  sudo systemctl reload nginx
+  595  sudo tail -f /var/log/nginx/access.log
+  596  sudo nano /etc/nginx/sites-available/twentyfiveacres 
+  597  sudo systemctl reload nginx
+  598  cd static_collected/
+  599  ls
+  600  cd videoplayer/
+  601  ls
+  602  sudo nano /etc/nginx/sites-available/twentyfiveacres 
+  603  cd ..
+  604  python3 manage.py runserver 0.0.0.0:8001
+  605  sudo tail -f /var/log/nginx/access.log
+  606  date
+  607  sudo tail -f /var/log/nginx/access.log
+  608  timedatectl
+  609  timedatectl list-timezones
+  610  sudo timedatectl set-timezone Asia/Kolkata 
+  611  timedatectl
+  612  mv rick.mp4 windsor/twentyfiveacres/static_collected/
+  613  sudo systemctl reload nginx
+  614  sudo systemctl restart gunicorn
+  615  ls
+  616  cd windsor/twentyfiveacres/
+  617  ls
+  618  cd static_collected/
+  619  ls
+  620  ls -l
+  621  cp rick.mp4 ../videoplayer/static/videoplayer/
+  622  cd ..
+  623  python3 manage.py collectstatic
+  624  sudo systemctl reload nginx
+  625  sudo systemctl restart gunicorn
+  626  sudo tail -f /var/log/nginx/access.log
+  627  ls
+  628  rm windsor.zip 
+  629  rm gunicorn.service 
+  630  rm twentyfiveacres 
+  631  ls
+  632  rm rick.mp4 
+  633  ls
+  634  cd windsor/twentyfiveacres/
+  635  ls
+  636  history > command_history.txt
+    1  sudo vi /etc/netplan/00-installer-config.yaml 
+    2  sudo netplan apply 
+    3  sudo vi /etc/netplan/00-installer-config.yaml 
+    4  sudo netplan apply 
+    5  sudo apt-get upgrade -y
+    6  passwd 
+    7  exit
+    8  passwd
+    9  exit
+   10  exitr
+   11  exit
+   12  ls
+   13  whoami
+   14  ls
+   15  ls -la
+   16  sudo
+   17  sudo su
+   18  exit
+   19  sudo su
+   20  exit
+   21  su -
+   22  su -\
+   23  si -
+   24  su -
+   25  sudo apt update
+   26  sudo dpkg -l | grep -E "gdm3|lightdm|sddm|xdm|kdm|lxdm"
+   27  ls /usr/share/xsessions/
+   28  free -h
+   29  ls
+   30  cd 1
+   31  ls -a
+   32  cd ..
+   33  ls
+   34  cd ..
+   35  ls
+   36  ls -a
+   37  cd /home/iiitd/
+   38  ls
+   39  ls -l
+   40  nano 1
+   41  mkdir backend
+   42  ls
+   43  cd backend/
+   44  ls
+   45  sudo su
+   46  exit
+   47  ls
+   48  sudo apt install nginx
+   49  sudo systemctl start nginx
+   50  sudo systemctl enable nginx
+   51  [200~sudo apt install python3 python3-pip~
+   52  sudo apt install python3 python3-pip
+   53  sudo reboot now
+   54  pip3 install Django
+   55  wget -qO - https://www.mongodb.org/static/pgp/server-4.4.asc | sudo apt-key add -
+   56  echo "deb [ arch=amd64,arm64 ] https://repo.mongodb.org/apt/ubuntu focal/mongodb-org/4.4 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-4.4.list
+   57  sudo apt update
+   58  sudo apt install -y mongodb-org
+   59  sudo apt install python3 python3-pip python3-venv libpq-dev
+   60  ls
+   61  cd backend
+   62  ls
+   63  cd ..
+   64  cd frontend
+   65  mkdir frontend
+   66  cd frontend/
+   67  python3 -m venv venv
+   68  source venv/bin/activate
+   69  pip install django
+   70  django-admin startproject mysite .
+   71  python manage.py migrate
+   72  pip install gunicorn
+   73  exit
+   74  pip install gunicorn
+   75  source venv/bin/activate
+   76  sudo nano /etc/nginx/sites-available/mysite
+   77  sudo apt install certbot python3-certbot-nginx
+   78  sudo certbot --nginx -d 192.168.2.235
+   79  sudo openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout /etc/ssl/private/nginx-selfsigned.key -out /etc/ssl/certs/nginx-selfsigned.crt
+   80  ls
+   81  cd frontend/
+   82  ls
+   83  pwd
+   84  cd /etc/nginx/sites-available/
+   85  ls
+   86  nano default 
+   87  gedit
+   88  sudo apt install gedit
+   89  ls
+   90  nano default 
+   91  sudo nano default 
+   92  sudo nano default1
+   93  mv default default_org
+   94  nano mv default default_org
+   95  sudo mv default default_org
+   96  sudo mv default1 default
+   97  ls
+   98  cat default
+   99  [200~sudo ln -s /etc/nginx/sites-available/mysite /etc/nginx/sites-enabled
+  100  ln -s /etc/nginx/sites-available/mysite /etc/nginx/sites-enabled
+  101  sudo ln -s /etc/nginx/sites-available/mysite /etc/nginx/sites-enabled
+  102  sudo nginx -t
+  103  sudo systemctl reload nginx
+  104  sudo nginx -t
+  105  ls
+  106  sudo mv default 25acres
+  107  ;s
+  108  ls
+  109  sudo ln -s /etc/nginx/sites-available/mysite /etc/nginx/sites-enabled
+  110  sudo ln -s /etc/nginx/sites-available/25acres /etc/nginx/sites-enabled
+  111  cd /home/iiitd/
+  112  ls
+  113  cd frontend/
+  114  ls
+  115  mv mysite 25acres
+  116  cd 25acres/
+  117  ls
+  118  nano settings.py 
+  119  cd /etc/nginx
+  120  ls
+  121  cd sites-available/
+  122  ls
+  123  nano 25acres 
+  124  sudo nano 25acres 
+  125  sudo nginx -t
+  126  cd ..
+  127  nano nginx.conf 
+  128  cd sites-available/
+  129  ls
+  130  cp default_org default
+  131  duso cp default_org default
+  132  sudo cp default_org default
+  133  sudo nginx -t
+  134  cd ../sites-enabled/
+  135  ls
+  136  sudo rm mysite 
+  137  sudo nginx -t
+  138  ls -l /etc/ssl/certs/nginx-selfsigned.crt
+  139  ls -l /etc/ssl/private/nginx-selfsigned.key
+  140  sudo ls -l /etc/ssl/private/nginx-selfsigned.key
+  141  sudo nano /etc/nginx/sites-enabled/25acres
+  142  cd /etc/ssl/
+  143  ls
+  144  sudo nano /etc/nginx/sites-enabled/25acres
+  145  sudo nginx -t
+  146  sudo nano /etc/nginx/sites-enabled/25acres
+  147  sudo nginx -t
+  148  sudo nano /etc/nginx/sites-enabled/25acres
+  149  sudo nginx -t
+  150  sudo ufw allow 443/tcp
+  151  sudo nano /etc/nginx/sites-enabled/25acres
+  152  sudo tail /var/log/nginx/error.log
+  153  time
+  154  date
+  155  sudo systemctl status nginx
+  156  date
+  157  sudo netstat -tuln | grep 443
+  158  sudo ss -tuln | grep 443
+  159  sudo ufw status
+  160  sudo nginx -t
+  161  sudo systemctl restart nginx
+  162  sudo systemctl status gunicorn
+  163  sudo systemctl start gunicorn
+  164  sudo nano /etc/systemd/system/gunicorn.service
+  165  sudo systemctl enable gunicorn
+  166  sudo systemctl start gunicorn
+  167  sudo systemctl status gunicorn
+  168  cd /home/iiitd/frontend/venv/bin/
+  169  ls
+  170  cd ..
+  171  ls
+  172  cd 25acres/
+  173  ls
+  174  cd ..
+  175  ls
+  176  sudo nano /etc/systemd/system/gunicorn.service
+  177  sudo systemctl daemon-reload
+  178  sudo systemctl start gunicorn
+  179  sudo systemctl status gunicorn
+  180  ls
+  181  python manage.py runserver 8000
+  182  python3 manage.py runserver 8000
+  183  nano /home/iiitd/frontend/25acres/25acres/wsgi.py
+  184  ls
+  185  cd 25acres/
+  186  ls
+  187  cd w
+  188  nano wsgi.py 
+  189  python3 manage.py runserver 8000
+  190  cd ..
+  191  python3 manage.py runserver 8000
+  192  source venv/bin/activate
+  193  python3 manage.py runserver 8000
+  194  nano 25acres/settings.py 
+  195  cd ..
+  196  ls
+  197  cd frontend/
+  198  ls
+  199  cd ..
+  200  deactivate
+  201  rm -rf frontend/
+  202  mkdir fr
+  203  mkdir frontend
+  204  rm fr
+  205  rm -rf fr
+  206  cd frontend/
+  207  ls
+  208  django-admin startproject 25acres
+  209  django-admin startproject acres25
+  210  ls
+  211  mkdir windsor
+  212  cd windsor/
+  213  mkdir twentyfiveacres
+  214  mkdir restapi
+  215  python3 -m venv venv
+  216  source venv/bin/activate
+  217  pip install django
+  218  cd restapi/
+  219  django-admin startproject restapi .
+  220  python manage.py runserver
+  221  cd ../twentyfiveacres/
+  222  django-admin startproject twentyfiveacres .
+  223  python manage.py runserver
+  224  lsw
+  225  ls
+  226  cd ..
+  227  lls
+  228  ls
+  229  cd ..
+  230  ls
+  231  rm -rf backend frontend/
+  232  ls
+  233  rm -rf twentyfiveacres/
+  234  ls
+  235  cd windsor/
+  236  ls
+  237  cd twentyfiveacres/
+  238  python manage.py migrate
+  239  pip install gunicorn
+  240  sudo nano /etc/nginx/sites-available/twentyfiveacres
+  241  wget
+  242  wget is.am/5hx9
+  243  ls
+  244  sudo mv 5hx9 /etc/nginx/sites-available/twentiveacres
+  245  sudo nano /etc/nginx/sites-available/twentyfiveacres
+  246  cd /etc/nginx/sites-available/twentyfiveacres
+  247  cd /etc/nginx/sites-available/
+  248  ls
+  249  rm default.org
+  250  rm default_org
+  251  ls
+  252  rm default_org
+  253  sudo rm default_org
+  254  ls
+  255  nano twentiveacres 
+  256  nano 25acres 
+  257  ls
+  258  sudo rm twentiveacres 
+  259  sudo mv 25acres twentyfiveacres
+  260  ls
+  261  nano tw
+  262  ls
+  263  nano twentyfiveacres 
+  264  ls
+  265  sudo ln -s /etc/nginx/sites-available/mysite /etc/nginx/sites-enabled
+  266  sudo nginx -t
+  267  ls
+  268  cd ..
+  269  cd sites-enabled/
+  270  ls
+  271  rm 25acres 
+  272  sudo rm 25acres 
+  273  cd ..
+  274  cd sites-available/
+  275  sudo systemctl reload nginx
+  276  sudo ln -s /etc/nginx/sites-available/mysite /etc/nginx/sites-enabled
+  277  sudo nginx -t
+  278  cd ../sites-available/
+  279  ls
+  280  cd ../sites-enabled/
+  281  ls
+  282  sudo rm mysite 
+  283  cd ../sites-available/
+  284  sudo ln -s /etc/nginx/sites-available/mysite /etc/nginx/sites-enabled
+  285  sudo nginx -t
+  286  ls
+  287  sudo nano twentyfiveacres 
+  288  sudo ln -s /etc/nginx/sites-available/mysite /etc/nginx/sites-enabled
+  289  ls
+  290  ls -a
+  291  cd ..
+  292  cd sites-enabled/
+  293  ls
+  294  sudo rm mysite 
+  295  cd ../sites-available/
+  296  sudo ln -s /etc/nginx/sites-available/twentyfiveacres /etc/nginx/sites-enabled
+  297  sudo nginx -t
+  298  sudo systemctl reload nginx
+  299  sudo nano /etc/systemd/system/gunicorn.service
+  300  sudo systemctl enable gunicorn
+  301  sudo systemctl start gunicorn
+  302  sudo systemctl status gunicorn
+  303  sudo nano /etc/systemd/system/gunicorn.service
+  304  sudo systemctl status gunicorn
+  305  sudo systemctl enable gunicorn
+  306  sudo systemctl start gunicorn
+  307  sudo systemctl status gunicorn
+  308  sudo nano /etc/nginx/sites-available/default
+  309  sudo nano /etc/nginx/sites-available/twentyfiveacres
+  310  sudo systemctl daemon-reload
+  311  sudo systemctl restart gunicorn
+  312  sudo systemctl reload nginx
+  313  sudo systemctl status gunicorn
+  314  sudo nginx -t
+  315  sudo systemctl status gunicorn
+  316  sudo cat /var/log/nginx/error.log
+  317  sudo chown www-data:www-data /home/iiitd/windsor/twentyfiveacres/gunicorn.sock
+  318  sudo systemctl restart nginx
+  319  sudo cat /var/log/nginx/error.log
+  320  sudo chown www-data:www-data /home/iiitd/windsor/twentyfiveacres/gunicorn.sock
+  321  exit
+  322  ls
+  323  python3 -m venv twentyfiveacres-env
+  324  ls
+  325  cd twentyfiveacres-env/
+  326  ls
+  327  cd ..
+  328  ls
+  329  rm -rf twentyfiveacres-env/
+  330  ls
+  331  mkdir twentyfiveacres
+  332  ls
+  333  cd twentyfiveacres/
+  334  ls
+  335  virtualenv env
+  336  virtualenv -p python3 envname
+  337  python3 -m venv venv
+  338  source venv/bin/activate
+  339  pip install django
+  340  django-admin startproject twentyfiveacres .
+  341  pip install django djangorestframework
+  342  django-admin startapp backend
+  343  ls
+  344  nano twentyfiveacres/settings.py 
+  345  export PYTHONPATH=$PYTHONPATH:/home/iiitd/windsor/twentyfiveacres
+  346  exitgunicorn twentyfiveacres.wsgi:application --bind unix:/home/iiitd/windsor/twentyfiveacres/gunicorn.sock
+  347  gunicorn twentyfiveacres.wsgi:application --bind unix:/home/iiitd/windsor/twentyfiveacres/gunicorn.sock
+  348  sudo nano /etc/systemd/system/gunicorn.service
+  349  sudo systemctl daemon-reload
+  350  sudo systemctl restart gunicorn
+  351  gunicorn twentyfiveacres.wsgi:application --bind 0.0.0.0:8001
+  352  nano twentyfiveacres/settings.py 
+  353  gunicorn twentyfiveacres.wsgi:application --bind 0.0.0.0:8001
+  354  sudo systemctl daemon-reload
+  355  sudo systemctl restart gunicorn
+  356  sudo journalctl -u gunicorn
+  357  sudo nano /etc/nginx/sites-available/
+  358  sudo nano /etc/nginx/sites-available/twentyfiveacres 
+  359  sudo systemctl reload nginx
+  360  "journalctl -xeu nginx.service
+  361  journalctl -xeu nginx.service
+  362  sudo nginx -t
+  363  sudo nano /etc/nginx/sites-available/twentyfiveacres 
+  364  sudo nginx -t
+  365  sudo systemctl reload nginx
+  366  sudo journalctl -u gunicorn
+  367  sudo chown www-data:www-data /home/iiitd/windsor/twentyfiveacres/gunicorn.sock
+  368  sudo chmod +x /home/iiitd/windsor
+  369  sudo systemctl restart gunicorn
+  370  sudo systemctl restart nginx
+  371  sudo cat /var/log/nginx/error.log
+  372  sudo chown -R iiitd:www-data /home/iiitd/windsor/twentyfiveacres/
+  373  sudo chmod 750 /home/iiitd/windsor/twentyfiveacres/
+  374  sudo chown iiitd:www-data /home/iiitd/windsor/twentyfiveacres/gunicorn.sock
+  375  sudo chmod 770 /home/iiitd/windsor/twentyfiveacres/gunicorn.sock
+  376  sudo systemctl restart gunicorn
+  377  sudo systemctl restart nginx
+  378  sudo cat /var/log/nginx/error.log
+  379  sudo systemctl stop gunicorn
+  380  cd /home/iiitd/windsor/twentyfiveacres
+  381  source ../venv/bin/activate
+  382  gunicorn --log-level debug 25acres.wsgi:application --bind unix:/home/iiitd/windsor/twentyfiveacres/gunicorn.sock
+  383  ls
+  384  cd twentyfiveacres/
+  385  ls
+  386  nano settings.py 
+  387  nano wsgi.py 
+  388  nano asgi.py.py 
+  389  (venv) iiitd@fcs03:~/windsor/twentyfiveacres$ gunicorn --log-level debug twentyfiveacres.wsgi:application --bind unix:/home/iiitd/windsor/twentyfiveacres/gunicorn.sock
+  390  gunicorn --log-level debug twentyfiveacres.wsgi:application --bind unix:/home/iiitd/windsor/twentyfiveacres/gunicorn.sock
+  391  sudo cd /etc/systemd/
+  392  cd /etc/systemd/
+  393  ls
+  394  cd system/
+  395  ;s
+  396  ls
+  397  sudo nano gunicorn.service 
+  398  sudo systemctl enable gunicorn
+  399  sudo systemctl start gunicorn
+  400  sudo systemctl status gunicorn
+  401  sudo cat /var/log/nginx/error.log
+  402  gunicorn --log-level debug twentyfiveacres.wsgi:application --bind unix:/home/iiitd/windsor/twentyfiveacres/gunicorn.sock
+  403  cd /home/iiitd/windsor/
+  404  ls
+  405  cd twentyfiveacres/
+  406  ls
+  407  sudo nano gunicorn.service 
+  408  sudo nano /etc/systemd/system/gunicorn.service 
+  409  ls ia
+  410  ls -a
+  411  cd twentyfiveacres/
+  412  ls -a
+  413  cd ..
+  414  python3 manage.py runserver
+  415  python -c "import sys; print(sys.path)"
+  416  Check if the module is in the Python path. While in the virtual environment, run:
+  417  bash
+  418  sudo tail -n 20 /var/log/nginx/error.log
+  419  sudo systemctl status gunicorn
+  420  sudo ufw status
+  421  sudo nano /etc/systemd/system/gunicorn.service
+  422  sudo systemctl daemon-reload
+  423  sudo systemctl restart gunicorn
+  424  sudo nano /etc/nginx/sites-available/default
+  425  sudo nano /etc/nginx/sites-available/twentyfiveacres 
+  426  sudo nginx -t
+  427  sudo systemctl reload nginx
+  428  cd windsor/twentyfiveacres/
+  429  ls
+  430  python manage.py startapp videoplayer
+  431  python3 manage.py startapp videoplayer
+  432  nano twentyfiveacres/settings.py 
+  433  cd videoplayer/
+  434  ls
+  435  nano views.py 
+  436  ls
+  437  nano url.py
+  438  ls
+  439  nano urls.py
+  440  cd ../twentyfiveacres/urls.py
+  441  nano ../twentyfiveacres/urls.py
+  442  mkdir templates
+  443  cd templates/
+  444  mkdir videoplayer
+  445  cd videoplayer/
+  446  nano html.html
+  447  nano video.html
+  448  cd ..
+  449  ls
+  450  mkdir static
+  451  mkdir videoplayer
+  452  ls
+  453  rm -rf videoplayer/
+  454  cd static/
+  455  ls
+  456  touch videoplayer/rick.mp4
+  457  mkdir videoplayer
+  458  cd ..
+  459  cd templates/
+  460  cd t
+  461  ls
+  462  cd videoplayer/
+  463  ls
+  464  nano video.html
+  465  pwd
+  466  cp /home/iiitd/rick.mp4 /home/iiitd/windsor/twentyfiveacres/videoplayer/static/videoplayer/
+  467  sudo systemctl restart gunicorn
+  468  sudo systemctl reload nginx
+  469  sudo journalctl -u gunicorn
+  470  nano /home/iiitd/windsor/twentyfiveacres/twentyfiveacres/urls.py
+  471  sudo systemctl restart gunicorn
+  472  nano windsor/twentyfiveacres/twentyfiveacres/settings.py 
+  473  sudo systemctl restart gunicorn
+  474  cd windsor/twentyfiveacres/videoplayer/
+  475  ls
+  476  nano templates/videoplayer/video.html 
+  477  sudo systemctl restart gunicorn
+  478  mv /home/iiitd/this.jpg /home/iiitd/windsor/twentyfiveacres/videoplayer/static/videoplayer/
+  479  cd static/videoplayer/
+  480  ls
+  481  cd ..
+  482  nano templates/videoplayer/video.html 
+  483  sudo systemctl restart gunicorn
+  484  nano /etc/nginx/sites-available/twentyfiveacres 
+  485  sudo nano /etc/nginx/sites-available/twentyfiveacres 
+  486  sudo nginx -t
+  487  sudo systemctl restart nginx
+  488  cd windsor/twentyfiveacres/
+  489  py manage.py collectstatic
+  490  python manage.py collectstatic
+  491  python3 manage.py collectstatic
+  492  ls
+  493  mkdir static
+  494  python3 manage.py collectstatic
+  495  ls
+  496  cd twentyfiveacres/
+  497  ls
+  498  cd ..
+  499  ls
+  500  mkdir static_collected
+  501  nano twentyfiveacres/settings.py 
+  502  ls
+  503  python3 manage.py collectstatic
+  504  nano /etc/nginx/sites-available/
+  505  sudo nano /etc/nginx/sites-available/twentyfiveacres 
+  506  sudo systemctl reload nginx
+  507  sudo chown -R www-data:www-data /home/iiitd/windsor/twentyfiveacres/static_collected/
+  508  sudo systemctl restart nginx
+  509  sudo tail /var/log/nginx/error.log
+  510  cd windsor/
+  511  ls
+  512  rm -rf restapi/
+  513  ;s
+  514  cd ..
+  515  zip -r windsor.zip windsor
+  516  sudo apt install zip
+  517  zip -r windsor.zip windsor
+  518  sudo cp /etc/nginx/sites-available/twentyfiveacres /home/iiitd/
+  519  sudo cp /etc/systemd/system/gunicorn.service /home/iiitd/
+  520  ls
+  521  cd windsor/twentyfiveacres/videoplayer/templates/videoplayer/
+  522  ls
+  523  nano video.html 
+  524  rm video.html 
+  525  nano video.html
+  526  rm video.html 
+  527  nano video.html
+  528  rm video.html 
+  529  nano video.html
+  530  cat /var/log/nginx/error.log
+  531  cd /home/iiitd/windsor/twentyfiveacres/static_collected/
+  532  ls
+  533  cd videoplayer/
+  534  ls
+  535  sudo nano /etc/nginx/sites-available/twentyfiveacres 
+  536  sudo systemctl reload nginx
+  537  sudo systemctl reload gunicorn
+  538  sudo systemctl restart gunicorn
+  539  sudo chmod +x /home/iiitd
+  540  sudo chmod +x /home/iiitd/windsor
+  541  sudo chmod +x /home/iiitd/windsor/twentyfiveacres
+  542  sudo chmod -R +r /home/iiitd/windsor/twentyfiveacres/static_collected
+  543  nano windsor/twentyfiveacres/twentyfiveacres/settings.py 
+  544  sudo sudo systemctl restart gunicorn
+  545  [200~sudo systemctl restart nginx
+  546  sudo systemctl restart nginx
+  547  cd windsor/
+  548  cd tw
+  549  cd twentyfiveacres/
+  550  python3 manage.py runserver 8001
+  551  python3 manage.py runserver 0.0.0.0:8000
+  552  python3 manage.py runserver 0.0.0.0:8001
+  553  ls
+  554  cd videoplayer/
+  555  ls
+  556  cd templates/
+  557  ls
+  558  cd videoplayer/
+  559  ls
+  560  nano video.html
+  561  rm video.html 
+  562  nano video.html
+  563  ls
+  564  nano video.html 
+  565  rm video.html 
+  566  nano video.html
+  567  cat video.html 
+  568  python3 manage.py runserver 0.0.0.0:8001
+  569  cd ..
+  570  python3 manage.py runserver 0.0.0.0:8001
+  571  ls
+  572  mv 25.png /home/iiitd/windsor/twentyfiveacres/videoplayer/static/videoplayer/logo.png
+  573  cd /home/iiitd/windsor/twentyfiveacres/videoplayer/static/videoplayer/
+  574  ls
+  575  cd ../../..
+  576  ls
+  577  python3 manage.py collectstatic
+  578  sudo python3 manage.py collectstatic
+  579  cd .
+  580  cd ..
+  581  source venv/bin/activate
+  582  cd twentyfiveacres/
+  583  sudo python3 manage.py collectstatic
+  584  python3 manage.py collectstatic
+  585  sudo chown -R iiitd:iiitd /home/iiitd/windsor/twentyfiveacres/static_collected/
+  586  python3 manage.py collectstatic
+  587  deactivate
+  588  sudo nano /etc/nginx/sites-available/twentyfiveacres 
+  589  sudo systemctl reload nginx
+  590  sudo tail -f /var/log/nginx/access.log
+  591  sudo systemctl reload nginx
+  592  sudo systemctl restart gunicorn
+  593  sudo nano /etc/nginx/sites-available/twentyfiveacres 
+  594  sudo systemctl reload nginx
+  595  sudo tail -f /var/log/nginx/access.log
+  596  sudo nano /etc/nginx/sites-available/twentyfiveacres 
+  597  sudo systemctl reload nginx
+  598  cd static_collected/
+  599  ls
+  600  cd videoplayer/
+  601  ls
+  602  sudo nano /etc/nginx/sites-available/twentyfiveacres 
+  603  cd ..
+  604  python3 manage.py runserver 0.0.0.0:8001
+  605  sudo tail -f /var/log/nginx/access.log
+  606  date
+  607  sudo tail -f /var/log/nginx/access.log
+  608  timedatectl
+  609  timedatectl list-timezones
+  610  sudo timedatectl set-timezone Asia/Kolkata 
+  611  timedatectl
+  612  mv rick.mp4 windsor/twentyfiveacres/static_collected/
+  613  sudo systemctl reload nginx
+  614  sudo systemctl restart gunicorn
+  615  ls
+  616  cd windsor/twentyfiveacres/
+  617  ls
+  618  cd static_collected/
+  619  ls
+  620  ls -l
+  621  cp rick.mp4 ../videoplayer/static/videoplayer/
+  622  cd ..
+  623  python3 manage.py collectstatic
+  624  sudo systemctl reload nginx
+  625  sudo systemctl restart gunicorn
+  626  sudo tail -f /var/log/nginx/access.log
+  627  ls
+  628  rm windsor.zip 
+  629  rm gunicorn.service 
+  630  rm twentyfiveacres 
+  631  ls
+  632  rm rick.mp4 
+  633  ls
+  634  cd windsor/twentyfiveacres/
+  635  ls
+  636  history > command_history.txt
+  637  nano command_history.txt 
+  638  mv command_history.txt /home/iiitd/
+  639  cd ..
+  640  ls
+  641  cd ..
+  642  ls
+  643  ls
+  644  lsfas'f,agfass
+  645  ls
+  646  zip windsor.zip windsor/
+  647  zip -r windsor.zip windsor/
+  648  unzip -o -d windsor transfer.zip
+  649  ls
+  650  cd windsor/
+  651  ls
+  652  rm -rf windsor/
+  653  cd ..
+  654  unzip -o -d transfer.zip
+  655  unzip -o transfer.zip
+  656  ls
+  657  cd windsor/
+  658  ls
+  659  ls -l
+  660  cd ..
+  661  ls
+  662  rm transfer.zip 
+  663  sudo systemctl restart gunicorn.service 
+  664  cd ..
+  665  cd iiitd/
+  666  cd windsor/
+  667  cd twentyfiveacres/
+  668  ls
+  669  cd twentyfiveacres/
+  670  ls
+  671  cd ..
+  672  python3 manage.py runserver 0.0.0.0:8000
+  673  sudo systemctl daemon-reload
+  674  sudo systemctl start gunicorn
+  675  sudo systemctl status gunicorn
+  676  cd ..
+  677  ls
+  678  cd ..
+  679  ls
+  680  unzip -o -d check windsor.zip
+  681  ls
+  682  cd check/
+  683  ls
+  684  cd windsor/
+  685  ls
+  686  cp venv /home/iiitd/windsor/
+  687  cp -r venv /home/iiitd/windsor/
+  688  sudo cp -r venv /home/iiitd/windsor/
+  689  sudo rm -rf /home/iiitd/windsor/venv
+  690  sudo cp -r venv /home/iiitd/windsor/
+  691  sudo systemctl start gunicorn
+  692  sudo systemctl status gunicorn
+  693  sudo tail -n 50 /var/log/nginx/error.log
+  694  ls /home/iiitd/windsor/twentyfiveacres/static_collected/global/
+  695  ls /home/iiitd/windsor/twentyfiveacres/static_collected/
+  696  cd ..
+  697  ls
+  698  cd windsor/
+  699  ls
+  700  cd twentyfiveacres/
+  701  ls
+  702  python3 manage.py collectstatic
+  703  cd ..
+  704  ls
+  705  history >> command_history.txt 
