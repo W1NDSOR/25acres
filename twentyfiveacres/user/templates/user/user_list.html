@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>User List</title>
+</head>
+<body>
+    <h1>User List</h1>
+    <ul>
+        {% for items in twentyfiveacres_user %}
+            <li>{{ items.user_id }}</li>
+            <li>{{ items.username }}</li>
+            <li>{{ items.first_name }}</li>
+            <li>{{ items.last_name }}</li>
+            <li>{{ items.email }}</li>
+            <li>{{ items.phone_number }}</li>
+            <li>{{ items.user_type }}</li>
+            <hr>
+        {% endfor %}
+    </ul>
+</body>
+</html>

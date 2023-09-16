@@ -1,3 +1,50 @@
+'''
+project_name/              # The project's root directory
+│
+├── manage.py              # Django's command-line utility for managing the project
+├── project_name/          # The main project directory
+│   ├── __init__.py
+│   ├── asgi.py            # ASGI configuration for web servers (e.g., Daphne)
+│   ├── settings.py        # Project-wide settings and configurations
+│   ├── urls.py            # Project-wide URL routing
+│   └── wsgi.py            # WSGI configuration for web servers (e.g., Gunicorn)
+│
+├── app1/                   # Django apps within the project
+│   ├── migrations/         # Database migration files (auto-generated)
+│   ├── __init__.py
+│   ├── admin.py            # Admin site configuration
+│   ├── apps.py             # App-specific configuration
+│   ├── models.py           # App-specific database models
+│   ├── views.py            # App-specific views and view functions
+│   ├── urls.py             # App-specific URL routing
+│   ├── templates/          # HTML templates for the app
+│   │   └── app1/
+│   │       └── ...
+│   ├── static/             # Static files (CSS, JavaScript, images) for the app
+│   │   └── app1/
+│   │       └── ...
+│   └── tests.py            # App-specific test cases
+│
+├── app2/                   # Additional Django apps (similar structure to app1)
+│   └── ...
+│
+├── templates/              # Project-wide HTML templates (shared across apps)
+│   └── project_name/
+│       └── ...
+│
+├── static/                 # Project-wide static files (shared across apps)
+│   └── project_name/
+│       └── ...
+│
+├── media/                  # User-uploaded media files (e.g., user profile images)
+│   └── ...
+│
+├── requirements.txt        # List of project dependencies for pip
+└── .gitignore              # Specifies files and directories to be ignored by Git
+
+'''
+
+
 #!/usr/bin/env python
 """Django's command-line utility for administrative tasks."""
 import os
