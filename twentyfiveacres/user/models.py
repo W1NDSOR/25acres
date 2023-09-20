@@ -1,5 +1,6 @@
 from django.db import models
 
+
 # User Model
 class User(models.Model):
     user_id = models.AutoField(primary_key=True)
@@ -9,4 +10,9 @@ class User(models.Model):
     first_name = models.CharField(max_length=100)
     last_name = models.CharField(max_length=100)
     phone_number = models.CharField(max_length=20)
-    user_type = models.CharField(max_length=20, choices=[("buyer", "Buyer"), ("seller", "Seller"), ("admin", "Admin")])
+    user_type = models.CharField(
+        max_length=20,
+        choices=[("buyer", "Buyer"), ("seller", "Seller"), ("admin", "Admin")],
+    )
+    aadhar_number = models.CharField(max_length=20, null=True, blank=True)
+    document_hash = models.CharField(max_length=64, null=True, blank=True)
