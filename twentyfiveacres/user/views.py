@@ -7,5 +7,20 @@ def user_list(request):
     print(f"len = {len(users)}")
     return render(request, "user/user_list.html", {"users": users})
 
+
 def addUser(request):
+    userFields = request.POST
+    username = userFields.get("user_name")
+    email = userFields.get("email")
+    password = userFields.get("password")
+    print(username, email, password)
+    User.objects.create(
+        username=username,
+        email=f"debug.email@25acres.windsor",
+        password="debug: hashed password",
+        first_name=f"debug: first name",
+        last_name=f"debug: last name",
+        phone_number=f"debug: (+x) xxx-xxx-xxxx",
+        user_type="buyer",
+    )
     return render(request, "add_user_form.html")
