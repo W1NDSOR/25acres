@@ -1,5 +1,6 @@
 from django.shortcuts import render
 from .models import User
+from time import time
 
 
 def user_list(request):
@@ -13,14 +14,18 @@ def addUser(request):
     username = userFields.get("user_name")
     email = userFields.get("email")
     password = userFields.get("password")
-    print(username, email, password)
-    User.objects.create(
-        username=username,
-        email=f"debug.email@25acres.windsor",
-        password="debug: hashed password",
-        first_name=f"debug: first name",
-        last_name=f"debug: last name",
-        phone_number=f"debug: (+x) xxx-xxx-xxxx",
-        user_type="buyer",
-    )
+    document = userFields.get("document")
+    print(userFields)
+    if username != None:
+        User.objects.create(
+            username=f"debug: {time()}.username",
+            email=f"debug{time()}.email@25acres.windsor",
+            password="debug: hashed password",
+            first_name=f"debug: first name",
+            last_name=f"debug: last name",
+            phone_number=f"debug: (+x) xxx-xxx-xxxx",
+            user_type="buyer",
+            aadhar_number=f"debug: aadhar number",
+            document_hash=f"debug: document hash",
+        )
     return render(request, "add_user_form.html")

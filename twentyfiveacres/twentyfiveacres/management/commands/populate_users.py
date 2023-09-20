@@ -30,9 +30,7 @@ class Command(BaseCommand):
                 last_name=f"Last{i}",
                 phone_number=f"123-456-78{i}",
                 # I want to create 5 buyers and 5 sellers
-                user_type="buyer"
-                if i % 2 == 1
-                else "seller",  # Change user type as needed
+                user_type="buyer" if i % 2 == 1 else "seller",
                 aadhar_number=f"123456789{i}",
                 document_hash=f"123456789{i}",
             )

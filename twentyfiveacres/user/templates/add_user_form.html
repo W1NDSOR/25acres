@@ -18,24 +18,41 @@
     <title>Fill user details</title>
   </head>
   <body>
-    <h1>Fill user details</h1>
     <form action="." method="POST">
       {% csrf_token %}
       <div class="form-group">
-        <input type="text" class="form-control" name="user_name" placeholder="Enter username" />
+        <input type="text" class="form-control" name="user_name" placeholder="Username" />
       </div>
       <div class="form-group">
-        <input type="email" class="form-control" name="email" aria-describedby="emailHelp" placeholder="Enter email" />
+        <input type="email" class="form-control" name="email" aria-describedby="emailHelp" placeholder="Email" />
         <small id="emailHelp" class="form-text text-muted">We'll never share your email with anyone else.</small>
       </div>
       <div class="form-group">
-        <input type="password" class="form-control" name="password" placeholder="Password" aria-describedby="passwordHelp" placeholder="Enter password" />
+        <input type="password" class="form-control" name="password" aria-describedby="passwordHelp" placeholder="Password" />
         <small id="passwordHelp" class="form-text text-muted">We hopefully hashed your password; so don't worry.</small>
       </div>
-      {% comment %} <div class="form-check">
-        <input type="checkbox" class="form-check-input" id="exampleCheck1" />
-        <label class="form-check-label" for="exampleCheck1">Check me out</label>
-      </div> {% endcomment %}
+      <div class="form-group">
+        <input type="text" class="form-control" name="first_name" placeholder="First name" />
+      </div>
+      <div class="form-group">
+        <input type="text" class="form-control" name="last_name" placeholder="Last name" />
+      </div>
+      <div class="form-group">
+        <input type="tel" class="form-control" name="phone_number" placeholder="Phone number" />
+      </div>
+      <div class="form-group">
+        <select class="form-control" name="user_type">
+          <option>Buyer</option>
+          <option>Seller</option>
+          <option>Admin</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <input type="number" class="form-control" name="aadhar_number" placeholder="Aadhaar number" />
+      </div>
+      <div class="form-group">
+        <input type="file" class="form-control" name="document" />
+      </div>
       <button type="submit" style="margin-top:10px;" class="btn btn-primary">Submit</button>
     </form>
   </body>
