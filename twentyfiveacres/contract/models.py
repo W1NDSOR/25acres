@@ -10,7 +10,6 @@ from django.db.models import (
 from user.models import User
 from property.models import Property
 
-
 # Contract Model (with Blockchain Integration)
 class Contract(Model):
     contract_id = AutoField(primary_key=True)
