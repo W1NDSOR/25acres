@@ -10,6 +10,8 @@ class User(models.Model):
     last_name = models.CharField(max_length=100)
     phone_number = models.CharField(max_length=20)
     user_type = models.CharField(max_length=20, choices=[("buyer", "Buyer"), ("seller", "Seller"), ("admin", "Admin")])
+    aadhar_number = models.CharField(max_length=20, null=True, blank=True)
+    document_hash = models.CharField(max_length=64, null=True, blank=True)
 
 # Location Model
 class Location(models.Model):
@@ -50,5 +52,33 @@ class Image(models.Model):
     property = models.ForeignKey(Property, on_delete=models.CASCADE)
     user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
     image_url = models.URLField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+# Contract Model 
+
+# class Contract(Model):
+#     contract_id = AutoField(primary_key=True)
+#     property = ForeignKey(Property, on_delete=CASCADE)
+#     seller = ForeignKey(User, related_name="seller_contracts", on_delete=CASCADE)
+#     buyer = ForeignKey(User, related_name="buyer_contracts", on_delete=CASCADE)
+#     contract_text = TextField()
+#     contract_hash = CharField(
+#         max_length=64
+#     )  # Hash or identifier for blockchain verification
+#     contract_address = CharField(
+#         max_length=255, blank=True, null=True
+#     )  # Blockchain contract address (if applicable)
+#     created_at = DateTimeField(auto_now_add=True)
+#     updated_at = DateTimeField(auto_now=True)
+
+class Contract(models.Model):
+    contract_id = models.AutoField(primary_key=True)
+    property = models.ForeignKey(Property, on_delete=models.CASCADE)
+    seller = models.ForeignKey(User, related_name="seller_contracts", on_delete=models.CASCADE)
+    buyer = models.ForeignKey(User, related_name="buyer_contracts", on_delete=models.CASCADE)
+    contract_text = models.TextField()
+    contract_hash = models.CharField(max_length=64)
+    contract_address = models.CharField(max_length=255, blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
