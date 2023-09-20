@@ -6,3 +6,6 @@ def user_list(request):
     users = User.objects.all()
     print(f"len = {len(users)}")
     return render(request, "user/user_list.html", {"users": users})
+
+def addUser(request):
+    return render(request, "add_user_form.html")
