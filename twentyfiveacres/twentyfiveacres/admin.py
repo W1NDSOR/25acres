@@ -1,9 +1,6 @@
 from django.contrib import admin
-from user.models import User
-from property.models import Property
-from contract.models import Contract
+from twentyfiveacres.models import User, Property, Contract
 
-
+admin.site.register(User)
 admin.site.register(Property)
 admin.site.register(Contract)
-admin.site.register(User)

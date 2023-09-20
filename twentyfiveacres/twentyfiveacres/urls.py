@@ -20,11 +20,12 @@ from django.urls import path, include
 from django.views.generic import TemplateView
 
 urlpatterns = [
-    path("admin/", admin.site.urls),
+    path("djangoadmin/", admin.site.urls),
+
     path(
         "",
-        TemplateView.as_view(template_name="twentyfiveacres/index.html"),
-        name="home",
+        TemplateView.as_view(template_name="twentyfiveacres/home_page.html"),
+        name="homePage",
     ),
     path("users/", include("user.urls")),
     path("properties/", include("property.urls")),

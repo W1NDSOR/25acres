@@ -1,42 +1,36 @@
-# from django.db import models
+# Contracts Model
 
-# # User Model
-# class User(models.Model):
-#     user_id = models.AutoField(primary_key=True)
-#     username = models.CharField(max_length=100, unique=True)
-#     email = models.EmailField(unique=True)
-#     password = models.CharField(max_length=128)
-#     first_name = models.CharField(max_length=100)
-#     last_name = models.CharField(max_length=100)
-#     phone_number = models.CharField(max_length=20)
-#     user_type = models.CharField(max_length=20, choices=[("buyer", "Buyer"), ("seller", "Seller"), ("admin", "Admin")])
+'''
+    class Contract(models.Model):
+        contract_id = models.AutoField(primary_key=True)
+        property = models.ForeignKey(Property, on_delete=models.CASCADE)
+        seller = models.ForeignKey(User, related_name="seller_contracts", on_delete=models.CASCADE)
+        buyer = models.ForeignKey(User, related_name="buyer_contracts", on_delete=models.CASCADE)
+        contract_text = models.TextField()
+        contract_hash = models.CharField(max_length=64)
+        contract_address = models.CharField(max_length=255, blank=True, null=True)
+        created_at = models.DateTimeField(auto_now_add=True)
+        updated_at = models.DateTimeField(auto_now=True)
+
+'''
 
 from django.core.management.base import BaseCommand
-from twentyfiveacres.models import Property, User, Contract
+from twentyfiveacres.models import User, Property, Contract
 import random
 
 class Command(BaseCommand):
-    help = 'Populate the Contract model with 5 entries'
+    help = 'Populate the **table** with sample data'
 
     def handle(self, *args, **kwargs):
         properties = Property.objects.all()
         buyers = User.objects.filter(user_type='buyer')
         sellers = User.objects.filter(user_type='seller')
-        # print(properties)
-        # print(buyers)
-        # print(sellers)
-
         print('Populating Contract model...')
-        
 
         for i in range(1, 3):
-
             property_instance = random.choice(properties)  # Select a random property instance
             buyer = random.choice(buyers)  # Select a random buyer
             seller = random.choice(sellers)  # Select a random seller
-            print(property_instance)
-            print(buyer)
-            print(seller)
 
             Contract.objects.create(
                 property=property_instance,

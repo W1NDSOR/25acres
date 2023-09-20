@@ -1,5 +1,5 @@
 from django.shortcuts import render
-from .models import Contract
+from twentyfiveacres.models import Contract
 
 
 def listContracts(request):

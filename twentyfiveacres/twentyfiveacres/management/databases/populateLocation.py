@@ -1,11 +1,26 @@
+# Location Model
+
+'''
+    class Location(models.Model):
+    location_id = models.AutoField(primary_key=True)
+    street_address = models.CharField(max_length=255)
+    city = models.CharField(max_length=100)
+    state = models.CharField(max_length=100)
+    zip_code = models.CharField(max_length=20)
+    country = models.CharField(max_length=100)
+
+'''
+
 from django.core.management.base import BaseCommand
 from twentyfiveacres.models import Location
 
 class Command(BaseCommand):
-    help = 'Populate the Location model with 5 entries'
+    help = 'Populate the **table** with sample data'
 
     def handle(self, *args, **kwargs):
-        for i in range(1, 6):  # Start from 1 and go up to 5 (inclusive)
+        print('Populating Location model...')
+
+        for i in range(1, 6): 
             Location.objects.create(
                 street_address=f'Street Address {i}',
                 city=f'City {i}',
