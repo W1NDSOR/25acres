@@ -1,6 +1,9 @@
 from django.shortcuts import render
 from .models import User
 from time import time
+from utils.hasher import hashImage
+from os import getcwd
+from os.path import join, isfile
 
 
 def user_list(request):
@@ -14,7 +17,12 @@ def addUser(request):
     username = userFields.get("user_name")
     email = userFields.get("email")
     password = userFields.get("password")
-    document = userFields.get("document")
+    documentPath = userFields.get("document")
+    documentPath = join(getcwd(), documentPath)
+    print(isfile(documentPath))
+    print(documentPath)
+    documentHash = hashImage(documentPath)
+    print(documentHash)
     print(userFields)
     if username != None:
         User.objects.create(
