@@ -1,6 +1,9 @@
 from django.contrib import admin
-from .models import Property, Transaction, User  # Import your models
+from user.models import User
+from property.models import Property
+from contract.models import Contract
+
 
 admin.site.register(Property)
-admin.site.register(Transaction)
+admin.site.register(Contract)
 admin.site.register(User)

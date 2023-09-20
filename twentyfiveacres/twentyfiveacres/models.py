@@ -52,15 +52,3 @@ class Image(models.Model):
     image_url = models.URLField()
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-
-# Contract Model (with Blockchain Integration)
-class Contract(models.Model):
-    contract_id = models.AutoField(primary_key=True)
-    property = models.ForeignKey(Property, on_delete=models.CASCADE)
-    seller = models.ForeignKey(User, related_name='seller_contracts', on_delete=models.CASCADE)
-    buyer = models.ForeignKey(User, related_name='buyer_contracts', on_delete=models.CASCADE)
-    contract_text = models.TextField()
-    contract_hash = models.CharField(max_length=64)  # Hash or identifier for blockchain verification
-    contract_address = models.CharField(max_length=255, blank=True, null=True)  # Blockchain contract address (if applicable)
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)

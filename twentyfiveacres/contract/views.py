@@ -1,3 +1,7 @@
 from django.shortcuts import render
+from .models import Contract
 
-# Create your views here.
+
+def listContracts(request):
+    contracts = Contract.objects.all()
+    return render(request, "contract_list.html", {"contracts": contracts})

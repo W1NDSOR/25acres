@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Contract List</title>
+</head>
+<body>
+    <h1>Contracts</h1>
+    {% comment %} <ul>
+        {% for property in properties %}
+            <li>
+                <h2>{{ property.title }}</h2>
+                <p>Description: {{ property.description }}</p>
+                <p>Price: ${{ property.price }}</p>
+                <p>Type: {{ property.property_type }}</p>
+                <p>Bedrooms: {{ property.bedrooms }}</p>
+                <p>Bathrooms: {{ property.bathrooms }}</p>
+                {% if property.area %}
+                    <p>Area: {{ property.area }} sq. ft.</p>
+                {% endif %}
+                <p>Status: {{ property.get_status_display }}</p>
+                <p>Availability Date: {{ property.availability_date }}</p>
+                <p>Location: {{ property.location.street_address }}, {{ property.location.city }}, {{ property.location.state }} {{ property.location.zip_code }}, {{ property.location.country }}</p>
+            </li>
+        {% endfor %}
+    </ul> {% endcomment %}
+</body>
+</html>
