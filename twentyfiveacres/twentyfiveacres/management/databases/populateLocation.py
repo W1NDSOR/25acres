@@ -12,7 +12,7 @@
 '''
 
 from django.core.management.base import BaseCommand
-from twentyfiveacres.models import Location
+from location.models import Location
 
 class Command(BaseCommand):
     help = 'Populate the **table** with sample data'
