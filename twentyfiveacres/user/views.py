@@ -27,8 +27,11 @@ def addUser(request):
     phoneNumber = userFields.get("phone_number")
     userType = userFields.get("user_type")
     aadharNumber = userFields.get("aadhar_number")
-    document = request.FILES["document"].read()
-    documentHash = hashDocument(document)
+    if "document" in request.FILES:
+        document = request.FILES["document"].read()
+        documentHash = hashDocument(document)
+    else:
+        documentHash = None
     # just a precaution, as all the fields are required
     if (
         username
@@ -39,7 +42,6 @@ def addUser(request):
         and phoneNumber
         and userType
         and aadharNumber
-        and document
         and documentHash
     ):
         User.objects.create(
