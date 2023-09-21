@@ -1,11 +1,12 @@
 from django.shortcuts import render
 from twentyfiveacres.models import User
+from utils.hashing import hashDocument
 from time import time
 
 
 def userList(request):
     """
-    Displays the list of users in the database.
+    @desc: displays the list of users in the database.
     """
 
     users = User.objects.all()
@@ -14,22 +15,42 @@ def userList(request):
 
 
 def addUser(request):
+    """
+    @desc: renders a form for adding new user
+    """
     userFields = request.POST
     username = userFields.get("user_name")
     email = userFields.get("email")
     password = userFields.get("password")
-    document = userFields.get("document")
-    if username != None:
+    firstName = userFields.get("first_name")
+    lastName = userFields.get("last_name")
+    phoneNumber = userFields.get("phone_number")
+    userType = userFields.get("user_type")
+    aadharNumber = userFields.get("aadhar_number")
+    document = request.FILES["document"].read()
+    documentHash = hashDocument(document)
+    # just a precaution, as all the fields are required
+    if (
+        username
+        and email
+        and password
+        and firstName
+        and lastName
+        and phoneNumber
+        and userType
+        and aadharNumber
+        and document
+        and documentHash
+    ):
         User.objects.create(
-            userName=f"{username} {time()}",
-            email=f"debug{time()}.email@25acres.windsor",
-            password="debug: hashed password",
-            firstName=f"debug: first name",
-            lastName=f"debug: last name",
-            phoneNumber=f"debug: (+x) xxx-xxx-xxxx",
-            userType="buyer",
-            aadharNumber=f"debug: aadhar number",
-            documentHash=f"debug: document hash",
+            userName=username,
+            email=email,
+            password=password,
+            firstName=firstName,
+            lastName=lastName,
+            phoneNumber=phoneNumber,
+            userType=userType,
+            aadharNumber=aadharNumber,
+            documentHash=documentHash,
         )
-        print(User.objects)
     return render(request, "user/add_user_form.html")
