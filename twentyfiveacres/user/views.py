@@ -1,7 +1,6 @@
 from django.shortcuts import render
 from twentyfiveacres.models import User
 from utils.hashing import hashDocument
-from time import time
 
 
 def userList(request):

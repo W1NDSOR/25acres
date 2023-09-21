@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+  <style>
+    h1 {
+      margin: 20px;
+    }
+    form {
+      margin-top: 20px;
+      padding-left: 20px;
+      padding-right: 20px;
+    }
+    div {
+      margin-top: 10px;
+    }
+  </style>
+  <head>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous" />
+    <title>Fill user details</title>
+  </head>
+  <body>
+    <form action="." method="POST" enctype="multipart/form-data">
+      {% csrf_token %}
+      <div class="form-group">
+        <input type="text" class="form-control" name="title" placeholder="Title" required />
+      </div>
+      <div class="form-group">
+        <input type="text" class="form-control" name="description" placeholder="Description" required />
+      </div>
+      <div class="form-group">
+        <input type="number" class="form-control" name="price" placeholder="Price" min="0" required />
+      </div>
+      <div class="form-group">
+        <input type="text" class="form-control" name="property_type" placeholder="Property type" required />
+      </div>
+      <div class="form-group">
+        <input type="number" class="form-control" name="bedrooms" placeholder="Bedrooms" min="0" required />
+      </div>
+      <div class="form-group">
+        <input type="number" class="form-control" name="bathrooms" placeholder="Bathrooms" min="0" required />
+      </div>
+      <div class="form-group">
+        <input type="text" class="form-control" name="location" placeholder="Location" required />
+      </div>
+      <div class="form-group">
+        <input type="date" class="form-control" name="available_date" placeholder="Date of availability" required />
+      </div>
+      <button type="submit" style="margin-top:10px;" class="btn btn-primary">Submit</button>
+    </form>
+  </body>
+</html>
