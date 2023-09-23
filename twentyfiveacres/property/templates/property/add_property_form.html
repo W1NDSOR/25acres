@@ -19,6 +19,9 @@
           <input type="number" class="form-control" name="price" placeholder="Price" min="0" required />
         </div>
         <div class="mb-3">
+          <input type="number" class="form-control" name="area" placeholder="Area (in acres)" min="0" required />
+        </div>
+        <div class="mb-3">
           <input type="text" class="form-control" name="property_type" placeholder="Property type" required />
         </div>
         <div class="mb-3">
@@ -29,6 +32,13 @@
         </div>
         <div class="mb-3">
           <input type="text" class="form-control" name="location" placeholder="Location" required />
+        </div>
+        <div class="mb-3">
+          <select class="form-control" name="status" required>
+            <option>For Sell</option>
+            <option>For Rent</option>
+            <option>Admin</option>
+          </select>
         </div>
         <div class="mb-3">
           <input type="date" class="form-control" name="available_date" placeholder="Date of availability" required />
