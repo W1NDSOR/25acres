@@ -13,9 +13,9 @@
     <link rel="icon" type="image/png" href="..\..\media\home\logo.png" />
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous" />
   </head>
-  <body style="background-color:#2b3035;">
+  <body data-bs-theme="dark">
     {% load static %}
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+    <nav class="navbar navbar-expand-lg">
       <button class="navbar-toggler navbar-toggler-right" type="button" data-toggle="collapse" data-target="#navbarNavAltMarkup" aria-controls="navbarNavAltMarkup" aria-expanded="false" aria-label="Toggle navigation"><span class="navbar-toggler-icon"></span></button>
       <div class="d-md-flex d-block flex-row mx-md-auto mx-0">
         <a class="navbar-brand" href="#"><img src="{% static 'global/logo.png' %}" alt="25acres" width="30" height="30" /></a>
@@ -44,22 +44,22 @@
 
     <section id="home">
       <center>
-        <h1 style="color:#f8f9fa;">Welcome to 25 Acres</h1>
-        <p style="color:#c9c9cc;">Experience the serene beauty of nature.</p>
+        <h1>Welcome to 25 Acres</h1>
+        <p>Experience the serene beauty of nature.</p>
         <img src="{% static 'global/home_Image.jpg' %}" alt="Home image" width="60%" />
       </center>
     </section>
 
     <section id="about">
       <center>
-        <h2 style="color:#f8f9fa;">About Us</h2>
-        <p style="color:#c9c9cc;">25 Acres is a haven of tranquility and peace, nestled amidst lush greenery.</p>
+        <h2>About Us</h2>
+        <p>25 Acres is a haven of tranquility and peace, nestled amidst lush greenery.</p>
       </center>
     </section>
 
     <section id="gallery">
       <center>
-        <h2 style="color:#f8f9fa;">Gallery</h2>
+        <h2>Gallery</h2>
         <div class="gallery-item" style="{% static 'global/styles.css' %}">
           <img src="{% static 'global/photo1.jpg' %}" alt="Image 1" width="20%" />
           <img src="{% static 'global/photo2.jpg' %}" alt="Image 2" width="35%" />
@@ -70,9 +70,11 @@
 
     <section id="contact">
       <center>
-        <h2 style="color:#f8f9fa;">Contact Us</h2>
-        <p style="color:#c9c9cc;">Email us at: contact@25acres.com</p>
-        <p style="color:#c9c9cc;">Made with ❤ by Ankit, Chaiti, Lakshay, Sameer</p>
+        <h2>Contact Us</h2>
+        <p>Email us at: contact@25acres.com</p>
+        <p>
+          Made with ❤ by <a href="https://github.com/ankitkat042">Ankit</a>, <a href="https://github.com/Chaitanya21033">Chaiti</a>, <a href="https://github.com/hyouteki">Lakshay</a>, <a href="https://github.com/guptasameer112">Sameer</a>
+        </p>
       </center>
     </section>
 
@@ -80,7 +82,7 @@
   </body>
 
   <center>
-    <p style="color:#c9c9cc;">
+    <p>
       <font size="1">© 2023 25 Acres. All Rights Reserved.</font>
     </p>
   </center>
