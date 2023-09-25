@@ -1,5 +1,32 @@
 from django.shortcuts import render
 from twentyfiveacres.models import Property
+import hashlib
+import uuid
+
+
+def generatePropertyHashIdentifier(title, description, price, propertyType, bedrooms, bathrooms, area, status, location, availableDate):
+    """
+    @desc: generates a unique hash identifier for a property based on its details
+    @param title: Title of the property
+    @param description: Description of the property
+    @param price: Price of the property
+    @param propertyType: Type of the property
+    @param bedrooms: Number of bedrooms in the property
+    @param bathrooms: Number of bathrooms in the property
+    @param area: Area of the property
+    @param status: Status of the property
+    @param location: Location of the property
+    @param availableDate: Date when the property is available
+    @return: A unique SHA-256 hash identifier for the property
+    """
+    
+    # Concatenate all the property details into one string
+    concatenated_info = f"{title}{description}{price}{propertyType}{bedrooms}{bathrooms}{area}{status}{location}{availableDate}"
+    
+    # Create a SHA-256 hash of the concatenated string
+    hash_identifier = hashlib.sha256(concatenated_info.encode()).hexdigest()
+    
+    return hash_identifier
 
 
 def propertyList(request):
@@ -49,5 +76,7 @@ def addProperty(request):
             status=status,
             location=location,
             availabilityDate=availableDate,
+            propertyHashIdentifier= generatePropertyHashIdentifier(title, description, price, propertyType, bedrooms, bathrooms, area, status, location, availableDate),
         )
+        print(generatePropertyHashIdentifier(title, description, price, propertyType, bedrooms, bathrooms, area, status, location, availableDate))
     return render(request, "property/add_property_form.html")
