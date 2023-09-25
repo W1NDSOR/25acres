@@ -28,6 +28,8 @@ User
 
 class User(AbstractUser):
     rollNumber = models.IntegerField(unique=True)
+    verification_code = models.CharField(max_length=6, null=True, blank=True)
+
     userType = models.CharField(
         max_length=20,
         default="Buyer",

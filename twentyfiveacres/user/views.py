@@ -1,10 +1,19 @@
+import ssl
+ssl._create_default_https_context = ssl._create_unverified_context
+from django.urls import reverse
+from django.core.mail import send_mail
+import random
+import string
 from django.shortcuts import render
 from twentyfiveacres.models import User
+from django.conf import settings
 from utils.hashing import hashDocument
 from django.http import HttpResponseRedirect
 from django.contrib.auth.hashers import make_password
 from django.contrib.auth import login
 from django.contrib.auth.models import AnonymousUser
+
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
 
 def userList(request):
@@ -57,9 +66,33 @@ def signup(request):
                 documentHash=documentHash,
             )
             user.save()
-            return HttpResponseRedirect("../signin")
+            verification_code = ''.join(random.choices(string.ascii_uppercase + string.digits, k=6))
+            user.verification_code = verification_code
+            send_mail(
+                'Email Verification Code',
+                f'Your verification code is {verification_code}',
+                'settings.EMAIL_HOST_USER',
+                [email],
+                fail_silently=False,
+            )
+            # Redirect to the verification page
+            return HttpResponseRedirect(reverse("verify_email"))
+            
     return render(request, "user/signup_form.html")
 
+def verify_email(request):
+    if request.method == "POST":
+        code = request.POST.get("code")
+        rollNumber = request.POST.get("roll_number")
+        try:
+            user = User.objects.get(rollNumber=rollNumber, verification_code=code)
+            user.verification_code = None  # Clear the verification code
+            user.save()
+            return HttpResponseRedirect("../signin")
+        except User.DoesNotExist:
+            # Handle the case where the user does not exist or the code is incorrect
+            return render(request,  "user/verify_email.html", {"error": "Invalid code or roll number"})
+    return render(request,  "user/verify_email.html")
 
 def signin(request):
     """
