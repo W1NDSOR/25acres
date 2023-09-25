@@ -129,3 +129,11 @@ STATICFILES_DIRS = [os.path.join(BASE_DIR, "twentyfiveacres/static")]
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+
+# addons after this lies undiscorverd lands
+# these are custom not auto gen by django
+AUTH_USER_MODEL = "twentyfiveacres.User"
+LOGIN_REDIRECT_URL = "/"
+LOGOUT_REDIRECT_URL = "/"
+MESSAGE_STORAGE = "django.contrib.messages.storage.cookie.CookieStorage"
