@@ -1,6 +1,8 @@
 from django.shortcuts import render
 from twentyfiveacres.models import User
 from utils.hashing import hashDocument
+from django.http import HttpResponseRedirect
+from django.contrib.auth.hashers import make_password
 
 
 def userList(request):
@@ -19,13 +21,12 @@ def addUser(request):
     """
     userFields = request.POST
     username = userFields.get("user_name")
+    rollNumber = userFields.get("roll_number")
     email = userFields.get("email")
     password = userFields.get("password")
     firstName = userFields.get("first_name")
     lastName = userFields.get("last_name")
-    phoneNumber = userFields.get("phone_number")
     userType = userFields.get("user_type")
-    aadharNumber = userFields.get("aadhar_number")
     if "document" in request.FILES:
         document = request.FILES["document"].read()
         documentHash = hashDocument(document)
@@ -38,20 +39,20 @@ def addUser(request):
         and password
         and firstName
         and lastName
-        and phoneNumber
+        and rollNumber
         and userType
-        and aadharNumber
         and documentHash
     ):
-        User.objects.create(
-            userName=username,
+        user = User.objects.create(
+            username=username,
             email=email,
-            password=password,
-            firstName=firstName,
-            lastName=lastName,
-            phoneNumber=phoneNumber,
+            rollNumber=rollNumber,
+            password=make_password(password),
+            first_name=firstName,
+            last_name=lastName,
             userType=userType,
-            aadharNumber=aadharNumber,
             documentHash=documentHash,
         )
+        user.save()
+        return HttpResponseRedirect("/")
     return render(request, "user/add_user_form.html")

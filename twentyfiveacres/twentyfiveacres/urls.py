@@ -16,18 +16,21 @@ Including another URLconf
 """
 
 from django.contrib import admin
-from django.urls import path, include
-from django.views.generic import TemplateView
+from django.urls import path, include, re_path
+from . import views
+from django.conf import settings
+from django.contrib.auth.views import LogoutView
 
 urlpatterns = [
     path("djangoadmin/", admin.site.urls),
-
-    path(
-        "",
-        TemplateView.as_view(template_name="twentyfiveacres/home_page.html"),
-        name="homePage",
-    ),
+    path("", views.homepage, name="25acres"),
     path("users/", include("user.urls")),
     path("properties/", include("property.urls")),
     path("contracts/", include("contract.urls")),
+    re_path(
+        r"^signout/$",
+        LogoutView.as_view(),
+        {"next_page": settings.LOGOUT_REDIRECT_URL},
+        name="signout",
+    ),
 ]
