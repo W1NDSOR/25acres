@@ -16,6 +16,37 @@ from django.contrib.auth.models import AnonymousUser
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
 
+import hashlib
+import os
+
+def hash_user(username, roll_number, email):
+    """
+    Create a hash from the user's details.
+
+    :param username: The username of the user.
+    :param roll_number: The roll number of the user.
+    :param email: The email address of the user.
+    :return: A hexadecimal hash of the user's details.
+    """
+    salt = os.urandom(32)
+    
+    user_details = f"{username}{roll_number}{email}{salt}"
+    user_hash = hashlib.sha256(user_details.encode()).hexdigest()
+    
+    return user_hash
+
+
+
+def userList(request):
+    """
+    @desc: displays the list of users in the database.
+    """
+
+    users = User.objects.all()
+    print(f"len = {len(users)}")
+    return render(request, "admin/user_list.html", {"users": users})
+
+
 def signup(request):
     """
     @desc: renders a form for signing up new user
@@ -45,6 +76,7 @@ def signup(request):
             and userType
             and documentHash
         ):
+            user_hash = hash_user(username, rollNumber, email)
             user = User.objects.create(
                 username=username,
                 email=email,
@@ -54,6 +86,7 @@ def signup(request):
                 last_name=lastName,
                 userType=userType,
                 documentHash=documentHash,
+                user_hash=user_hash,
             )
             user.save()
             verification_code = ''.join(random.choices(string.ascii_uppercase + string.digits, k=6))

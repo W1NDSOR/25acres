@@ -17,11 +17,13 @@ User
     is_active
     date_joined
     first_name
+    user_hash
     
     @custom_user_fields
     roll_number
     user_type
     document_hash
+    user_hash
     TODO??: properties_owned
 """
 
@@ -37,6 +39,7 @@ class User(AbstractUser):
         blank=False,
     )
     documentHash = models.CharField(max_length=64, null=True, blank=True)
+    userHash = models.CharField(max_length=64, null=False, blank=False)
     REQUIRED_FIELDS = ["rollNumber"]
 
     def __str__(self):
@@ -100,6 +103,7 @@ class Property(models.Model):
     )
     availabilityDate = models.DateField()
     location = models.ForeignKey(Location, on_delete=models.CASCADE)
+    propertyHashIdentifier = models.CharField(max_length=64, null=False, blank =False)
 
 
 """
@@ -111,6 +115,7 @@ Transactions
     transaction_date
     amount
     uploaded_document_hash
+    transaction_hash_validation
 """
 
 
