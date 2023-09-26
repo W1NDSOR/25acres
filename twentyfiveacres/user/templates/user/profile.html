@@ -15,8 +15,7 @@
         action="."
         method="POST"
         style="margin-top: 100px; width: 50%"
-        enctype="multipart/form-data"
-      >
+        enctype="multipart/form-data">
         {% csrf_token %}
         <div class="input-group mb-3">
           <div class="input-group-text">Username</div>
@@ -92,7 +91,7 @@
       >
       {% csrf_token %}
       <h2>Your Properties</h2>
-      <!-- fields: title, description, price, propertyType, bedrooms, bathrooms, area, status, availabilityDate, location, currentBid, bidder -->
+      <!-- fields: title, description, price, bedrooms, bathrooms, area, status, availabilityDate, location, currentBid, bidder -->
       <section>
         <table>
           <tr>
@@ -124,16 +123,6 @@
                 class="form-control"
                 name="price"
                 value="{{ price }}"
-                required
-              />
-            </div>
-            <div class="input-group mb-3">
-              <div class="input-group-text">propertyType</div>
-              <input
-                type="text"
-                class="form-control"
-                name="propertyType"
-                value="{{ propertyType }}"
                 required
               />
             </div>

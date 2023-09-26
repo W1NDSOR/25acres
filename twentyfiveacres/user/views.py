@@ -155,7 +155,6 @@ def profile(request):
         "title": property.title,
         "description": property.description,
         "price": property.price,
-        "propertyType": property.propertyType,
         "bedrooms": property.bedrooms,
         "bathrooms": property.bathrooms,
         "area": property.area,
@@ -187,7 +186,6 @@ def profile(request):
             title = propertyFields.get("title")
             description = propertyFields.get("description")
             price = propertyFields.get("price")
-            propertyType = propertyFields.get("propertyType")
             bedrooms = propertyFields.get("bedrooms")
             bathrooms = propertyFields.get("bathrooms")
             area = propertyFields.get("area")
@@ -197,11 +195,10 @@ def profile(request):
             # bidder_id = propertyFields.get("bidder_id")
             # currentBid = propertyFields.get("current_bid")
             
-            # if title and description and price and propertyType and bedrooms and bathrooms and area and status:
+            # if title and description and price and bedrooms and bathrooms and area and status:
             property.title = title
             property.description = description
             property.price = price
-            property.propertyType = propertyType
             property.bedrooms = bedrooms
             property.bathrooms = bathrooms
             property.area = area
