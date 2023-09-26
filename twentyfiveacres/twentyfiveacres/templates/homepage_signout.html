@@ -29,11 +29,13 @@
               <a class="nav-link dropdown-toggle" id="navbarDropdownMenuLink" role="button" data-bs-toggle="dropdown" aria-expanded="false">Properties</a>
               <ul class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
                 <li>
-                  <a class="dropdown-item" href="/properties">Property list</a>
+                  <a class="dropdown-item" href="/property/list">Property list</a>
                 </li>
-                <li>
-                  <a class="dropdown-item" href="/properties/add">Add new property</a>
-                </li>
+                {% if user_type == "Seller" %}
+                  <li>
+                    <a class="dropdown-item" href="/property/add">Add new property</a>
+                  </li>
+                {% endif %}
               </ul>
             </li>
             <li class="nav-item dropdown">
