@@ -5,6 +5,7 @@ from hashlib import sha256
 from django.contrib.auth.models import AnonymousUser
 from twentyfiveacres.models import User
 from utils.geocoder import geocode_location, reverse_geocode
+from utils.hashing import hashDocument
 
 
 def generatePropertyHashIdentifier(
@@ -71,6 +72,15 @@ def addProperty(request):
         status = propertyFields.get("status")
         location = propertyFields.get("location")
         availableDate = propertyFields.get("available_date")
+        if "document" in request.FILES:
+            document = request.FILES["document"].read()
+            documentHash = hashDocument(document)
+            if documentHash == User.objects.get(username=request.user.username).documentHash:
+                pass
+            else:
+                return JsonResponse(
+                    {"result": "Fatal Error", "message": "Document hash does not match"}
+                )
         # just a precaution, as all the fields are required
         if (
             title
