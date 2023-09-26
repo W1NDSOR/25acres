@@ -58,10 +58,6 @@ def addProperty(request):
         return JsonResponse(
             {"result": "Fatal Error", "message": "Sign in as Seller first"}
         )
-    if User.objects.get(username=request.user.username).userType != "Seller":
-        return JsonResponse(
-            {"result": "Fatal Error", "message": "Fuck you; you are not a seller"}
-        )
     if request.method == "POST":
         propertyFields = request.POST
         title = propertyFields.get("title")

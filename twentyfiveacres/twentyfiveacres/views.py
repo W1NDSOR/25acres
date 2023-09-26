@@ -12,5 +12,5 @@ def homepage(request):
     else:
         user = User.objects.get(username=request.user.username)
         print(f"rollnumber: {user.rollNumber}")
-        context = {"username": user.username, "user_type": user.userType}
+        context = {"username": user.username}
         return render(request, "homepage_signout.html", context=context)

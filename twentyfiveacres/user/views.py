@@ -1,24 +1,20 @@
 import ssl
-
-ssl._create_default_https_context = ssl._create_unverified_context
 from django.urls import reverse
 from django.core.mail import send_mail
-import random
-import string
+from random import choices
+from string import ascii_uppercase, digits
 from django.shortcuts import render
 from twentyfiveacres.models import User
-from django.conf import settings
 from utils.hashing import hashDocument
 from django.http import HttpResponseRedirect
 from django.contrib.auth.hashers import make_password
 from django.contrib.auth import login
 from django.contrib.auth.models import AnonymousUser
+from os import urandom
+from hashlib import sha256
 
+ssl._create_default_https_context = ssl._create_unverified_context
 EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
-
-
-import hashlib
-import os
 
 
 def hash_user(username, roll_number, email):
@@ -30,10 +26,10 @@ def hash_user(username, roll_number, email):
     :param email: The email address of the user.
     :return: A hexadecimal hash of the user's details.
     """
-    salt = os.urandom(32)
+    salt = urandom(32)
 
     user_details = f"{username}{roll_number}{email}{salt}"
-    user_hash = hashlib.sha256(user_details.encode()).hexdigest()
+    user_hash = sha256(user_details.encode()).hexdigest()
 
     return user_hash
 
@@ -50,7 +46,6 @@ def signup(request):
         password = userFields.get("password")
         firstName = userFields.get("first_name")
         lastName = userFields.get("last_name")
-        userType = userFields.get("user_type")
         if "document" in request.FILES:
             document = request.FILES["document"].read()
             documentHash = hashDocument(document)
@@ -64,13 +59,10 @@ def signup(request):
             and firstName
             and lastName
             and rollNumber
-            and userType
             and documentHash
         ):
             user_hash = hash_user(username, rollNumber, email)
-            verification_code = "".join(
-                random.choices(string.ascii_uppercase + string.digits, k=6)
-            )
+            verification_code = "".join(choices(ascii_uppercase + digits, k=6))
             user = User.objects.create(
                 username=username,
                 email=email,
@@ -78,7 +70,6 @@ def signup(request):
                 password=make_password(password),
                 first_name=firstName,
                 last_name=lastName,
-                userType=userType,
                 documentHash=documentHash,
                 userHash=user_hash,
                 verification_code=verification_code,
@@ -150,7 +141,6 @@ def profile(request):
         "email": user.email,
         "first_name": user.first_name,
         "last_name": user.last_name,
-        "user_type": user.userType,
     }
     if request.method == "POST":
         userFields = request.POST
