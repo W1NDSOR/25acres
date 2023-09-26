@@ -1,9 +1,10 @@
 from django.shortcuts import render
 from django.http import JsonResponse
-from twentyfiveacres.models import Property
+from twentyfiveacres.models import Property, Location
 from hashlib import sha256
 from django.contrib.auth.models import AnonymousUser
 from twentyfiveacres.models import User
+from utils.geocoder import geocode_location, reverse_geocode
 
 
 def generatePropertyHashIdentifier(
@@ -84,9 +85,16 @@ def addProperty(request):
             and bathrooms
             and area
             and status
-            and location
+            and location 
             and availableDate
         ):
+            latitude, longitude = geocode_location(location)
+            locationObject = Location.objects.create(
+                latitude = latitude,
+                longitude = longitude,
+            )
+            locationObject.save()
+            
             Property.objects.create(
                 title=title,
                 description=description,
@@ -96,7 +104,8 @@ def addProperty(request):
                 bathrooms=bathrooms,
                 area=area,
                 status=status,
-                location=location,
+                location=locationObject,
+                owner=User.objects.get(username=request.user.username),
                 availabilityDate=availableDate,
                 propertyHashIdentifier=generatePropertyHashIdentifier(
                     title,
