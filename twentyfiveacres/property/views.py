@@ -5,14 +5,17 @@ from hashlib import sha256
 from django.contrib.auth.models import AnonymousUser
 from twentyfiveacres.models import User
 from utils.geocoder import geocode_location, reverse_geocode
+<<<<<<< HEAD
 from utils.hashing import hashDocument
+=======
+from django.http import HttpResponseRedirect
+>>>>>>> dbdev
 
 
 def generatePropertyHashIdentifier(
     title,
     description,
     price,
-    propertyType,
     bedrooms,
     bathrooms,
     area,
@@ -25,7 +28,6 @@ def generatePropertyHashIdentifier(
     @param title: Title of the property
     @param description: Description of the property
     @param price: Price of the property
-    @param propertyType: Type of the property
     @param bedrooms: Number of bedrooms in the property
     @param bathrooms: Number of bathrooms in the property
     @param area: Area of the property
@@ -36,7 +38,7 @@ def generatePropertyHashIdentifier(
     """
 
     # Concatenate all the property details into one string
-    concatenated_info = f"{title}{description}{price}{propertyType}{bedrooms}{bathrooms}{area}{status}{location}{availableDate}"
+    concatenated_info = f"{title}{description}{price}{bedrooms}{bathrooms}{area}{status}{location}{availableDate}"
 
     # Create a SHA-256 hash of the concatenated string
     hash_identifier = sha256(concatenated_info.encode()).hexdigest()
@@ -57,15 +59,12 @@ def addProperty(request):
     @desc: renders a form for adding new user
     """
     if isinstance(request.user, AnonymousUser):
-        return JsonResponse(
-            {"result": "Fatal Error", "message": "Sign in as Seller first"}
-        )
+        return JsonResponse({"result": "Fatal Error", "message": "Sign in first"})
     if request.method == "POST":
         propertyFields = request.POST
         title = propertyFields.get("title")
         description = propertyFields.get("description")
         price = propertyFields.get("price")
-        propertyType = propertyFields.get("property_type")
         bedrooms = propertyFields.get("bedrooms")
         bathrooms = propertyFields.get("bathrooms")
         area = propertyFields.get("area")
@@ -86,26 +85,24 @@ def addProperty(request):
             title
             and description
             and price
-            and propertyType
             and bedrooms
             and bathrooms
             and area
             and status
-            and location 
+            and location
             and availableDate
         ):
             latitude, longitude = geocode_location(location)
             locationObject = Location.objects.create(
-                latitude = latitude,
-                longitude = longitude,
+                latitude=latitude,
+                longitude=longitude,
             )
             locationObject.save()
-            
-            Property.objects.create(
+
+            property = Property.objects.create(
                 title=title,
                 description=description,
                 price=price,
-                propertyType=propertyType,
                 bedrooms=bedrooms,
                 bathrooms=bathrooms,
                 area=area,
@@ -117,7 +114,6 @@ def addProperty(request):
                     title,
                     description,
                     price,
-                    propertyType,
                     bedrooms,
                     bathrooms,
                     area,
@@ -125,5 +121,9 @@ def addProperty(request):
                     location,
                     availableDate,
                 ),
+                currentBid=0,
+                bidder=None,
             )
+            property.save()
+            return HttpResponseRedirect("/")
     return render(request, "property/add_form.html")

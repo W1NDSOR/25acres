@@ -59,7 +59,6 @@ Property
     title
     description
     price
-    property_type
     bedrooms
     bathrooms
     area (location)
@@ -79,7 +78,6 @@ class Property(models.Model):
     title = models.CharField(max_length=255)
     description = models.TextField()
     price = models.DecimalField(max_digits=10, decimal_places=2)
-    propertyType = models.CharField(max_length=100)
     bedrooms = models.PositiveIntegerField()
     bathrooms = models.PositiveIntegerField()
     area = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
