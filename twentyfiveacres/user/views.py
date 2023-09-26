@@ -7,16 +7,6 @@ from django.contrib.auth import login
 from django.contrib.auth.models import AnonymousUser
 
 
-def userList(request):
-    """
-    @desc: displays the list of users in the database.
-    """
-
-    users = User.objects.all()
-    print(f"len = {len(users)}")
-    return render(request, "admin/user_list.html", {"users": users})
-
-
 def signup(request):
     """
     @desc: renders a form for signing up new user
@@ -80,3 +70,31 @@ def signin(request):
             except:
                 pass
     return render(request, "user/signin_form.html")
+
+
+def profile(request):
+    """
+    @desc: renders a page where signed in user can view/update their profile
+    """
+    if isinstance(request.user, AnonymousUser):
+        return HttpResponseRedirect("../../")
+    user = User.objects.get(username=request.user.username)
+    context = {
+        "username": user.username,
+        "roll_number": user.rollNumber,
+        "email": user.email,
+        "first_name": user.first_name,
+        "last_name": user.last_name,
+        "user_type": user.userType,
+    }
+    if request.method == "POST":
+        userFields = request.POST
+        firstName = userFields.get("first_name")
+        lastName = userFields.get("last_name")
+        # just a precaution, as all the fields are required
+        if firstName and lastName:
+            user.first_name = firstName
+            user.last_name = lastName
+            user.save()
+            return HttpResponseRedirect("/")
+    return render(request, "user/profile.html", context=context)

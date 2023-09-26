@@ -24,7 +24,7 @@ from django.contrib.auth.views import LogoutView
 urlpatterns = [
     path("djangoadmin/", admin.site.urls),
     path("", views.homepage, name="25acres"),
-    path("users/", include("user.urls")),
+    path("user/", include("user.urls")),
     path("properties/", include("property.urls")),
     path("contracts/", include("contract.urls")),
     re_path(
