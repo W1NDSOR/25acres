@@ -1,41 +1,244 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous" />
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+      integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN"
+      crossorigin="anonymous"
+    />
     <title>Sign up form</title>
   </head>
   <body data-bs-theme="dark">
     <center>
-      <form action="." method="POST" style="margin-top:100px; width:50%" enctype="multipart/form-data">
+      <form
+        action="."
+        method="POST"
+        style="margin-top: 100px; width: 50%"
+        enctype="multipart/form-data"
+      >
         {% csrf_token %}
         <div class="input-group mb-3">
           <div class="input-group-text">Username</div>
-          <input type="text" class="form-control" name="user_name" value="{{ username }}" required disabled />
+          <input
+            type="text"
+            class="form-control"
+            name="user_name"
+            value="{{ username }}"
+            required
+            disabled
+          />
         </div>
         <div class="input-group mb-3">
           <div class="input-group-text">IIITD roll number</div>
-          <input type="number" class="form-control" name="roll_number" value="{{ roll_number }}" required disabled />
+          <input
+            type="number"
+            class="form-control"
+            name="roll_number"
+            value="{{ roll_number }}"
+            required
+            disabled
+          />
         </div>
         <div class="input-group mb-3">
           <div class="input-group-text">Email</div>
-          <input type="text" class="form-control" name="email" value="{{ email }}" required disabled />
+          <input
+            type="text"
+            class="form-control"
+            name="email"
+            value="{{ email }}"
+            required
+            disabled
+          />
         </div>
         <div class="input-group mb-3">
           <div class="input-group-text">First name</div>
-          <input type="text" class="form-control" name="first_name" value="{{ first_name }}" required />
+          <input
+            type="text"
+            class="form-control"
+            name="first_name"
+            value="{{ first_name }}"
+            required
+          />
         </div>
         <div class="input-group mb-3">
           <div class="input-group-text">Last name</div>
-          <input type="text" class="form-control" name="last_name" value="{{ last_name }}" required />
+          <input
+            type="text"
+            class="form-control"
+            name="last_name"
+            value="{{ last_name }}"
+            required
+          />
         </div>
         <center>
-          <div class="col-6 btn-group mb-3" role="group" aria-label="button_action">
+          <div
+            class="col-6 btn-group mb-3"
+            role="group"
+            aria-label="button_action"
+          >
             <a href="../../" class="btn btn-outline-primary">Cancel</a>
-            <button type="submit" class="btn btn-primary">Save</button>
+            <button type="submit" name="action" class="btn btn-primary" value="profileDetailButton">Save</button>
           </div>
         </center>
       </form>
+
+
+      <form
+      action="."
+      method="POST"
+      style="margin-top: 100px; width: 50%"
+      enctype="multipart/form-data"
+      >
+      {% csrf_token %}
+      <h2>Your Properties</h2>
+      <!-- fields: title, description, price, propertyType, bedrooms, bathrooms, area, status, availabilityDate, location, currentBid, bidder -->
+      <section>
+        <table>
+          <tr>
+            <h3>Property 1</h3>
+            <div class="input-group mb-3">
+              <div class="input-group-text">title</div>
+              <input
+                type="text"
+                class="form-control"
+                name="title"
+                value="{{ title }}"
+                required
+              />
+            </div>
+            <div class="input-group mb-3">
+              <div class="input-group-text">description</div>
+              <input
+                type="text"
+                class="form-control"
+                name="description"
+                value="{{ description }}"
+                required
+              />
+            </div>
+            <div class="input-group mb-3">
+              <div class="input-group-text">price</div>
+              <input
+                type="number"
+                class="form-control"
+                name="price"
+                value="{{ price }}"
+                required
+              />
+            </div>
+            <div class="input-group mb-3">
+              <div class="input-group-text">propertyType</div>
+              <input
+                type="text"
+                class="form-control"
+                name="propertyType"
+                value="{{ propertyType }}"
+                required
+              />
+            </div>
+            <div class="input-group mb-3">
+              <div class="input-group-text">bedrooms</div>
+              <input
+                type="number"
+                class="form-control"
+                name="bedrooms"
+                value="{{ bedrooms }}"
+                required
+              />
+            </div>
+            <div class="input-group mb-3">
+              <div class="input-group-text">bathrooms</div>
+              <input
+                type="number"
+                class="form-control"
+                name="bathrooms"
+                value="{{ bathrooms }}"
+                required
+              />
+            </div>
+            <div class="input-group mb-3">
+              <div class="input-group-text">area</div>
+              <input
+                type="number"
+                class="form-control"
+                name="area"
+                value="{{ area }}"
+                required
+              />
+            </div>
+            <div class="input-group mb-3">
+              <div class="input-group-text">status</div>
+              <input
+                type="text"
+                class="form-control"
+                name="status"
+                value="{{ status }}"
+                required
+              />
+            </div>
+            <div class="input-group mb-3">
+              <div class="input-group-text">availabilityDate</div>
+              <input
+                type="date"
+                class="form-control"
+                name="availabilityDate"
+                value="{{ availabilityDate }}"
+                required
+                disabled
+              />
+            </div>
+            <div class="input-group mb-3">
+              <div class="input-group-text">location_id</div>
+              <input
+                type="text"
+                class="form-control"
+                name="location_id"
+                value="{{ location_id }}"
+                required
+                disabled
+              />
+            </div>
+            <div class="input-group mb-3">
+              <div class="input-group-text">bidder</div>
+              <input
+                type="number"
+                class="form-control"
+                name="bidder_id"
+                value="{{ bidder_id }}"
+                required
+                disabled
+              />
+            </div>
+            <div class="input-group mb-3">
+              <div class="input-group-text">currentBid</div>
+              <input
+                type="text"
+                class="form-control"
+                name="currentBid"
+                value="{{ currentBid }}"
+                required
+                disabled
+              />
+            </div>
+
+            <button type="submit" name="action" class="btn btn-primary" value="deleteProperty">Delete (dont use if only one entry)</button><br><br>
+          </tr>
+        </table>
+        <div
+            class="col-6 btn-group mb-3"
+            role="group"
+            aria-label="button_action"
+          >
+            <a href="../../" class="btn btn-outline-primary">Cancel</a>
+            <button type="submit" name="action" class="btn btn-primary" value="propertyDetailButton">Save</button>
+          </div>
+      </section>
     </center>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL" crossorigin="anonymous"></script>
+    <script
+      src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"
+      integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL"
+      crossorigin="anonymous"
+    ></script>
   </body>
 </html>

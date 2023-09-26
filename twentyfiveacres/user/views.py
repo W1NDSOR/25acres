@@ -4,7 +4,7 @@ from django.core.mail import send_mail
 from random import choices
 from string import ascii_uppercase, digits
 from django.shortcuts import render
-from twentyfiveacres.models import User
+from twentyfiveacres.models import User, Property
 from utils.hashing import hashDocument
 from django.http import HttpResponseRedirect
 from django.contrib.auth.hashers import make_password
@@ -135,21 +135,83 @@ def profile(request):
     if isinstance(request.user, AnonymousUser):
         return HttpResponseRedirect("../../")
     user = User.objects.get(username=request.user.username)
+    properties = []
+    for property in Property.objects.all():
+        if property.owner == user:
+            properties.append(property)
+    property = properties[0]
+    print("property: ", property)
+
+    # print("user: ", user)
+    # print("property: ", property)
     context = {
         "username": user.username,
         "roll_number": user.rollNumber,
         "email": user.email,
         "first_name": user.first_name,
         "last_name": user.last_name,
+
+        "property_id": property.propertyId,
+        "title": property.title,
+        "description": property.description,
+        "price": property.price,
+        "propertyType": property.propertyType,
+        "bedrooms": property.bedrooms,
+        "bathrooms": property.bathrooms,
+        "area": property.area,
+        "status": property.status,
+        "availabilityDate": property.availabilityDate,
+       "propertyHashIdentifier": property.propertyHashIdentifier,
+        "location_id": property.location_id,
+        "bidder_id": property.bidder_id,
+        "currentBid": property.currentBid,
     }
+    
     if request.method == "POST":
-        userFields = request.POST
-        firstName = userFields.get("first_name")
-        lastName = userFields.get("last_name")
-        # just a precaution, as all the fields are required
-        if firstName and lastName:
-            user.first_name = firstName
-            user.last_name = lastName
-            user.save()
+        if 'action' in request.POST:
+            button_value = request.POST['action']
+
+        if button_value == 'profileDetailButton':
+            userFields = request.POST
+            firstName = userFields.get("first_name")
+            lastName = userFields.get("last_name")
+            # just a precaution, as all the fields are required
+            if firstName and lastName:
+                user.first_name = firstName
+                user.last_name = lastName
+                user.save()
+                return HttpResponseRedirect("/")
+            
+        elif button_value == 'propertyDetailButton':
+            propertyFields = request.POST
+            title = propertyFields.get("title")
+            description = propertyFields.get("description")
+            price = propertyFields.get("price")
+            propertyType = propertyFields.get("propertyType")
+            bedrooms = propertyFields.get("bedrooms")
+            bathrooms = propertyFields.get("bathrooms")
+            area = propertyFields.get("area")
+            status = propertyFields.get("status")
+            # availabilityDate = propertyFields.get("availability_date")
+            # location_id = propertyFields.get("location_id")
+            # bidder_id = propertyFields.get("bidder_id")
+            # currentBid = propertyFields.get("current_bid")
+            
+            # if title and description and price and propertyType and bedrooms and bathrooms and area and status:
+            property.title = title
+            property.description = description
+            property.price = price
+            property.propertyType = propertyType
+            property.bedrooms = bedrooms
+            property.bathrooms = bathrooms
+            property.area = area
+            property.status = status
+            property.save()
+        
             return HttpResponseRedirect("/")
+        
+        elif button_value == 'deleteProperty':
+            property.delete()
+            return HttpResponseRedirect("/")
+        
     return render(request, "user/profile.html", context=context)
