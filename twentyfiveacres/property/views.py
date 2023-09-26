@@ -1,3 +1,6 @@
+from django.core.mail import send_mail
+import random
+import string
 from django.shortcuts import render
 from twentyfiveacres.models import Property
 import hashlib
