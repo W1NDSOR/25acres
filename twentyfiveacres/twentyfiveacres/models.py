@@ -103,7 +103,7 @@ class Property(models.Model):
     )
     availabilityDate = models.DateField()
     location = models.ForeignKey(Location, on_delete=models.CASCADE)
-    propertyHashIdentifier = models.CharField(max_length=64, null=False, blank =False)
+    propertyHashIdentifier = models.CharField(max_length=64, null=False, blank=False)
 
 
 """

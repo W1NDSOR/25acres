@@ -1,4 +1,5 @@
 import ssl
+
 ssl._create_default_https_context = ssl._create_unverified_context
 from django.urls import reverse
 from django.core.mail import send_mail
@@ -13,11 +14,12 @@ from django.contrib.auth.hashers import make_password
 from django.contrib.auth import login
 from django.contrib.auth.models import AnonymousUser
 
-EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
 
 
 import hashlib
 import os
+
 
 def hash_user(username, roll_number, email):
     """
@@ -29,22 +31,11 @@ def hash_user(username, roll_number, email):
     :return: A hexadecimal hash of the user's details.
     """
     salt = os.urandom(32)
-    
+
     user_details = f"{username}{roll_number}{email}{salt}"
     user_hash = hashlib.sha256(user_details.encode()).hexdigest()
-    
+
     return user_hash
-
-
-
-def userList(request):
-    """
-    @desc: displays the list of users in the database.
-    """
-
-    users = User.objects.all()
-    print(f"len = {len(users)}")
-    return render(request, "admin/user_list.html", {"users": users})
 
 
 def signup(request):
@@ -77,6 +68,9 @@ def signup(request):
             and documentHash
         ):
             user_hash = hash_user(username, rollNumber, email)
+            verification_code = "".join(
+                random.choices(string.ascii_uppercase + string.digits, k=6)
+            )
             user = User.objects.create(
                 username=username,
                 email=email,
@@ -86,22 +80,22 @@ def signup(request):
                 last_name=lastName,
                 userType=userType,
                 documentHash=documentHash,
-                user_hash=user_hash,
+                userHash=user_hash,
+                verification_code=verification_code,
             )
             user.save()
-            verification_code = ''.join(random.choices(string.ascii_uppercase + string.digits, k=6))
-            user.verification_code = verification_code
             send_mail(
-                'Email Verification Code',
-                f'Your verification code is {verification_code}',
-                'settings.EMAIL_HOST_USER',
+                "Email Verification Code",
+                f"Your verification code is {verification_code}",
+                "settings.EMAIL_HOST_USER",
                 [email],
                 fail_silently=False,
             )
             # Redirect to the verification page
             return HttpResponseRedirect(reverse("verify_email"))
-            
+
     return render(request, "user/signup_form.html")
+
 
 def verify_email(request):
     if request.method == "POST":
@@ -114,8 +108,13 @@ def verify_email(request):
             return HttpResponseRedirect("../signin")
         except User.DoesNotExist:
             # Handle the case where the user does not exist or the code is incorrect
-            return render(request,  "user/verify_email.html", {"error": "Invalid code or roll number"})
-    return render(request,  "user/verify_email.html")
+            return render(
+                request,
+                "user/verify_email.html",
+                {"error": "Invalid code or roll number"},
+            )
+    return render(request, "user/verify_email.html")
+
 
 def signin(request):
     """
