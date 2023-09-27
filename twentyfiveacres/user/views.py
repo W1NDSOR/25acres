@@ -128,6 +128,8 @@ def signin(request):
     return render(request, "user/signin_form.html")
 
 
+
+
 def profile(request):
     """
     @desc: renders a page where signed in user can view/update their profile
@@ -165,8 +167,24 @@ def profile(request):
         "bidder_id": property.bidder_id,
         "currentBid": property.currentBid,
     }
-    
+        
     if request.method == "POST":
+
+        if 'action' in request.POST:
+            button_value = request.POST['action']
+        
+        if button_value == 'profileDetailButton':
+            # ...handle profile detail updates...
+            pass
+        
+        elif button_value == 'propertyDetailButton':
+            # ...handle property detail updates...
+            pass
+        
+        elif button_value == 'sellProperty':
+            # Redirect to transaction_page.html
+            return render(request, '../transaction/templates/transaction1.html')
+        
         if 'action' in request.POST:
             button_value = request.POST['action']
 

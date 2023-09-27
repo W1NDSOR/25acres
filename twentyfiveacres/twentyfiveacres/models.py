@@ -97,6 +97,14 @@ class Property(models.Model):
     bidder = models.ForeignKey(
         User, related_name="current_bidder", on_delete=models.CASCADE, null=True
     )
+    TRANSACTION_STATUS_CHOICES = [
+        ('not_started', 'Not Started'),
+        ('initiated_by_seller', 'Initiated by Seller'),
+        ('initiated_by_buyer', 'Initiated by Buyer'),
+        ('completed', 'Completed'),
+    ]
+    
+    transaction_status = models.CharField(max_length=20, choices=TRANSACTION_STATUS_CHOICES, default='not_started')
 
 
 """
