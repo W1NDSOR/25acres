@@ -67,3 +67,16 @@ def main():
 
 if __name__ == '__main__':
     main()
+
+from django.db import models
+from django.contrib.auth.models import User
+# ... (other imports)
+
+class Property(models.Model):
+    # ... (other fields)
+    currentBid = models.DecimalField(max_digits=10, decimal_places=2, null=True)
+    bidder = models.ForeignKey(
+        User, related_name="current_bidder", on_delete=models.CASCADE, null=True
+    )
+
+    # ... (other methods if any)

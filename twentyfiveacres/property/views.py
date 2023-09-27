@@ -42,13 +42,14 @@ def generatePropertyHashIdentifier(
 
     return hash_identifier
 
-
 def propertyList(request):
     """
     @desc: displays the list of properties in the database
     """
     properties = Property.objects.all()
-    return render(request, "property/property_list.html", {"properties": properties})
+    bid_success = request.GET.get('bid_success') == 'True'
+    bid_error = request.GET.get('bid_error') == 'True'
+    return render(request, "property/property_list.html", {"properties": properties, "bid_success": bid_success, "bid_error": bid_error})
 
 
 def addProperty(request):
@@ -124,3 +125,27 @@ def addProperty(request):
             property.save()
             return HttpResponseRedirect("/")
     return render(request, "property/add_form.html")
+
+
+from django.shortcuts import get_object_or_404
+from django.http import HttpResponseRedirect
+from django.urls import reverse
+from django.contrib.auth.decorators import login_required
+from django.views.decorators.http import require_POST
+from twentyfiveacres.models import Property
+@login_required
+@require_POST
+def add_bid(request, property_title):
+    property = get_object_or_404(Property, title=property_title)
+    user = request.user
+    bid_amount = request.POST.get("bid_amount")
+
+    if bid_amount and float(bid_amount) > property.currentBid:
+        property.currentBid = float(bid_amount)
+        property.bidder = user
+        property.save()
+        # Redirect to the property list page with a success message
+        return HttpResponseRedirect(reverse('property_list') + "?bid_success=True")
+    else:
+        # Redirect to the property list page with an error message
+        return HttpResponseRedirect(reverse('property_list') + "?bid_error=True")
