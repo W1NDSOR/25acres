@@ -1,17 +1,17 @@
 import ssl
-from django.urls import reverse
-from django.core.mail import send_mail
-from random import choices
 from string import ascii_uppercase, digits
-from django.shortcuts import render
-from twentyfiveacres.models import User, Property, Transaction
-from utils.hashing import hashDocument
-from django.http import HttpResponseRedirect
-from django.contrib.auth.hashers import make_password
-from django.contrib.auth import login
-from django.contrib.auth.models import AnonymousUser
+from random import choices
 from os import urandom
 from hashlib import sha256
+from django.urls import reverse
+from django.core.mail import send_mail
+from django.shortcuts import render
+from django.http import HttpResponseRedirect
+from django.contrib.auth import login
+from django.contrib.auth.hashers import make_password
+from django.contrib.auth.models import AnonymousUser
+from twentyfiveacres.models import User, Property
+from utils.hashing import hashDocument
 
 ssl._create_default_https_context = ssl._create_unverified_context
 EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
@@ -20,10 +20,6 @@ EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
 def hash_user(username, roll_number, email):
     """
     Create a hash from the user's details.
-
-    :param username: The username of the user.
-    :param roll_number: The roll number of the user.
-    :param email: The email address of the user.
     :return: A hexadecimal hash of the user's details.
     """
     salt = urandom(32)
@@ -40,49 +36,36 @@ def signup(request):
     """
     if request.method == "POST":
         userFields = request.POST
-        username = userFields.get("user_name")
-        rollNumber = userFields.get("roll_number")
-        email = userFields.get("email")
-        password = userFields.get("password")
-        firstName = userFields.get("first_name")
-        lastName = userFields.get("last_name")
+        field_names = ["user_name", "roll_number", "email", "password", "first_name", "last_name"]
+        field_values = {}
+        for field_name in field_names:
+            field_values[field_name] = userFields.get(field_name)
+        username = field_values.get("user_name")
+        rollNumber = field_values.get("roll_number")
+        email = field_values.get("email")
+        password = field_values.get("password")
+        firstName = field_values.get("first_name")
+        lastName = field_values.get("last_name")
+
         if "document" in request.FILES:
             document = request.FILES["document"].read()
             documentHash = hashDocument(document)
         else:
             documentHash = None
-        # just a precaution, as all the fields are required
-        if (
-            username
-            and email
-            and password
-            and firstName
-            and lastName
-            and rollNumber
-            and documentHash
-        ):
+        if ( username and email and password and firstName and lastName and rollNumber and documentHash):
             user_hash = hash_user(username, rollNumber, email)
             verification_code = "".join(choices(ascii_uppercase + digits, k=6))
-            user = User.objects.create(
-                username=username,
-                email=email,
-                rollNumber=rollNumber,
-                password=make_password(password),
-                first_name=firstName,
-                last_name=lastName,
-                documentHash=documentHash,
-                userHash=user_hash,
-                verification_code=verification_code,
-            )
+            user = User.objects.create(username=username, email=email, rollNumber=rollNumber, password=make_password(password), first_name=firstName, last_name=lastName, documentHash=documentHash, userHash=user_hash, verification_code=verification_code,)
             user.save()
             send_mail(
                 "Email Verification Code",
+                "Welcome to 25 Acres",
                 f"Your verification code is {verification_code}",
                 "settings.EMAIL_HOST_USER",
                 [email],
                 fail_silently=False,
             )
-            # Redirect to the verification page
+            
             return HttpResponseRedirect(reverse("verify_email"))
 
     return render(request, "user/signup_form.html")
@@ -94,11 +77,10 @@ def verify_email(request):
         rollNumber = request.POST.get("roll_number")
         try:
             user = User.objects.get(rollNumber=rollNumber, verification_code=code)
-            user.verification_code = None  # Clear the verification code
+            user.verification_code = None
             user.save()
             return HttpResponseRedirect("../signin")
         except User.DoesNotExist:
-            # Handle the case where the user does not exist or the code is incorrect
             return render(
                 request,
                 "user/verify_email.html",
@@ -115,7 +97,6 @@ def signin(request):
         userFields = request.POST
         rollNumber = userFields.get("roll_number")
         password = userFields.get("password")
-        # just a precaution, as all the fields are required
         if rollNumber and password:
             try:
                 user = User.objects.get(rollNumber=rollNumber)
@@ -128,59 +109,27 @@ def signin(request):
     return render(request, "user/signin_form.html")
 
 
-
-
 def profile(request):
     """
     @desc: renders a page where signed in user can view/update their profile
     """
+
     if isinstance(request.user, AnonymousUser):
         return HttpResponseRedirect("../../")
+    
     user = User.objects.get(username=request.user.username)
+    
     properties = []
     for property in Property.objects.all():
         if property.owner == user:
             properties.append(property)
+    
     property = properties[0]
     print("property: ", property)
 
-    # print("user: ", user)
-    # print("property: ", property)
-    context = {
-        "username": user.username,
-        "roll_number": user.rollNumber,
-        "email": user.email,
-        "first_name": user.first_name,
-        "last_name": user.last_name,
-
-        "property_id": property.propertyId,
-        "title": property.title,
-        "description": property.description,
-        "price": property.price,
-        "bedrooms": property.bedrooms,
-        "bathrooms": property.bathrooms,
-        "area": property.area,
-        "status": property.status,
-        "availabilityDate": property.availabilityDate,
-       "propertyHashIdentifier": property.propertyHashIdentifier,
-        "location_id": property.location_id,
-        "bidder_id": property.bidder_id,
-        "currentBid": property.currentBid,
-    }
+    context = { "username": user.username, "roll_number": user.rollNumber, "email": user.email, "first_name": user.first_name, "last_name": user.last_name, "property_id": property.propertyId, "title": property.title, "description": property.description, "price": property.price, "bedrooms": property.bedrooms, "bathrooms": property.bathrooms, "area": property.area, "status": property.status, "availabilityDate": property.availabilityDate, "propertyHashIdentifier": property.propertyHashIdentifier, "location_id": property.location_id, "bidder_id": property.bidder_id, "currentBid": property.currentBid,}
         
     if request.method == "POST":
-
-        if 'action' in request.POST:
-            button_value = request.POST['action']
-        
-        if button_value == 'profileDetailButton':
-            # ...handle profile detail updates...
-            pass
-        
-        elif button_value == 'propertyDetailButton':
-            # ...handle property detail updates...
-            pass
-        
         
         if 'action' in request.POST:
             button_value = request.POST['action']
@@ -189,7 +138,6 @@ def profile(request):
             userFields = request.POST
             firstName = userFields.get("first_name")
             lastName = userFields.get("last_name")
-            # just a precaution, as all the fields are required
             if firstName and lastName:
                 user.first_name = firstName
                 user.last_name = lastName
@@ -205,12 +153,7 @@ def profile(request):
             bathrooms = propertyFields.get("bathrooms")
             area = propertyFields.get("area")
             status = propertyFields.get("status")
-            # availabilityDate = propertyFields.get("availability_date")
-            # location_id = propertyFields.get("location_id")
-            # bidder_id = propertyFields.get("bidder_id")
-            # currentBid = propertyFields.get("current_bid")
             
-            # if title and description and price and bedrooms and bathrooms and area and status:
             property.title = title
             property.description = description
             property.price = price
@@ -223,13 +166,12 @@ def profile(request):
             return HttpResponseRedirect("/")
         
         elif button_value == 'deleteProperty':
-            property.delete()
+            if (len(properties) > 1):
+                property.delete()
             return HttpResponseRedirect("/")
         
         elif button_value == 'sellProperty':
-            # Redirect to transaction_page.html
             print("Property sold")
             return render("transaction/transaction1.html")
-            
 
     return render(request, "user/profile.html", context=context)

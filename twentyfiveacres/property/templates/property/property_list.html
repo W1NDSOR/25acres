@@ -139,7 +139,7 @@
               <p>
                 <strong>Available Date:</strong> {{ property.available_date }}
               </p>
-              <form method="POST" action="{% url 'add_bid' property.title %}">
+              <form method="POST" action="{% url 'addBid' property.title %}">
                 <div class="mb-3">
                   <input
                     type="number"

@@ -1,6 +1,6 @@
+from django.contrib.auth.models import AnonymousUser
 from django.shortcuts import render
 from twentyfiveacres.models import User
-from django.contrib.auth.models import AnonymousUser
 
 
 def homepage(request):
@@ -11,6 +11,5 @@ def homepage(request):
         return render(request, "homepage_signup.html")
     else:
         user = User.objects.get(username=request.user.username)
-        print(f"rollnumber: {user.rollNumber}")
         context = {"username": user.username}
         return render(request, "homepage_signout.html", context=context)

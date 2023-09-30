@@ -1,32 +1,31 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
 
-# Contains main entities in the project.
 
-"""
-User
-    @default_django_fields
-    id 
-    password
-    last_login
-    is_superuser
-    username
-    last_name
-    email
-    is_staff
-    is_active
-    date_joined
-    first_name
-    user_hash
-    
-    @custom_user_fields
-    roll_number
-    document_hash
-    user_hash
-"""
-
-
+# User Model
 class User(AbstractUser):
+    """
+    User
+        @default_django_fields
+        id 
+        password
+        last_login
+        is_superuser
+        username
+        last_name
+        email
+        is_staff
+        is_active
+        date_joined
+        first_name
+        user_hash
+        
+        @custom_user_fields
+        roll_number
+        document_hash
+        user_hash
+    """
+
     rollNumber = models.IntegerField(unique=True)
     verification_code = models.CharField(max_length=6, null=True, blank=True)
     documentHash = models.CharField(max_length=64, null=True, blank=True)
@@ -37,40 +36,37 @@ class User(AbstractUser):
         return self.username
 
 
-"""
-Location
-    location_id
-    longitude coordinate
-    latitude coordinate
-"""
-
-
 # Location Model
 class Location(models.Model):
+    """
+    Location
+        location_id
+        longitude coordinate
+        latitude coordinate
+    """
+
     locationId = models.AutoField(primary_key=True)
     longitude = models.DecimalField(max_digits=10, decimal_places=6, null=True)
     latitude = models.DecimalField(max_digits=10, decimal_places=6, null=True)
 
 
-"""
-Property
-    property_id
-    owner
-    title
-    description
-    price
-    bedrooms
-    bathrooms
-    area (location)
-    status (available, sold)
-    availability_date
-    current_bid
-    bidder
-"""
-
-
 # Property Model
 class Property(models.Model):
+    """
+    Property
+        property_id
+        owner
+        title
+        description
+        price
+        bedrooms
+        bathrooms
+        area (location)
+        status (available, sold)
+        availability_date
+        current_bid
+        bidder
+    """
     propertyId = models.AutoField(primary_key=True)
     owner = models.ForeignKey(
         User, related_name="owner", on_delete=models.CASCADE, null=False, blank=False
@@ -107,21 +103,20 @@ class Property(models.Model):
     transaction_status = models.CharField(max_length=20, choices=TRANSACTION_STATUS_CHOICES, default='not_started')
 
 
-"""
-Transactions
-    transaction_id
-    property_id
-    buyer_id
-    seller_id
-    transaction_date
-    amount
-    uploaded_document_hash
-    transaction_hash_validation
-"""
-
-
 # Transaction Model
 class Transaction(models.Model):
+    """
+    Transactions
+        transaction_id
+        property_id
+        buyer_id
+        seller_id
+        transaction_date
+        amount
+        uploaded_document_hash
+        transaction_hash_validation
+    """
+
     transactionId = models.AutoField(primary_key=True)
     property = models.ForeignKey(Property, on_delete=models.CASCADE)
     buyer = models.ForeignKey(
@@ -143,17 +138,17 @@ class Transaction(models.Model):
     amount = models.DecimalField(max_digits=10, decimal_places=2)
 
 
-"""
-Image
-    image_id
-    property_id
-    user_id
-    image_url
-"""
-
-
 # Image Model
 class Image(models.Model):
+
+    """
+    Image
+        image_id
+        property_id
+        user_id
+        image_url
+    """
+
     imageId = models.AutoField(primary_key=True)
     property = models.ForeignKey(Property, on_delete=models.CASCADE)
     user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
@@ -162,21 +157,20 @@ class Image(models.Model):
     updatedAt = models.DateTimeField(auto_now=True)
 
 
-"""
-Contracts
-    contract_id
-    property_id
-    seller_id
-    buyer_id
-    contract_text
-    contract_hash
-    contract_address (blockchain address)
-    created_at
-"""
-
-
 # Contract Model
 class Contract(models.Model):
+    """
+    Contracts
+        contract_id
+        property_id
+        seller_id
+        buyer_id
+        contract_text
+        contract_hash
+        contract_address (blockchain address)
+        created_at
+    """
+
     contractId = models.AutoField(primary_key=True)
     property = models.ForeignKey(Property, on_delete=models.CASCADE)
     seller = models.ForeignKey(
