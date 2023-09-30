@@ -5,6 +5,12 @@ from django.http import JsonResponse, HttpResponseRedirect
 from twentyfiveacres.models import User, Property, Location
 from utils.geocoder import geocode_location
 from utils.hashing import hashDocument
+from django.shortcuts import get_object_or_404
+from django.http import HttpResponseRedirect
+from django.urls import reverse
+from django.contrib.auth.decorators import login_required
+from django.views.decorators.http import require_POST
+from twentyfiveacres.models import Property
 
 
 def generatePropertyHashIdentifier(
@@ -44,7 +50,69 @@ def propertyList(request):
     """
     @desc: displays the list of properties in the database
     """
+
     properties = Property.objects.all()
+
+    '''
+    Buttons:
+    Type:
+    - For Sale
+    - For Rent
+    - Sold
+    - Rented
+    Budget:
+    - Between 1 to 1000
+    - Between 1001 to 5000
+    - Between 5001 to 10000
+    Location Area:
+    - Between 1 to 100 acres
+    - Between 101 to 500 acres
+    - Between 501 to 1000 acres
+    Amenities:
+    - Bedrooms (entry field)
+    - Bathrooms (entry field)
+    AvailabilityDates:
+    - From <field> to <field>
+
+    '''
+
+    selected_type = request.GET.get("type")
+    if selected_type:
+        properties = properties.filter(status=selected_type)
+
+    selected_budget = request.GET.get("budget")
+    if selected_budget:
+        if selected_budget == "Between 1 to 1000":
+            selected_budget = "1-1000"
+        elif selected_budget == "Between 1001 to 5000":
+            selected_budget = "1001-5000"
+        elif selected_budget == "Between 5001 to 10000":
+            selected_budget = "5001-10000"
+        selected_budget = selected_budget.split("-")
+        properties = properties.filter(price__gte=selected_budget[0], price__lte=selected_budget[1])
+
+    selected_location_area = request.GET.get("location_area")
+    if selected_location_area:
+        if selected_location_area == "Between 1 to 100 acres":
+            selected_location_area = "1-100"
+        elif selected_location_area == "Between 101 to 500 acres":
+            selected_location_area = "101-500"
+        elif selected_location_area == "Between 501 to 1000 acres":
+            selected_location_area = "501-1000"
+        selected_location_area = selected_location_area.split("-")
+        properties = properties.filter(area__gte=selected_location_area[0], area__lte=selected_location_area[1])
+
+    selected_availability_date = request.GET.get("availability_date")
+    if selected_availability_date:
+        if selected_availability_date == "24hours":
+            selected_availability_date = "2023-09-29/2023-09-30"
+        elif selected_availability_date == "7days":
+            selected_availability_date = "2021-04-01/2021-04-08"
+        selected_availability_date = selected_availability_date.split("/")
+        properties = properties.filter(availabilityDate__gte=selected_availability_date[0], availabilityDate__lte=selected_availability_date[1])
+
+    # -----------------------------------------------------------------------
+
     bid_success = request.GET.get('bid_success') == 'True'
     bid_error = request.GET.get('bid_error') == 'True'
     return render(request, "property/property_list.html", {"properties": properties, "bid_success": bid_success, "bid_error": bid_error})
@@ -125,12 +193,7 @@ def addProperty(request):
     return render(request, "property/add_form.html")
 
 
-from django.shortcuts import get_object_or_404
-from django.http import HttpResponseRedirect
-from django.urls import reverse
-from django.contrib.auth.decorators import login_required
-from django.views.decorators.http import require_POST
-from twentyfiveacres.models import Property
+
 @login_required
 @require_POST
 def add_bid(request, property_title):
