@@ -6,5 +6,8 @@ urlpatterns = [
     path("signin/", views.signin, name="sign_in"),
     path("profile/", views.profile, name="profile"),
     path("verify_email/", views.verify_email, name="verify_email"),
-    
+    path(
+        "delete_property/<int:propertyId>/", views.deleteProperty, name="delete_property"
+    ),
+    path("sell_property/<int:propertyId>/", views.sellProperty, name="sell_property"),
 ]
