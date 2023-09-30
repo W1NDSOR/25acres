@@ -6,7 +6,7 @@ from hashlib import sha256
 from django.urls import reverse
 from django.core.mail import send_mail
 from django.shortcuts import render
-from django.http import HttpResponseRedirect
+from django.http import HttpResponseRedirect, JsonResponse
 from django.contrib.auth import login
 from django.contrib.auth.hashers import make_password
 from django.contrib.auth.models import AnonymousUser
@@ -28,6 +28,17 @@ def hash_user(username, roll_number, email):
     user_hash = sha256(user_details.encode()).hexdigest()
 
     return user_hash
+
+def check_document(request):
+
+    document = request.FILES["document"].read()
+    documentHash = hashDocument(document)
+    if documentHash == User.objects.get(username=request.user.username).documentHash:
+        pass
+    else:
+        return JsonResponse(
+            {"result": "Fatal Error", "message": "Document hash does not match"}
+        )
 
 
 def signup(request):
@@ -171,7 +182,13 @@ def profile(request):
             return HttpResponseRedirect("/")
         
         elif button_value == 'sellProperty':
-            print("Property sold")
+            if "document" in request.FILES:
+                check_document(request)
+            else:
+                print("Upload document")
+                return HttpResponseRedirect("/")
+            
+            property.status = "Sold"
             return render("transaction/transaction1.html")
 
     return render(request, "user/profile.html", context=context)
