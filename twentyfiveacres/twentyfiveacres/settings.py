@@ -34,9 +34,10 @@ ALLOWED_HOSTS = ["*"]
 INSTALLED_APPS = [
     "contract",
     "location",
+    "property",
+    "transaction",
     "twentyfiveacres",
     "user",
-    "property",
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",

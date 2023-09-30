@@ -4,7 +4,7 @@ from django.core.mail import send_mail
 from random import choices
 from string import ascii_uppercase, digits
 from django.shortcuts import render
-from twentyfiveacres.models import User, Property
+from twentyfiveacres.models import User, Property, Transaction
 from utils.hashing import hashDocument
 from django.http import HttpResponseRedirect
 from django.contrib.auth.hashers import make_password
@@ -181,9 +181,6 @@ def profile(request):
             # ...handle property detail updates...
             pass
         
-        elif button_value == 'sellProperty':
-            # Redirect to transaction_page.html
-            return render(request, '../transaction/templates/transaction1.html')
         
         if 'action' in request.POST:
             button_value = request.POST['action']
@@ -229,4 +226,10 @@ def profile(request):
             property.delete()
             return HttpResponseRedirect("/")
         
+        elif button_value == 'sellProperty':
+            # Redirect to transaction_page.html
+            print("Property sold")
+            return render("transaction/transaction1.html")
+            
+
     return render(request, "user/profile.html", context=context)

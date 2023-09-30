@@ -1,12 +1,10 @@
-from django.shortcuts import render
-from django.http import JsonResponse
-from twentyfiveacres.models import Property, Location
 from hashlib import sha256
 from django.contrib.auth.models import AnonymousUser
-from twentyfiveacres.models import User
-from utils.geocoder import geocode_location, reverse_geocode
+from django.shortcuts import render
+from django.http import JsonResponse, HttpResponseRedirect
+from twentyfiveacres.models import User, Property, Location
+from utils.geocoder import geocode_location
 from utils.hashing import hashDocument
-from django.http import HttpResponseRedirect
 
 
 def generatePropertyHashIdentifier(
