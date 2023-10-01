@@ -1,34 +1,21 @@
 import ssl
 from string import ascii_uppercase, digits
 from random import choices
-from os import urandom
-from hashlib import sha256
 from django.urls import reverse
 from django.core.mail import send_mail
 from django.shortcuts import render
-from django.http import HttpResponseRedirect, JsonResponse, HttpResponse
+from django.http import HttpResponseRedirect, JsonResponse
 from django.contrib.auth import login
 from django.contrib.auth.hashers import make_password
 from django.contrib.auth.models import AnonymousUser
 from twentyfiveacres.models import User, Property, Contract
 from utils.hashing import hashDocument
 from django.core.exceptions import ObjectDoesNotExist
+from django.utils.timezone import now as timezoneNow
+from django.db.models import Q
 
 ssl._create_default_https_context = ssl._create_unverified_context
 EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
-
-
-def hash_user(username, roll_number, email):
-    """
-    Create a hash from the user's details.
-    :return: A hexadecimal hash of the user's details.
-    """
-    salt = urandom(32)
-
-    user_details = f"{username}{roll_number}{email}{salt}"
-    user_hash = sha256(user_details.encode()).hexdigest()
-
-    return user_hash
 
 
 def check_document(request):
@@ -80,7 +67,7 @@ def signup(request):
             and rollNumber
             and documentHash
         ):
-            user_hash = hash_user(username, rollNumber, email)
+            userHash = hashDocument(f"{username}.{rollNumber}.{email}")
             verification_code = "".join(choices(ascii_uppercase + digits, k=6))
             user = User.objects.create(
                 username=username,
@@ -90,7 +77,7 @@ def signup(request):
                 first_name=firstName,
                 last_name=lastName,
                 documentHash=documentHash,
-                userHash=user_hash,
+                userHash=userHash,
                 verification_code=verification_code,
             )
             user.save()
@@ -154,7 +141,9 @@ def profile(request):
         return HttpResponseRedirect("../../")
     user = User.objects.get(username=request.user.username)
 
-    properties = Property.objects.filter(owner=user)
+    properties = Property.objects.filter(
+        owner=user, status__in=["for_sell", "For Sell", "for_rent", "For Rent"]
+    )
     contracts = []
     for property in properties:
         try:
@@ -162,13 +151,19 @@ def profile(request):
         except ObjectDoesNotExist:
             contracts.append(None)
 
-    propertyBidings = Property.objects.filter(bidder=user)
+    propertyBidings = Property.objects.filter(
+        bidder=user, status__in=["for_sell", "For Sell", "for_rent", "For Rent"]
+    )
     propertyBidingsContracts = []
     for property in propertyBidings:
         try:
             propertyBidingsContracts.append(Contract.objects.get(property=property))
         except ObjectDoesNotExist:
             propertyBidingsContracts.append(None)
+
+    pastProperties = Property.objects.filter(
+        Q(owner=user) | Q(bidder=user), status__in=["Sold", "Rented"]
+    )
 
     context = {
         "username": user.username,
@@ -180,6 +175,7 @@ def profile(request):
         "contracts": contracts,
         "propertyBindings": propertyBidings,
         "propertyBidingsContracts": propertyBidingsContracts,
+        "pastProperties": pastProperties,
     }
 
     if request.method == "POST":
@@ -285,17 +281,19 @@ def handleContract(request, propertyId):
         and contract.verifiedBySeller
         and property.bidder == user
     ):
-        # contract.verifiedByBuyer = True
-        # update contract
-        # verify contract by buyer
-        # verify contract by portal
-        # update property
-        # proceed to payment gateway
-        # redirect to profiles
-        # notify both parties
-        return JsonResponse(
-            {"result": "Yahoo", "message": "Contract verified from your end"}
+        contract.verifiedByBuyer = True
+        contract.contractHash = hashDocument(
+            f"{property.owner.userHash}.{property.bidder.userHash}.{property.propertyHashIdentifier}"
         )
+        contract.verifiedByPortal = True
+        contract.updatedAt = timezoneNow()
+        contract.save()
+        if property.status in ("for_sell", "For Sell"):
+            property.status = "Sold"
+        elif property.status in ("for_rent", "For Rent"):
+            property.status = "Rented"
+        property.save()
+        return HttpResponseRedirect("/user/profile")
 
     return JsonResponse(
         {"result": "Trespassing", "message": "Wandering into unbeknownst valleys"}
