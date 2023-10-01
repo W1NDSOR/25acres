@@ -5,25 +5,8 @@
     <title>Property Listing</title>
   </head>
   <body data-bs-theme="dark" style="margin: 20px">
-    <!--        Type:
-          - For Sale
-          - For Rent
-          - Sold
-          - Rented
-          Budget:
-          - Between 1 to 1000
-          - Between 1001 to 5000
-          - Between 5001 to 10000
-          Location Area:
-          - Between 1 to 100 acres
-          - Between 101 to 500 acres
-          - Between 501 to 1000 acres
-          Amenities:
-          - Bedrooms (entry field)
-          - Bathrooms (entry field)
-          AvailabilityDates:
-          - From <field> to <field>          -->
     <center>
+      {# filter options #}
       <form method="GET" action="">
         <div class="btn-group" role="group" aria-label="Button group with nested dropdown">
           <div class="btn-group" role="group">
@@ -84,6 +67,7 @@
           </div>
         </div>
       </form>
+      {# Properties #}
       <div style="width: 50%; margin-top: 100px">
         {% if properties %}
           {% for property in properties %}
