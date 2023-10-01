@@ -7,7 +7,7 @@ class User(AbstractUser):
     """
     User
         @default_django_fields
-        id 
+        id
         password
         last_login
         is_superuser
@@ -19,7 +19,7 @@ class User(AbstractUser):
         date_joined
         first_name
         user_hash
-        
+
         @custom_user_fields
         roll_number
         document_hash
@@ -67,6 +67,7 @@ class Property(models.Model):
         current_bid
         bidder
     """
+
     propertyId = models.AutoField(primary_key=True)
     owner = models.ForeignKey(
         User, related_name="owner", on_delete=models.CASCADE, null=False, blank=False
@@ -94,13 +95,15 @@ class Property(models.Model):
         User, related_name="current_bidder", on_delete=models.CASCADE, null=True
     )
     TRANSACTION_STATUS_CHOICES = [
-        ('not_started', 'Not Started'),
-        ('initiated_by_seller', 'Initiated by Seller'),
-        ('initiated_by_buyer', 'Initiated by Buyer'),
-        ('completed', 'Completed'),
+        ("not_started", "Not Started"),
+        ("initiated_by_seller", "Initiated by Seller"),
+        ("initiated_by_buyer", "Initiated by Buyer"),
+        ("completed", "Completed"),
     ]
-    
-    transaction_status = models.CharField(max_length=20, choices=TRANSACTION_STATUS_CHOICES, default='not_started')
+
+    transaction_status = models.CharField(
+        max_length=20, choices=TRANSACTION_STATUS_CHOICES, default="not_started"
+    )
 
 
 # Transaction Model
@@ -165,7 +168,9 @@ class Contract(models.Model):
         property_id
         seller_id
         buyer_id
-        contract_text
+        verified_by_buyer
+        verified_by_seller
+        verified_by_portal
         contract_hash
         contract_address (blockchain address)
         created_at
@@ -179,7 +184,9 @@ class Contract(models.Model):
     buyer = models.ForeignKey(
         User, related_name="buyer_contracts", on_delete=models.CASCADE
     )
-    contractText = models.TextField()
+    verfiedByBuyer = models.BooleanField(default=False, null=False, blank=False)
+    verfiedBySeller = models.BooleanField(default=False, null=False, blank=False)
+    verfiedByPortal = models.BooleanField(default=False, null=False, blank=False)
     contractHash = models.CharField(max_length=64)
     contractAddress = models.CharField(max_length=255, blank=True, null=True)
     createdAt = models.DateTimeField(auto_now_add=True)

@@ -1,10 +1,9 @@
 from hashlib import sha256
 from django.contrib.auth.models import AnonymousUser
 from django.contrib.auth.decorators import login_required
-from django.shortcuts import render, get_object_or_404
+from django.shortcuts import render
 from django.http import JsonResponse, HttpResponseRedirect
 from django.views.decorators.http import require_POST
-from django.urls import reverse
 from twentyfiveacres.models import User, Property, Location
 from utils.geocoder import geocode_location
 from utils.hashing import hashDocument
@@ -14,7 +13,7 @@ def check_document(request):
     document = request.FILES["document"].read()
     documentHash = hashDocument(document)
     if documentHash == User.objects.get(username=request.user.username).documentHash:
-        pass
+        return None
     else:
         return JsonResponse(
             {"result": "Fatal Error", "message": "Document hash does not match"}
@@ -211,6 +210,14 @@ def addBid(request, propertyId):
                 "message": "Bid already closed",
             }
         )
+
+    if request.method != "POST":
+        return
+    if "document" in request.FILES:
+        result = check_document(request)
+        if result != None:
+            return result
+
     if bidAmount and float(bidAmount) > property.currentBid:
         property.currentBid = float(bidAmount)
         property.bidder = user

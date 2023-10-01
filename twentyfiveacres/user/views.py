@@ -10,9 +10,8 @@ from django.http import HttpResponseRedirect, JsonResponse
 from django.contrib.auth import login
 from django.contrib.auth.hashers import make_password
 from django.contrib.auth.models import AnonymousUser
-from twentyfiveacres.models import User, Property
+from twentyfiveacres.models import User, Property, Contract
 from utils.hashing import hashDocument
-from django.http import HttpResponse
 from django.core.exceptions import ObjectDoesNotExist
 
 ssl._create_default_https_context = ssl._create_unverified_context
@@ -155,6 +154,14 @@ def profile(request):
         return HttpResponseRedirect("../../")
 
     user = User.objects.get(username=request.user.username)
+    properties = Property.objects.filter(owner=user)
+    contracts = []
+    for property in properties:
+        try:
+            contract = Contract.objects.get(property=properties[0].propertyId)
+            contracts.append(contract)
+        except ObjectDoesNotExist:
+            contracts.append(None)
 
     context = {
         "username": user.username,
@@ -162,7 +169,8 @@ def profile(request):
         "email": user.email,
         "first_name": user.first_name,
         "last_name": user.last_name,
-        "properties": Property.objects.filter(owner=user),
+        "properties": properties,
+        "contracts": contracts,
     }
 
     if request.method == "POST":
@@ -190,10 +198,6 @@ def profile(request):
             return render("transaction/transaction1.html")
 
     return render(request, "user/profile.html", context=context)
-
-
-def sellProperty(request, propertyId):
-    return render(request, "user/sell_property_form.html")
 
 
 def deleteProperty(request, propertyId):
