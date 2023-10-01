@@ -6,7 +6,7 @@ from hashlib import sha256
 from django.urls import reverse
 from django.core.mail import send_mail
 from django.shortcuts import render
-from django.http import HttpResponseRedirect, JsonResponse
+from django.http import HttpResponseRedirect, JsonResponse, HttpResponse
 from django.contrib.auth import login
 from django.contrib.auth.hashers import make_password
 from django.contrib.auth.models import AnonymousUser
@@ -152,17 +152,23 @@ def profile(request):
 
     if isinstance(request.user, AnonymousUser):
         return HttpResponseRedirect("../../")
-
     user = User.objects.get(username=request.user.username)
+
     properties = Property.objects.filter(owner=user)
     contracts = []
     for property in properties:
         try:
-            contract = Contract.objects.get(property=properties[0].propertyId)
-            contracts.append(contract)
+            contracts.append(Contract.objects.get(property=property))
         except ObjectDoesNotExist:
             contracts.append(None)
+
     propertyBidings = Property.objects.filter(bidder=user)
+    propertyBidingsContracts = []
+    for property in propertyBidings:
+        try:
+            propertyBidingsContracts.append(Contract.objects.get(property=property))
+        except ObjectDoesNotExist:
+            propertyBidingsContracts.append(None)
 
     context = {
         "username": user.username,
@@ -172,7 +178,8 @@ def profile(request):
         "last_name": user.last_name,
         "properties": properties,
         "contracts": contracts,
-        "propertyBindings": propertyBidings
+        "propertyBindings": propertyBidings,
+        "propertyBidingsContracts": propertyBidingsContracts,
     }
 
     if request.method == "POST":
@@ -230,4 +237,66 @@ def deleteProperty(request, propertyId):
 
 
 def handleContract(request, propertyId):
-    pass
+    """
+    @desc: handles everything related to a contract
+    """
+
+    if isinstance(request.user, AnonymousUser):
+        return HttpResponseRedirect("../../")
+    user = User.objects.get(username=request.user.username)
+
+    try:
+        property = Property.objects.get(propertyId=propertyId)
+        if property.owner != user and property.bidder != user:
+            return JsonResponse(
+                {
+                    "result": "Identity Crisis",
+                    "message": "You are not the bidder nor the owner of this property",
+                }
+            )
+    except ObjectDoesNotExist:
+        return JsonResponse(
+            {"result": "Treasure not found", "message": "Property does not exist"}
+        )
+
+    try:
+        contract = Contract.objects.get(property=propertyId)
+    except ObjectDoesNotExist:
+        contract = None
+
+    if contract is None and property.owner == user:
+        contract = Contract.objects.create(
+            property=property,
+            seller=user,
+            buyer=property.bidder,
+            verifiedByBuyer=False,
+            verifiedBySeller=True,
+            verifiedByPortal=False,
+            contractHash="",
+            contractAddress=None,
+        )
+        contract.save()
+        return HttpResponseRedirect("/user/profile")
+
+    if (
+        contract is not None
+        and not contract.verifiedByBuyer
+        and not contract.verifiedByPortal
+        and contract.verifiedBySeller
+        and property.bidder == user
+    ):
+        # contract.verifiedByBuyer = True
+        # update contract
+        # verify contract by buyer
+        # verify contract by portal
+        # update property
+        # proceed to payment gateway
+        # redirect to profiles
+        # notify both parties
+        return JsonResponse(
+            {"result": "Yahoo", "message": "Contract verified from your end"}
+        )
+
+    return JsonResponse(
+        {"result": "Trespassing", "message": "Wandering into unbeknownst valleys"}
+    )

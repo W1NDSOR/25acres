@@ -184,9 +184,9 @@ class Contract(models.Model):
     buyer = models.ForeignKey(
         User, related_name="buyer_contracts", on_delete=models.CASCADE
     )
-    verfiedByBuyer = models.BooleanField(default=False, null=False, blank=False)
-    verfiedBySeller = models.BooleanField(default=False, null=False, blank=False)
-    verfiedByPortal = models.BooleanField(default=False, null=False, blank=False)
+    verifiedByBuyer = models.BooleanField(default=False, null=False, blank=False)
+    verifiedBySeller = models.BooleanField(default=False, null=False, blank=False)
+    verifiedByPortal = models.BooleanField(default=False, null=False, blank=False)
     contractHash = models.CharField(max_length=64)
     contractAddress = models.CharField(max_length=255, blank=True, null=True)
     createdAt = models.DateTimeField(auto_now_add=True)
