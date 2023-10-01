@@ -73,7 +73,7 @@ class Property(models.Model):
     )
     title = models.CharField(max_length=255)
     description = models.TextField()
-    price = models.DecimalField(max_digits=10, decimal_places=2)
+    price = models.DecimalField(max_digits=20, decimal_places=2)
     bedrooms = models.PositiveIntegerField()
     bathrooms = models.PositiveIntegerField()
     area = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
@@ -89,7 +89,7 @@ class Property(models.Model):
     availabilityDate = models.DateField()
     location = models.ForeignKey(Location, on_delete=models.CASCADE)
     propertyHashIdentifier = models.CharField(max_length=64, null=False, blank=False)
-    currentBid = models.DecimalField(max_digits=10, decimal_places=2, null=True)
+    currentBid = models.DecimalField(max_digits=20, decimal_places=2, null=True)
     bidder = models.ForeignKey(
         User, related_name="current_bidder", on_delete=models.CASCADE, null=True
     )

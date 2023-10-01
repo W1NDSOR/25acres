@@ -96,8 +96,7 @@ def signup(request):
             )
             user.save()
             send_mail(
-                "Email Verification Code",
-                "Welcome to 25 Acres",
+                "Welcome to 25acres",
                 f"Your verification code is {verification_code}",
                 "settings.EMAIL_HOST_USER",
                 [email],
@@ -194,7 +193,7 @@ def profile(request):
 
 
 def sellProperty(request, propertyId):
-    return HttpResponse(f"Input Value: {propertyId}")
+    return render(request, "user/sell_property_form.html")
 
 
 def deleteProperty(request, propertyId):

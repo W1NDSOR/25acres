@@ -1,174 +1,153 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <link
-      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
-      rel="stylesheet"
-      integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN"
-      crossorigin="anonymous"
-    />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous" />
     <title>Property Listing</title>
   </head>
   <body data-bs-theme="dark" style="margin: 20px">
-    <div class="container">
-      <div class="col-3">
-        Filters:
-        <div class="buttons">
-          <!--
-            Type:
-            - For Sale
-            - For Rent
-            - Sold
-            - Rented
-            Budget:
-            - Between 1 to 1000
-            - Between 1001 to 5000
-            - Between 5001 to 10000
-            Location Area:
-            - Between 1 to 100 acres
-            - Between 101 to 500 acres
-            - Between 501 to 1000 acres
-            Amenities:
-            - Bedrooms (entry field)
-            - Bathrooms (entry field)
-            AvailabilityDates:
-            - From <field> to <field>
-
-          -->
-          <form method="GET" action="">
-            <div class="btn-group">
-              <button
-                type="button"
-                class="btn btn-secondary dropdown-toggle"
-                data-bs-toggle="dropdown"
-                aria-expanded="false"
-              >
-                Type
-              </button>
-              <ul class="dropdown-menu">
-                <li>
-                  <a class="dropdown-item" href="?type=For Sell">For Sale</a>
-                </li>
-                <li>
-                  <a class="dropdown-item" href="?type=For Rent">For Rent</a>
-                </li>
-                <li>
-                  <a class="dropdown-item" href="?type=Sold">Sold</a>
-                </li>
-                <li>
-                  <a class="dropdown-item" href="?type=Rented">Rented</a>
-                </li>
-              </ul>
-
-              <button
-                type="button"
-                class="btn btn-secondary dropdown-toggle"
-                data-bs-toggle="dropdown"
-                aria-expanded="false" 
-              >
-                Budget
-              </button>
-              <ul class="dropdown-menu">
-                <li>
-                  <a class="dropdown-item" href="?budget=Between 1 to 1000">Between 1 to 1000</a>
-                </li>
-                <li>
-                  <a class="dropdown-item" href="?budget=Between 1001 to 5000">Between 1001 to 5000</a>
-                </li>
-                <li>
-                  <a class="dropdown-item" href="?budget=Between 5001 to 10000">Between 5001 to 10000</a>
-                </li>
-              </ul>
-
-              <button
-                type="button"
-                class="btn btn-secondary dropdown-toggle"
-                data-bs-toggle="dropdown"
-                aria-expanded="false"
-              >
-                Location Area
-              </button>
-              <ul class="dropdown-menu">
-                <li>
-                  <a class="dropdown-item" href="?location_area=Between 1 to 100 acres">Between 1 to 100 acres</a>
-                </li>
-                <li>
-                  <a class="dropdown-item" href="?location_area=Between 101 to 500 acres">Between 101 to 500 acres</a>
-                </li>
-                <li>
-                  <a class="dropdown-item" href="?location_area=Between 501 to 1000 acres">Between 501 to 1000 acres</a>
-                </li>
-              </ul>
-
-              <button
-                type="button"
-                class="btn btn-secondary dropdown-toggle"
-                data-bs-toggle="dropdown"
-                aria-expanded="false"
-              >
-                Availability Dates
-              </button>
-              <ul class="dropdown-menu">
-                <li>
-                  <a class="dropdown-item" href="?availability_date=24hours">Last 24 hours</a>
-                </li>
-                <li>
-                  <a class="dropdown-item" href="?availability_date=7days">Last 7 days</a>
-                </li>
-              </ul>
-            </div>
-        </form>
-        </div>
-      </div>
-      <center>
-        <div style="width: 50%; margin-top: 100px">
-          <h2>Property List</h2>
-          {% csrf_token %}
-          {% if properties %}
-          {% for property in properties %}
-          <ul class="list-group">
-            <li class="list-group-item">
-              <h5>{{ property.title }}</h5>
-              <p>{{ property.description }}</p>
-              <p><strong>Price:</strong> {{ property.price }}</p>
-              <p><strong>Area:</strong> {{ property.area }} acres</p>
-              <p><strong>Bedrooms:</strong> {{ property.bedrooms }}</p>
-              <p><strong>Bathrooms:</strong> {{ property.bathrooms }}</p>
-              <p><strong>Location:</strong> {{ property.location }}</p>
-              <p><strong>Status:</strong> {{ property.status }}</p>
-              <p>
-                <strong>Available Date:</strong> {{ property.available_date }}
-              </p>
-              <form method="POST" action="{% url 'addBid' property.title %}">
-                <div class="mb-3">
-                  <input
-                    type="number"
-                    class="form-control"
-                    name="bid_amount"
-                    placeholder="Your Bid"
-                    min="{{ property.currentBid|add:'1' }}"
-                    required
-                  />
-                </div>
-                <div class="d-grid gap-2">
-                  <button class="btn btn-primary" type="submit">
-                    Place Bid
-                  </button>
-                </div>
-              </form>
+    <!--      Type:
+          - For Sale
+          - For Rent
+          - Sold
+          - Rented
+          Budget:
+          - Between 1 to 1000
+          - Between 1001 to 5000
+          - Between 5001 to 10000
+          Location Area:
+          - Between 1 to 100 acres
+          - Between 101 to 500 acres
+          - Between 501 to 1000 acres
+          Amenities:
+          - Bedrooms (entry field)
+          - Bathrooms (entry field)
+          AvailabilityDates:
+          - From <field> to <field>        -->
+    <form method="GET" action="">
+      <div class="btn-group" role="group" aria-label="Button group with nested dropdown">
+        <div class="btn-group" role="group">
+          <button type="button" class="btn btn-primary dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">Type</button>
+          <ul class="dropdown-menu">
+            <li>
+              <a class="dropdown-item" href="?type=For Sell">For Sale</a>
+            </li>
+            <li>
+              <a class="dropdown-item" href="?type=For Rent">For Rent</a>
+            </li>
+            <li>
+              <a class="dropdown-item" href="?type=Sold">Sold</a>
+            </li>
+            <li>
+              <a class="dropdown-item" href="?type=Rented">Rented</a>
             </li>
           </ul>
-          {% endfor %}
-          {% else %}
-          <p>No properties are available.</p>
-          {% endif %}
         </div>
-      </center>
-    </div>
-    <script
-      src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"
-      integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL"
-      crossorigin="anonymous"
-    ></script>
+        <div class="btn-group" role="group">
+          <button type="button" class="btn btn-primary dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">Budget</button>
+          <ul class="dropdown-menu">
+            <li>
+              <a class="dropdown-item" href="?budget=Between 1 to 1000">Between 1 to 1000</a>
+            </li>
+            <li>
+              <a class="dropdown-item" href="?budget=Between 1001 to 5000">Between 1001 to 5000</a>
+            </li>
+            <li>
+              <a class="dropdown-item" href="?budget=Between 5001 to 10000">Between 5001 to 10000</a>
+            </li>
+          </ul>
+        </div>
+        <div class="btn-group" role="group">
+          <button type="button" class="btn btn-primary dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">Area</button>
+          <ul class="dropdown-menu">
+            <li>
+              <a class="dropdown-item" href="?location_area=Between 1 to 100 acres">Between 1 to 100 acres</a>
+            </li>
+            <li>
+              <a class="dropdown-item" href="?location_area=Between 101 to 500 acres">Between 101 to 500 acres</a>
+            </li>
+            <li>
+              <a class="dropdown-item" href="?location_area=Between 501 to 1000 acres">Between 501 to 1000 acres</a>
+            </li>
+          </ul>
+        </div>
+        <div class="btn-group" role="group">
+          <button type="button" class="btn btn-primary dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">Availability Dates</button>
+          <ul class="dropdown-menu">
+            <li>
+              <a class="dropdown-item" href="?availability_date=24hours">Last 24 hours</a>
+            </li>
+            <li>
+              <a class="dropdown-item" href="?availability_date=7days">Last 7 days</a>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </form>
+
+    <center>
+      <div style="width: 50%; margin-top: 100px">
+        {% if properties %}
+          {% for property in properties %}
+            <div class="card mb-3" style="text-align: left;">
+              <div class="card-header">
+                <h4 class="card-title">{{ property.title }}</h4>
+                <p class="card-text">{{ property.description }}</p>
+              </div>
+              <div class="card-body">
+                <div class="input-group mb-2">
+                  <div class="input-group-text">Price</div>
+                  <input type="number" class="form-control" value="{{ property.price }}" required disabled />
+                </div>
+                <div class="input-group mb-2">
+                  <div class="input-group-text">Area</div>
+                  <input type="number" class="form-control" value="{{ property.area }}" required disabled />
+                </div>
+                <div class="input-group mb-2">
+                  <div class="input-group-text">Bedrooms</div>
+                  <input type="text" class="form-control" value="{{ property.bedrooms }}" required disabled />
+                </div>
+                <div class="input-group mb-2">
+                  <div class="input-group-text">Bathrooms</div>
+                  <input type="text" class="form-control" value="{{ property.bathrooms }}" required disabled />
+                </div>
+                <div class="input-group mb-2">
+                  <div class="input-group-text">Location</div>
+                  <input type="text" class="form-control" value="{{ property.location }}" required disabled />
+                </div>
+                <div class="input-group mb-2">
+                  <div class="input-group-text">Status</div>
+                  <input type="text" class="form-control" value="{{ property.status }}" required disabled />
+                </div>
+                <div class="input-group mb-2">
+                  <div class="input-group-text">Available date</div>
+                  <input type="text" class="form-control" value="{{ property.available_date }}" required disabled />
+                </div>
+              </div>
+              <div class="card-footer text-body-secondary" style="padding:20px;">
+                <blockquote class="blockquote" style="margin-top:10px;">
+                  {% if property.bidder != None %}
+                    <footer class="blockquote-footer">bid of {{ property.currentBid }} by {{ property.bidder }}</footer>
+                  {% else %}
+                    <footer class="blockquote-footer">No bid yet</footer>
+                  {% endif %}
+                </blockquote>
+                <form method="POST" action="../add_bid/{{ property.propertyId }}/">
+                  {% csrf_token %}
+                  <div class="mb-3">
+                    <input type="number" class="form-control" name="bid_amount" placeholder="Your Bid" min="{{ property.currentBid|add:'1' }}" required />
+                  </div>
+                  <div class="d-grid gap-2">
+                    <button class="btn btn-primary" type="submit">Place Bid</button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          {% endfor %}
+        {% else %}
+          <p>No properties are available.</p>
+        {% endif %}
+      </div>
+    </center>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL" crossorigin="anonymous"></script>
   </body>
 </html>

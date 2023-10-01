@@ -162,11 +162,19 @@
           </div>
           <div class="card-footer text-body-secondary" style="padding:20px;">
             <blockquote class="blockquote" style="margin-top:10px;">
-              <footer class="blockquote-footer">bid of {{ property.currentBid }} by {{ property.bidder }} </footer>
+              {% if property.bidder != None %}
+                <footer class="blockquote-footer">bid of {{ property.currentBid }} by {{ property.bidder }}</footer>
+              {% else %}
+                <footer class="blockquote-footer">No bid yet</footer>
+              {% endif %}
             </blockquote>
             <div class="col-6 btn-group" role="group" aria-label="button_action">
               <a href="../delete_property/{{ property.propertyId }}/" class="btn btn-outline-primary">Delete Property</a>
-              <a href="../sell_property/{{ property.propertyId }}/" class="btn btn-primary">Sell Property</a>
+              {% if property.bidder != None %}
+                <a href="../sell_property/{{ property.propertyId }}/" class="btn btn-primary">Sell Property</a>
+              {% else %}
+                <a class="btn btn-primary disabled" aria-disabled="true">Sell Property</a>
+              {% endif %}
             </div> 
           </div>
         </div>
