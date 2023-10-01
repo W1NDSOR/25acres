@@ -8,6 +8,9 @@ def hashDocument(data: str) -> str:
     @returns {string} sha256: SHA256 of data (digest)
     """
     hasher = hashlib.sha256()
-    data = data.encode()
+    try:
+        data = data.encode()
+    except:
+        pass
     hasher.update(data)
     return hasher.hexdigest()

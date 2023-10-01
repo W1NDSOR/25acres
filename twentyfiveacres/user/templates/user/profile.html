@@ -92,7 +92,7 @@
                         <a href="../delete_property/{{ property.propertyId }}/" class="btn btn-outline-primary">Delete Property</a>
                         {% if property.bidder != None %}
                           {% load index %}
-                          {% with contract = contracts|index:forloop.counter0 %}
+                          {% with contract=contracts|index:forloop.counter0 %}
                             {% if contract == None %}
                               <a href="../contract/{{ property.propertyId }}/" class="btn btn-primary">Make contract</a>
                             {% else %}
@@ -170,7 +170,7 @@
                       </blockquote>
                       <div class="col-6 btn-group" role="group" aria-label="button_action">
                         {% load index %}
-                        {% with contract = propertyBidingsContracts|index:forloop.counter0 %}
+                        {% with contract=propertyBidingsContracts|index:forloop.counter0 %}
                           {% if contract == None %}
                             <a class="btn btn-primary disabled" aria-disabled="true">Waiting for other party to verify first</a>
                           {% else %}
