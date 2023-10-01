@@ -94,7 +94,7 @@
                           {% load index %}
                           {% with contract as contracts|index:forloop.counter0 %}
                             {% if contract == None %}
-                              <a href="../verify_contract/{{ property.propertyId }}/" class="btn btn-primary">Verify Contract</a>
+                              <a href="../contract/{{ property.propertyId }}/" class="btn btn-primary">Make contract</a>
                             {% else %}
                               {% if contract.verifiedByBuyer == False %}
                                 <a class="btn btn-primary disabled" aria-disabled="true">Verification from other side is pending</a>
@@ -104,7 +104,7 @@
                             {% endif %}
                           {% endwith %}
                         {% else %}
-                          <a class="btn btn-primary disabled" aria-disabled="true">Sell Property</a>
+                          <a class="btn btn-primary disabled" aria-disabled="true">Cannot proceed to contract verfication</a>
                         {% endif %}
                       </div>
                     </div>
@@ -169,29 +169,27 @@
                         {% endif %}
                       </blockquote>
                       <div class="col-6 btn-group" role="group" aria-label="button_action">
-                        <a href="../delete_property/{{ property.propertyId }}/" class="btn btn-outline-primary">Delete Property</a>
-                        {% if property.bidder != None %}
-                          {% load index %}
-                          {% with contract as contracts|index:forloop.counter0 %}
-                            {% if contract == None %}
-                              <a href="../verify_contract/{{ property.propertyId }}/" class="btn btn-primary">Verify Contract</a>
+                        {% load index %}
+                        {% with contract as contracts|index:forloop.counter0 %}
+                          {% if contract == None %}
+                            <a class="btn btn-primary disabled" aria-disabled="true">Waiting for other party to verify first</a>
+                          {% else %}
+                            {% if contract.verifiedBySeller == True %}
+                              <a href="../contract/{{ property.propertyId }}/" class="btn btn-primary">Verify to complete the contract</a>
                             {% else %}
-                              {% if contract.verifiedByBuyer == False %}
-                                <a class="btn btn-primary disabled" aria-disabled="true">Verification from other side is pending</a>
-                              {% else %}
-                                <a class="btn btn-primary disabled" aria-disabled="true">Update Contract</a>
-                              {% endif %}
+                              <a class="btn btn-primary disabled" aria-disabled="true">Waiting for other party to verify first</a>
                             {% endif %}
-                          {% endwith %}
-                        {% else %}
-                          <a class="btn btn-primary disabled" aria-disabled="true">Sell Property</a>
-                        {% endif %}
+                          {% endif %}
+                        {% endwith %}
                       </div>
                     </div>
                   </div>
                 {% endfor %}
               {% else %}
                 <strong style="text-align:left;">You have not bid upon any properties</strong>
+                <div class="d-grid gap-2 col-6 mx-auto" style="margin-top:15px;">
+                  <a class="btn btn-primary" href="/property/list">Click to bid on properties</a>
+                </div>
               {% endif %}
             </div>
           </div>

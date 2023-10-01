@@ -162,6 +162,7 @@ def profile(request):
             contracts.append(contract)
         except ObjectDoesNotExist:
             contracts.append(None)
+    propertyBidings = Property.objects.filter(bidder=user)
 
     context = {
         "username": user.username,
@@ -171,6 +172,7 @@ def profile(request):
         "last_name": user.last_name,
         "properties": properties,
         "contracts": contracts,
+        "propertyBindings": propertyBidings
     }
 
     if request.method == "POST":
@@ -225,3 +227,7 @@ def deleteProperty(request, propertyId):
         return JsonResponse(
             {"result": "Treasure not found", "message": "Property does not exist"}
         )
+
+
+def handleContract(request, propertyId):
+    pass
