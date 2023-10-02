@@ -1,25 +1,100 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous" />
+
+<head>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous" />
     <title>Email Verification</title>
-  </head>
-  <body data-bs-theme="dark">
+    <style>
+        #virtualKeyboard button {
+            width: 60px;
+            height: 60px;
+            font-size: 24px;
+            margin: 5px;
+        }
+    </style>
+</head>
+
+<body data-bs-theme="dark">
     <form action="." method="POST" style="margin-top:100px; margin-left: 500px; margin-right:500px">
-      {% csrf_token %}
-      {% if error %}
+        {% csrf_token %}
+        {% if error %}
         <div class="alert alert-danger" role="alert">{{ error }}</div>
-      {% endif %}
-      <div class="mb-3">
-        <input type="number" class="form-control" name="roll_number" placeholder="IIITD roll number" required />
-      </div>
-      <div class="mb-3">
-        <input type="text" class="form-control" name="code" placeholder="Verification Code" required />
-      </div>
-      <div class="d-grid gap-2 col-6 mx-auto mb-3">
-        <button class="btn btn-primary" type="submit">Sign in</button>
-      </div>
+        {% endif %}
+        <div class="mb-3">
+            <input type="number" class="form-control" name="roll_number" placeholder="IIITD roll number" required />
+        </div>
+        <div class="mb-3">
+            <input type="text" class="form-control" id="code" name="code" placeholder="Verification Code" readonly />
+            </div>
+            <div id="virtualKeyboard" style="display: none;">
+              <button type="button" data-value="1">1</button>
+              <button type="button" data-value="2">2</button>
+              <button type="button" data-value="3">3</button>
+              <button type="button" data-value="4">4</button>
+              <button type="button" data-value="5">5</button>
+              <button type="button" data-value="6">6</button>
+              <button type="button" data-value="7">7</button>
+              <button type="button" data-value="8">8</button>
+              <button type="button" data-value="9">9</button>
+              <button type="button" data-value="0">0</button>
+              <button type="button" id="backspace">←</button><br>
+              <button type="button" data-value="A">A</button>
+              <button type="button" data-value="B">B</button>
+              <button type="button" data-value="C">C</button>
+              <button type="button" data-value="D">D</button>
+              <button type="button" data-value="E">E</button>
+              <button type="button" data-value="F">F</button>
+              <button type="button" data-value="G">G</button>
+              <button type="button" data-value="H">H</button>
+              <button type="button" data-value="I">I</button>
+              <button type="button" data-value="J">J</button><br>
+              <button type="button" data-value="K">K</button>
+              <button type="button" data-value="L">L</button>
+              <button type="button" data-value="M">M</button>
+              <button type="button" data-value="N">N</button>
+              <button type="button" data-value="O">O</button>
+              <button type="button" data-value="P">P</button>
+              <button type="button" data-value="Q">Q</button>
+              <button type="button" data-value="R">R</button>
+              <button type="button" data-value="S">S</button>
+              <button type="button" data-value="T">T</button><br>
+              <button type="button" data-value="U">U</button>
+              <button type="button" data-value="V">V</button>
+              <button type="button" data-value="W">W</button>
+              <button type="button" data-value="X">X</button>
+              <button type="button" data-value="Y">Y</button>
+              <button type="button" data-value="Z">Z</button>
+          </div>
+          
+          
+        <div class="d-grid gap-2 col-6 mx-auto mb-3">
+            <button class="btn btn-primary" type="submit">Sign in</button>
+        </div>
     </form>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL" crossorigin="anonymous"></script>
-  </body>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL" crossorigin="anonymous"></script>
+
+    <script>
+        const codeInput = document.getElementById('code');
+        const virtualKeyboard = document.getElementById('virtualKeyboard');
+
+        codeInput.addEventListener('focus', () => {
+            virtualKeyboard.style.display = 'block';
+        });
+
+        virtualKeyboard.addEventListener('click', (e) => {
+            if (e.target.tagName === 'BUTTON') {
+                if (e.target.id === 'backspace') {
+                    codeInput.value = codeInput.value.slice(0, -1);
+                } else {
+                    codeInput.value += e.target.getAttribute('data-value');
+                }
+            }
+        });
+    </script>
+</body>
+
 </html>
