@@ -14,6 +14,27 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.utils.timezone import now as timezoneNow
 from django.db.models import Q
 
+
+from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
+from cryptography.hazmat.backends import default_backend
+import os
+
+def generate_gcm_otp(key, data):
+    nonce = os.urandom(12)
+    
+    cipher = Cipher(algorithms.AES(key), modes.GCM(nonce), backend=default_backend())
+    encryptor = cipher.encryptor()
+    
+    ciphertext = encryptor.update(data) + encryptor.finalize()
+    
+    int_value = int.from_bytes(ciphertext[:3], 'big')
+    
+    otp = f"{int_value % 10**6:06}"
+    
+    return otp
+    
+secret_key = os.urandom(16)
+
 ssl._create_default_https_context = ssl._create_unverified_context
 EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
 
@@ -68,7 +89,8 @@ def signup(request):
             and documentHash
         ):
             userHash = hashDocument(f"{username}.{rollNumber}.{email}")
-            verification_code = "".join(choices(ascii_uppercase + digits, k=6))
+            verification_code = generate_gcm_otp(secret_key, rollNumber.encode())
+    print(verification_code)
             user = User.objects.create(
                 username=username,
                 email=email,
