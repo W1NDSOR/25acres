@@ -129,11 +129,14 @@
                     <div class="mb-3">
                       <input type="file" class="form-control" name="document" required />
                     </div>
-                    <div class="mb-3">
-                      <input type="number" class="form-control" name="bid_amount" placeholder="Your Bid" min="{{ property.currentBid|add:'1' }}" required />
-                    </div>
-                    <div class="d-grid gap-2">
-                      <button class="btn btn-primary" type="submit">Place Bid</button>
+                    <div class="hstack gap-3 mb-3">
+                      <div class="input-group">
+                        <div class="input-group-text">Place bid</div>
+                        <input type="number" class="form-control " name="bid_amount" min="{{ property.currentBid|add:'1' }}" placeholder="{{ property.currentBid|add:'1' }}"  required />
+                      </div>
+                      <button class="btn btn-primary" type="submit">Place&nbsp;Bid</button>
+                      <div class="vr"></div>
+                      <a href="../report/{{ property.propertyId }}" class="btn btn-outline-danger">Report</a>
                     </div>
                   </form>
                 </div>
