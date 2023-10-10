@@ -29,13 +29,12 @@
           <input type="text" class="form-control" name="last_name" placeholder="Last name" required />
         </div>
         <div class="mb-3">
-          <input type="file" class="form-control" name="document" required />
+          <input type="file" class="form-control" name="document" aria-describedby="file_help" required />
+          <small id="file_help" class="form-text text-muted">Select your proof of document</small>
         </div>
-        <div class="d-grid gap-2 col-6 mx-auto mb-3">
+        <div class="col-6 btn-group" role="group" aria-label="button_action">
+          <a href="../signin" class="btn btn-outline-primary">Already have account; signin</a>
           <button class="btn btn-primary" type="submit">Proceed to email verification</button>
-          <center>
-            <a href="../signin">Already have an account; click to signin</a>
-          </center>
         </div>
       </form>
     </center>
