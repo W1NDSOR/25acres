@@ -85,6 +85,7 @@ def propertyList(request):
 
 
 def generatePropertyHashIdentifier(
+    ownreshipDocumentHash,
     title,
     description,
     price,
@@ -99,7 +100,7 @@ def generatePropertyHashIdentifier(
     @desc: generates a unique hash identifier for a property based on its details
     @return: A unique SHA-256 hash identifier for the property
     """
-    concatenated_info = f"{title}{description}{price}{bedrooms}{bathrooms}{area}{status}{location}{availableDate}"
+    concatenated_info = f"{ownreshipDocumentHash}{title}{description}{price}{bedrooms}{bathrooms}{area}{status}{location}{availableDate}"
     hash_identifier = sha256(concatenated_info.encode()).hexdigest()
 
     return hash_identifier
@@ -139,7 +140,9 @@ def addProperty(request):
         status = field_values.get("status")
         location = field_values.get("location")
         availableDate = field_values.get("available_date")
-
+        if "onership_document" in request.FILES:
+            document = request.FILES["onership_document"].read()
+            ownreshipDocumentHash = hashDocument(document)
         if "document" in request.FILES:
             check_document(request)
 
@@ -153,6 +156,7 @@ def addProperty(request):
             and status
             and location
             and availableDate
+            and ownreshipDocumentHash
         ):
             latitude, longitude = geocode_location(location)
             locationObject = Location.objects.create(
@@ -170,8 +174,10 @@ def addProperty(request):
                 status=status,
                 location=locationObject,
                 owner=User.objects.get(username=request.user.username),
+                ownreshipDocument = ownreshipDocumentHash,
                 availabilityDate=availableDate,
                 propertyHashIdentifier=generatePropertyHashIdentifier(
+                    ownreshipDocumentHash,
                     title,
                     description,
                     price,
