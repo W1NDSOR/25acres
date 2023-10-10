@@ -18,6 +18,16 @@
           <sl-icon slot="prefix" name="plus-circle"></sl-icon>Add new property
         </sl-breadcrumb-item>
       </sl-breadcrumb>
+      {% if messages %}
+        <ul class="messages">
+          {% for message in messages %}
+            <div class="alert alert-danger alert-dismissible fade show" style="width: 50%; text-align:left;" role="alert">
+              <h4 class="alert-heading">Error <small><button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button></small></h4>
+              <p>{{ message }}</p>
+            </div>
+          {% endfor %}
+        </ul>
+      {% endif %}
       <form action="." method="POST" style="width: 50%; margin-top:100px;" enctype="multipart/form-data">
         {% csrf_token %}
         <div class="mb-3">

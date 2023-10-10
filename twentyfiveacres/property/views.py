@@ -7,6 +7,8 @@ from django.views.decorators.http import require_POST
 from twentyfiveacres.models import User, Property, Location
 from utils.geocoder import geocode_location
 from utils.hashing import hashDocument
+from django.contrib import messages
+from utils.exceptions import CustomException
 
 
 def check_document(request):
@@ -114,6 +116,8 @@ def addProperty(request):
     if isinstance(request.user, AnonymousUser):
         return JsonResponse({"result": "Fatal Error", "message": "Sign in first"})
 
+    context = dict()
+
     if request.method == "POST":
         propertyFields = request.POST
 
@@ -142,60 +146,70 @@ def addProperty(request):
         availableDate = field_values.get("available_date")
         if "ownership_document" in request.FILES:
             document = request.FILES["ownership_document"].read()
-            ownreshipDocumentHash = hashDocument(document)
+            ownershipDocumentHash = hashDocument(document)
         if "document" in request.FILES:
             check_document(request)
+        try:
+            if (
+                title
+                and description
+                and price
+                and bedrooms
+                and bathrooms
+                and area
+                and status
+                and location
+                and availableDate
+                and ownershipDocumentHash
+            ):
+                locationCoordinates = geocode_location(location)
+                if locationCoordinates is None:
+                    exceptionMessage = "Not a valid location!"
+                    messages.info(request, exceptionMessage)
+                    raise CustomException(exceptionMessage)
+                (latitude, longitude) = locationCoordinates
+                locationObject = Location.objects.create(
+                    name=location,
+                    latitude=latitude,
+                    longitude=longitude,
+                )
+                locationObject.save()
 
-        if (
-            title
-            and description
-            and price
-            and bedrooms
-            and bathrooms
-            and area
-            and status
-            and location
-            and availableDate
-            and ownreshipDocumentHash
-        ):
-            latitude, longitude = geocode_location(location)
-            locationObject = Location.objects.create(
-                name=location,
-                latitude=latitude,
-                longitude=longitude,
-            )
-            locationObject.save()
-            property = Property.objects.create(
-                title=title,
-                description=description,
-                price=price,
-                bedrooms=bedrooms,
-                bathrooms=bathrooms,
-                area=area,
-                status=status,
-                location=locationObject,
-                owner=User.objects.get(username=request.user.username),
-                ownershipDocumentHash=ownreshipDocumentHash,
-                availabilityDate=availableDate,
-                propertyHashIdentifier=generatePropertyHashIdentifier(
-                    ownreshipDocumentHash,
-                    title,
-                    description,
-                    price,
-                    bedrooms,
-                    bathrooms,
-                    area,
-                    status,
-                    location,
-                    availableDate,
-                ),
-                currentBid=0,
-                bidder=None,
-            )
-            property.save()
+                property = Property.objects.create(
+                    title=title,
+                    description=description,
+                    price=price,
+                    bedrooms=bedrooms,
+                    bathrooms=bathrooms,
+                    area=area,
+                    status=status,
+                    location=locationObject,
+                    owner=User.objects.get(username=request.user.username),
+                    ownershipDocumentHash=ownershipDocumentHash,
+                    availabilityDate=availableDate,
+                    propertyHashIdentifier=generatePropertyHashIdentifier(
+                        ownershipDocumentHash,
+                        title,
+                        description,
+                        price,
+                        bedrooms,
+                        bathrooms,
+                        area,
+                        status,
+                        location,
+                        availableDate,
+                    ),
+                    currentBid=0,
+                    bidder=None,
+                )
+                property.save()
 
-            return HttpResponseRedirect("/")
-    return render(request, "property/add_form.html")
+                return HttpResponseRedirect("/")
+        except CustomException as exception:
+            pass
+        except Exception as exception:
+            print(exception)
+    return render(request, "property/add_form.html", context=context)
 
 
 @login_required
