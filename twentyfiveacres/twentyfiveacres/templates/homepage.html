@@ -6,7 +6,6 @@
     }
   </style>
   <head>
-    <!-- Required meta tags -->
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
     <title>25 Acres</title>
@@ -25,8 +24,36 @@
             <a class="nav-item nav-link" href="#about">About</a>
             <a class="nav-item nav-link" href="#gallery">Gallery</a>
             <a class="nav-item nav-link" href="#contact">Contact</a>
-            <a class="nav-item nav-link" href="/property/list">Properties</a>
-            <a class="nav-item nav-link" href="/user/signin">Signin</a>
+            {% if state == 'signup' %}
+              <a class="nav-item nav-link" href="/property/list">Properties</a>
+            {% else %}
+              <li class="nav-item dropdown">
+                <a class="nav-link dropdown-toggle" id="navbarDropdownMenuLink" role="button" data-bs-toggle="dropdown" aria-expanded="false">Properties</a>
+                <ul class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
+                  <li>
+                    <a class="dropdown-item" href="/property/list">Property list</a>
+                  </li>
+                  <li>
+                    <a class="dropdown-item" href="/property/add">Add new property</a>
+                  </li>
+                </ul>
+              </li>
+            {% endif %}
+            {% if state == 'signup' %}
+              <a class="nav-item nav-link" href="/user/signin">Signin</a>
+            {% else %}
+              <li class="nav-item dropdown">
+                <a class="nav-link dropdown-toggle" id="navbarDropdownMenuLink" role="button" data-bs-toggle="dropdown" aria-expanded="false">Signed in as {{ username }}</a>
+                <ul class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
+                  <li>
+                    <a class="dropdown-item" href="user/profile">View profile</a>
+                  </li>
+                  <li>
+                    <a class="dropdown-item" href="/signout">Sign out</a>
+                  </li>
+                </ul>
+              </li>
+            {% endif %}
           </div>
         </div>
       </div>
