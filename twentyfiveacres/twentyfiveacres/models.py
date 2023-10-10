@@ -41,11 +41,13 @@ class Location(models.Model):
     """
     Location
         location_id
+        name
         longitude coordinate
         latitude coordinate
     """
 
     locationId = models.AutoField(primary_key=True)
+    name = models.CharField(max_length=255, null=False, blank=False)
     longitude = models.DecimalField(max_digits=10, decimal_places=6, null=True)
     latitude = models.DecimalField(max_digits=10, decimal_places=6, null=True)
 
@@ -66,6 +68,9 @@ class Property(models.Model):
         availability_date
         current_bid
         bidder
+        TRANSACTION_STATUS_CHOICES
+        transaction_status
+        ownership_document_hash
     """
 
     propertyId = models.AutoField(primary_key=True)
@@ -101,9 +106,10 @@ class Property(models.Model):
         ("completed", "Completed"),
     ]
 
-    transaction_status = models.CharField(
+    transactionStatus = models.CharField(
         max_length=20, choices=TRANSACTION_STATUS_CHOICES, default="not_started"
     )
+    ownershipDocumentHash = models.CharField(max_length=64, null=False, blank=False)
 
 
 # Transaction Model
