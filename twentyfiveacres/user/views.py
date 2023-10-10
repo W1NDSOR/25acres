@@ -49,7 +49,6 @@ def check_document(request):
             {"result": "Fatal Error", "message": "Document hash does not match"}
         )
 
-
 def signup(request):
     """
     @desc: renders a form for signing up new user
@@ -74,6 +73,21 @@ def signup(request):
         firstName = field_values.get("first_name")
         lastName = field_values.get("last_name")
 
+        # Validate roll number against email
+        try:
+            # Extract the numbers from the email (before "@iiitd.ac.in")
+            extracted_roll_suffix = email.split("@")[0][-5:]
+            
+            # Compare the extracted number with the roll number's last 5 digits
+            if extracted_roll_suffix != rollNumber[-5:]:
+                return render(request, "user/signup_form.html", {
+                    "error": "Your email ID and roll number don't match!"
+                })
+        except:
+            return render(request, "user/signup_form.html", {
+                "error": "Invalid email format!"
+            })
+
         if "document" in request.FILES:
             document = request.FILES["document"].read()
             documentHash = hashDocument(document)
@@ -90,7 +104,7 @@ def signup(request):
         ):
             userHash = hashDocument(f"{username}.{rollNumber}.{email}")
             verification_code = generate_gcm_otp(secret_key, rollNumber.encode())
-    print(verification_code)
+            print(verification_code)
             user = User.objects.create(
                 username=username,
                 email=email,
