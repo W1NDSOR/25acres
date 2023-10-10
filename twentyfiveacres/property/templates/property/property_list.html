@@ -104,7 +104,7 @@
                 </div>
                 <div class="input-group mb-2">
                   <div class="input-group-text">Location</div>
-                  <input type="text" class="form-control" value="{{ property.location }}" required disabled />
+                  <input type="text" class="form-control" value="{{ property.location.name }}" required disabled />
                 </div>
                 <div class="input-group mb-2">
                   <div class="input-group-text">Status</div>
@@ -112,7 +112,7 @@
                 </div>
                 <div class="input-group mb-2">
                   <div class="input-group-text">Available date</div>
-                  <input type="text" class="form-control" value="{{ property.available_date }}" required disabled />
+                  <input type="text" class="form-control" value="{{ property.availabilityDate }}" required disabled />
                 </div>
               </div>
               {% if property.status != 'Sold' and property.status != 'Rented' %}

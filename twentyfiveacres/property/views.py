@@ -140,8 +140,8 @@ def addProperty(request):
         status = field_values.get("status")
         location = field_values.get("location")
         availableDate = field_values.get("available_date")
-        if "onership_document" in request.FILES:
-            document = request.FILES["onership_document"].read()
+        if "ownership_document" in request.FILES:
+            document = request.FILES["ownership_document"].read()
             ownreshipDocumentHash = hashDocument(document)
         if "document" in request.FILES:
             check_document(request)
@@ -160,6 +160,7 @@ def addProperty(request):
         ):
             latitude, longitude = geocode_location(location)
             locationObject = Location.objects.create(
+                name=location,
                 latitude=latitude,
                 longitude=longitude,
             )
@@ -174,7 +175,7 @@ def addProperty(request):
                 status=status,
                 location=locationObject,
                 owner=User.objects.get(username=request.user.username),
-                ownreshipDocument = ownreshipDocumentHash,
+                ownershipDocumentHash=ownreshipDocumentHash,
                 availabilityDate=availableDate,
                 propertyHashIdentifier=generatePropertyHashIdentifier(
                     ownreshipDocumentHash,
