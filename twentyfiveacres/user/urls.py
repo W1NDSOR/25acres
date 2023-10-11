@@ -16,4 +16,9 @@ urlpatterns = [
         views.handleContract,
         name="handle_contract",
     ),
+    path(
+        "change_ownership/<int:propertyId>/",
+        views.changeOwnership,
+        name="changeOwnership",
+    ),
 ]

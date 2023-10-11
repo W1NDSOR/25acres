@@ -1,8 +1,7 @@
 import ssl
-from string import ascii_uppercase, digits
-from random import choices
 from django.urls import reverse
 from django.core.mail import send_mail
+from hashlib import sha256
 from django.shortcuts import render
 from django.http import HttpResponseRedirect, JsonResponse
 from django.contrib.auth import login
@@ -13,26 +12,27 @@ from utils.hashing import hashDocument
 from django.core.exceptions import ObjectDoesNotExist
 from django.utils.timezone import now as timezoneNow
 from django.db.models import Q
-
-
 from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 from cryptography.hazmat.backends import default_backend
+from django.contrib import messages
 import os
+
 
 def generate_gcm_otp(key, data):
     nonce = os.urandom(12)
-    
+
     cipher = Cipher(algorithms.AES(key), modes.GCM(nonce), backend=default_backend())
     encryptor = cipher.encryptor()
-    
+
     ciphertext = encryptor.update(data) + encryptor.finalize()
-    
-    int_value = int.from_bytes(ciphertext[:3], 'big')
-    
+
+    int_value = int.from_bytes(ciphertext[:3], "big")
+
     otp = f"{int_value % 10**6:06}"
-    
+
     return otp
-    
+
+
 secret_key = os.urandom(16)
 
 ssl._create_default_https_context = ssl._create_unverified_context
@@ -48,6 +48,7 @@ def check_document(request):
         return JsonResponse(
             {"result": "Fatal Error", "message": "Document hash does not match"}
         )
+
 
 def signup(request):
     """
@@ -77,16 +78,18 @@ def signup(request):
         try:
             # Extract the numbers from the email (before "@iiitd.ac.in")
             extracted_roll_suffix = email.split("@")[0][-5:]
-            
+
             # Compare the extracted number with the roll number's last 5 digits
             if extracted_roll_suffix != rollNumber[-5:]:
-                return render(request, "user/signup_form.html", {
-                    "error": "Your email ID and roll number don't match!"
-                })
+                return render(
+                    request,
+                    "user/signup_form.html",
+                    {"error": "Your email ID and roll number don't match!"},
+                )
         except:
-            return render(request, "user/signup_form.html", {
-                "error": "Invalid email format!"
-            })
+            return render(
+                request, "user/signup_form.html", {"error": "Invalid email format!"}
+            )
 
         if "document" in request.FILES:
             document = request.FILES["document"].read()
@@ -128,6 +131,28 @@ def signup(request):
             return HttpResponseRedirect(reverse("verify_email"))
 
     return render(request, "user/signup_form.html")
+
+
+def generatePropertyHashIdentifier(
+    ownreshipDocumentHash,
+    title,
+    description,
+    price,
+    bedrooms,
+    bathrooms,
+    area,
+    status,
+    location,
+    availableDate,
+):
+    """
+    @desc: generates a unique hash identifier for a property based on its details
+    @return: A unique SHA-256 hash identifier for the property
+    """
+    concatenated_info = f"{ownreshipDocumentHash}{title}{description}{price}{bedrooms}{bathrooms}{area}{status}{location}{availableDate}"
+    hash_identifier = sha256(concatenated_info.encode()).hexdigest()
+
+    return hash_identifier
 
 
 def verify_email(request):
@@ -331,6 +356,83 @@ def handleContract(request, propertyId):
         property.save()
         return HttpResponseRedirect("/user/profile")
 
+    return JsonResponse(
+        {"result": "Trespassing", "message": "Wandering into unbeknownst valleys"}
+    )
+
+
+def changeOwnership(request, propertyId):
+    # check if the user is authenticated
+    print(request)
+    if isinstance(request.user, AnonymousUser):
+        return HttpResponseRedirect("../../")
+
+    user = User.objects.get(username=request.user.username)
+
+    # check whether propertyId provided is valid or not
+    try:
+        propertyObj = Property.objects.get(pk=propertyId)
+    except ObjectDoesNotExist:
+        return JsonResponse(
+            {"result": "Treasure not found", "message": "Property does not exist"}
+        )
+
+    # check if the user has the right to change ownership for this property
+    if propertyObj.owner != user:
+        return JsonResponse(
+            {
+                "result": "Identity Crisis",
+                "message": "You are not the owner of this property",
+            }
+        )
+
+    if request.method == "POST":
+        # check proof of identity
+        proofOfIdentity = request.FILES.get(f"proof_identity_{propertyId}")
+        if not proofOfIdentity:
+            return JsonResponse(
+            {
+                "result": "Identity Crisis",
+                "message": "Record for existencial proof missing",
+            }
+        )
+
+        # Set the file in request.FILES to be accessed by check_document function
+        request.FILES["document"] = proofOfIdentity
+        verificationResult = check_document(request)
+
+        # If check_document returns a JsonResponse, it means the verification failed
+        if verificationResult:
+            return verificationResult
+
+        # Update ownership document
+        ownershipDocument = request.FILES.get(f"ownership_document_{propertyId}")
+        if ownershipDocument:
+            ownershipDocumentHash = hashDocument(ownershipDocument.read())
+            propertyObj.ownershipDocumentHash = ownershipDocumentHash
+            propertyObj.propertyHashIdentifier = generatePropertyHashIdentifier(
+                ownershipDocumentHash,
+                propertyObj.title,
+                propertyObj.description,
+                propertyObj.price,
+                propertyObj.bedrooms,
+                propertyObj.bathrooms,
+                propertyObj.area,
+                propertyObj.status,
+                propertyObj.location.name,
+                propertyObj.availabilityDate,
+            )
+            propertyObj.save()
+            return HttpResponseRedirect("/user/profile")
+        else:
+            return JsonResponse(
+                {
+                    "result": "Existencial crisis",
+                    "message": "Missing crucial record aka Ownership Document",
+                }
+            )
+
+    # For GET requests or any other method
     return JsonResponse(
         {"result": "Trespassing", "message": "Wandering into unbeknownst valleys"}
     )
