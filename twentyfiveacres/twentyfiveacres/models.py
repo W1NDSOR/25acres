@@ -71,6 +71,7 @@ class Property(models.Model):
         TRANSACTION_STATUS_CHOICES
         transaction_status
         ownership_document_hash
+        reported
     """
 
     propertyId = models.AutoField(primary_key=True)
@@ -110,6 +111,7 @@ class Property(models.Model):
         max_length=20, choices=TRANSACTION_STATUS_CHOICES, default="not_started"
     )
     ownershipDocumentHash = models.CharField(max_length=64, null=False, blank=False)
+    reported = models.BooleanField(default=False, null=False, blank=False)
 
 
 # Transaction Model

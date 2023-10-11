@@ -9,6 +9,7 @@ from utils.geocoder import geocode_location
 from utils.hashing import hashDocument
 from django.contrib import messages
 from utils.exceptions import CustomException
+from django.core.exceptions import ObjectDoesNotExist
 
 
 def check_document(request):
@@ -246,3 +247,26 @@ def addBid(request, propertyId):
         return HttpResponseRedirect("/property/list?bid_success=True")
     else:
         return HttpResponseRedirect("/property/list?bid_error=True")
+
+
+@login_required
+@require_POST
+def report(request, propertyId):
+    if request.method != "POST":
+        return
+
+    # check if the user is authenticated
+    if isinstance(request.user, AnonymousUser):
+        return HttpResponseRedirect("../../")
+
+    # check whether propertyId provided is valid or not
+    try:
+        propertyObj = Property.objects.get(pk=propertyId)
+    except ObjectDoesNotExist:
+        return JsonResponse(
+            {"result": "Treasure not found", "message": "Property does not exist"}
+        )
+
+    propertyObj.reported = True
+    propertyObj.save()
+    return HttpResponseRedirect("/user/profile")

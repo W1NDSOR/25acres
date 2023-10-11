@@ -363,7 +363,6 @@ def handleContract(request, propertyId):
 
 def changeOwnership(request, propertyId):
     # check if the user is authenticated
-    print(request)
     if isinstance(request.user, AnonymousUser):
         return HttpResponseRedirect("../../")
 
