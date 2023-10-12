@@ -176,6 +176,15 @@ class Contract(models.Model):
     )
 
 
+class SHA(models.Model):
+    """
+    SHA
+        sha
+    """
+
+    sha = models.CharField(max_length=64, primary_key=True, null=False, blank=False)
+
+
 # Image Model
 class Image(models.Model):
 
