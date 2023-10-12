@@ -15,6 +15,19 @@ from contract.viewmodel import (
     generateUserPropertyContractHash,
     getAbstractContractArray,
 )
+from utils.responses import (
+    USER_SIGNIN_RESPONSE,
+    USER_DOCUMENT_HASH_MISMATCH_RESPONSE,
+    USER_EMAIL_ROLLNUMBER_MISMATCH_RESPONSE,
+    USER_INVALID_EMAIL_FORMAT_RESPONSE,
+    USER_INVALID_CODE_OR_ROLLNUMBER_RESPONSE,
+    USER_INVALID_ROLLNUMBER_RESPONSE,
+    USER_NOT_OWNER_RESPONSE,
+    PROPERTY_DOES_NOT_EXIST_RESPONSE,
+    USER_NOT_BIDDER_NOR_OWNER_RESPONSE,
+    TRESPASSING_RESPONSE,
+    PROPERTY_OWNERSHIP_DOCUMENT_MISSING_RESPONSE,
+)
 from twentyfiveacres.models import (
     User,
     Property,
@@ -48,18 +61,11 @@ def signup(request):
         try:
             # Extract the numbers from the email (before "@iiitd.ac.in")
             extractedRollSuffix = email.split("@")[0][-5:]
-
             # Compare the extracted number with the roll number's last 5 digits
             if extractedRollSuffix != rollNumber[-5:]:
-                return render(
-                    request,
-                    "user/signup_form.html",
-                    {"error": "Your email ID and roll number don't match!"},
-                )
+                return USER_EMAIL_ROLLNUMBER_MISMATCH_RESPONSE
         except:
-            return render(
-                request, "user/signup_form.html", {"error": "Invalid email format!"}
-            )
+            return USER_INVALID_EMAIL_FORMAT_RESPONSE
 
         documentHash = (
             hashDocument(request.FILES["document"].read())
@@ -112,11 +118,7 @@ def verifyEmail(request):
             user.save()
             return HttpResponseRedirect("/user/signin")
         except User.DoesNotExist:
-            return render(
-                request,
-                "user/verify_email.html",
-                {"error": "Invalid code or roll number"},
-            )
+            return USER_INVALID_CODE_OR_ROLLNUMBER_RESPONSE
     return render(request, "user/verify_email.html")
 
 
@@ -136,12 +138,7 @@ def signin(request):
                     login(request, user)
                     return HttpResponseRedirect("/")
             except User.DoesNotExist:
-                return JsonResponse(
-                    {
-                        "result": "Identity Crisis",
-                        "message": "Invalid roll number",
-                    }
-                )
+                return USER_INVALID_ROLLNUMBER_RESPONSE
     return render(request, "user/signin_form.html")
 
 
@@ -151,7 +148,7 @@ def profile(request):
     """
 
     if isinstance(request.user, AnonymousUser):
-        return JsonResponse({"result": "Identity crisis", "message": "Signin first"})
+        return USER_SIGNIN_RESPONSE
 
     user = User.objects.get(username=request.user.username)
 
@@ -199,7 +196,7 @@ def deleteProperty(request, propertyId):
     @params {int} propertyId: Id of the property to be deleted
     """
     if isinstance(request.user, AnonymousUser):
-        return JsonResponse({"result": "Identity crisis", "message": "Signin first"})
+        return USER_SIGNIN_RESPONSE
 
     user = User.objects.get(username=request.user.username)
     try:
@@ -208,16 +205,9 @@ def deleteProperty(request, propertyId):
             property.delete()
             return HttpResponseRedirect("/")
         else:
-            return JsonResponse(
-                {
-                    "result": "Identity Crisis",
-                    "message": "You are not the owner of this property",
-                }
-            )
+            return USER_NOT_OWNER_RESPONSE
     except ObjectDoesNotExist:
-        return JsonResponse(
-            {"result": "Treasure not found", "message": "Property does not exist"}
-        )
+        return PROPERTY_DOES_NOT_EXIST_RESPONSE
 
 
 def handleContract(request, propertyId):
@@ -226,24 +216,17 @@ def handleContract(request, propertyId):
     """
 
     if isinstance(request.user, AnonymousUser):
-        return JsonResponse({"result": "Identity crisis", "message": "Signin first"})
+        return USER_SIGNIN_RESPONSE
 
     user = User.objects.get(username=request.user.username)
 
     try:
         property = Property.objects.get(propertyId=propertyId)
     except ObjectDoesNotExist:
-        return JsonResponse(
-            {"result": "Treasure not found", "message": "Property does not exist"}
-        )
+        return PROPERTY_DOES_NOT_EXIST_RESPONSE
 
     if property.owner != user and property.bidder != user:
-        return JsonResponse(
-            {
-                "result": "Identity Crisis",
-                "message": "You are not the bidder nor the owner of this property",
-            }
-        )
+        return USER_NOT_BIDDER_NOR_OWNER_RESPONSE
 
     try:
         contract = Contract.objects.get(property=propertyId)
@@ -287,16 +270,12 @@ def handleContract(request, propertyId):
         property.save()
         return HttpResponseRedirect("/user/profile")
 
-    return JsonResponse(
-        {"result": "Trespassing", "message": "Wandering into unbeknownst valleys"}
-    )
+    return TRESPASSING_RESPONSE
 
 
 def changeOwnership(request, propertyId):
     if request.method != "POST":
-        return JsonResponse(
-            {"result": "Trespassing", "message": "Wandering into unbeknownst valleys"}
-        )
+        TRESPASSING_RESPONSE
 
     # check if the user is authenticated
     if isinstance(request.user, AnonymousUser):
@@ -308,36 +287,16 @@ def changeOwnership(request, propertyId):
     try:
         propertyObj = Property.objects.get(pk=propertyId)
     except ObjectDoesNotExist:
-        return JsonResponse(
-            {"result": "Treasure not found", "message": "Property does not exist"}
-        )
+        return PROPERTY_DOES_NOT_EXIST_RESPONSE
 
     # check if the user has the right to change ownership for this property
     if propertyObj.owner != user:
-        return JsonResponse(
-            {
-                "result": "Identity Crisis",
-                "message": "You are not the owner of this property",
-            }
-        )
+        return USER_NOT_OWNER_RESPONSE
 
     # check proof of identity
     proofOfIdentity = request.FILES.get(f"proof_identity_{propertyId}")
-    if not proofOfIdentity:
-        return JsonResponse(
-            {
-                "result": "Identity Crisis",
-                "message": "Record for existencial proof missing",
-            }
-        )
-
-    if not verifyUserDocument(user, proofOfIdentity):
-        return JsonResponse(
-            {
-                "result": "Fatal Error",
-                "message": "Document hash does not match",
-            }
-        )
+    if not proofOfIdentity or not verifyUserDocument(user, proofOfIdentity):
+        return USER_DOCUMENT_HASH_MISMATCH_RESPONSE
 
     ownershipDocumentHash = (
         hashDocument(request.FILES[f"ownership_document_{propertyId}"].read())
@@ -346,12 +305,8 @@ def changeOwnership(request, propertyId):
     )
 
     if ownershipDocumentHash is None:
-        return JsonResponse(
-            {
-                "result": "Existencial crisis",
-                "message": "Missing crucial record aka Ownership Document",
-            }
-        )
+        return PROPERTY_OWNERSHIP_DOCUMENT_MISSING_RESPONSE
+
     # Update ownership document if it is not None
     ownershipDocumentHash = ownershipDocumentHash
     propertyObj.ownershipDocumentHash = ownershipDocumentHash

@@ -10,17 +10,14 @@ from utils.hashing import hashDocument
 from django.contrib import messages
 from utils.exceptions import CustomException
 from django.core.exceptions import ObjectDoesNotExist
-
-
-def check_document(request):
-    document = request.FILES["document"].read()
-    documentHash = hashDocument(document)
-    if documentHash == User.objects.get(username=request.user.username).documentHash:
-        return None
-    else:
-        return JsonResponse(
-            {"result": "Fatal Error", "message": "Document hash does not match"}
-        )
+from user.viewmodel import verifyUserDocument
+from property.viewmodel import generatePropertyHash
+from utils.responses import (
+    USER_SIGNIN_RESPONSE,
+    USER_DOCUMENT_HASH_MISMATCH_RESPONSE,
+    CANNOT_BID_TO_OWN_PROPERTY_RESPONSE,
+    BIDDING_CLOSED_RESPONSE,
+)
 
 
 def propertyList(request):
@@ -37,9 +34,9 @@ def propertyList(request):
     # Budget Button
     selected_budget = request.GET.get("budget")
     budget_ranges = {
-        "Between 1 to 1000": (1, 1000),
-        "Between 1001 to 5000": (1001, 5000),
-        "Between 5001 to 10000": (5001, 10000),
+        "Between 1 to 10,00,000": (1, 10_00_000),
+        "Between 10,00,001 to 1,00,00,000": (10_00_001, 1_00_00_000),
+        "Between 1,00,00,001 to 100,00,00,000": (1_00_00_001, 100_00_00_000),
     }
     if selected_budget:
         price_range = budget_ranges.get(selected_budget)
@@ -62,7 +59,7 @@ def propertyList(request):
                 area__gte=area_range[0], area__lte=area_range[1]
             )
 
-    # Location_Area Button
+    # Availability_date Button
     selected_availability_date = request.GET.get("availability_date")
     time_ranges = {
         "24hours": "2023-09-29/2023-09-30",
@@ -78,35 +75,13 @@ def propertyList(request):
 
     # -----------------------------------------------------------------------
 
-    bid_success = request.GET.get("bid_success") == "True"
-    bid_error = request.GET.get("bid_error") == "True"
+    bidSuccess = request.GET.get("bid_success") == "True"
+    bidError = request.GET.get("bid_error") == "True"
     return render(
         request,
         "property/property_list.html",
-        {"properties": properties, "bid_success": bid_success, "bid_error": bid_error},
+        {"properties": properties, "bid_success": bidSuccess, "bid_error": bidError},
     )
-
-
-def generatePropertyHashIdentifier(
-    ownreshipDocumentHash,
-    title,
-    description,
-    price,
-    bedrooms,
-    bathrooms,
-    area,
-    status,
-    location,
-    availableDate,
-):
-    """
-    @desc: generates a unique hash identifier for a property based on its details
-    @return: A unique SHA-256 hash identifier for the property
-    """
-    concatenated_info = f"{ownreshipDocumentHash}{title}{description}{price}{bedrooms}{bathrooms}{area}{status}{location}{availableDate}"
-    hash_identifier = sha256(concatenated_info.encode()).hexdigest()
-
-    return hash_identifier
 
 
 def addProperty(request):
@@ -115,41 +90,35 @@ def addProperty(request):
     """
 
     if isinstance(request.user, AnonymousUser):
-        return JsonResponse({"result": "Fatal Error", "message": "Sign in first"})
+        return USER_SIGNIN_RESPONSE
 
     context = dict()
 
     if request.method == "POST":
         propertyFields = request.POST
+        title = propertyFields.get("title")
+        description = propertyFields.get("description")
+        price = propertyFields.get("price")
+        bedrooms = propertyFields.get("bedrooms")
+        bathrooms = propertyFields.get("bathrooms")
+        area = propertyFields.get("area")
+        status = propertyFields.get("status")
+        location = propertyFields.get("location")
+        availableDate = propertyFields.get("available_date")
+        user = User.objects.get(username=request.user.username)
 
-        field_names = [
-            "title",
-            "description",
-            "price",
-            "bedrooms",
-            "bathrooms",
-            "area",
-            "status",
-            "location",
-            "available_date",
-        ]
-        field_values = {}
-        for field_name in field_names:
-            field_values[field_name] = propertyFields.get(field_name)
-        title = field_values.get("title")
-        description = field_values.get("description")
-        price = field_values.get("price")
-        bedrooms = field_values.get("bedrooms")
-        bathrooms = field_values.get("bathrooms")
-        area = field_values.get("area")
-        status = field_values.get("status")
-        location = field_values.get("location")
-        availableDate = field_values.get("available_date")
-        if "ownership_document" in request.FILES:
-            document = request.FILES["ownership_document"].read()
-            ownershipDocumentHash = hashDocument(document)
-        if "document" in request.FILES:
-            check_document(request)
+        ownershipDocumentHash = (
+            request.FILES["ownership_document"].read()
+            if "ownership_document" in request.FILES
+            else None
+        )
+
+        proofOfIdentity = (
+            request.FILES["document"].read() if "document" in request.FILES else None
+        )
+        if proofOfIdentity is not None and verifyUserDocument(user, proofOfIdentity):
+            return USER_DOCUMENT_HASH_MISMATCH_RESPONSE
+
         try:
             if (
                 title
@@ -161,6 +130,7 @@ def addProperty(request):
                 and status
                 and location
                 and availableDate
+                and proofOfIdentity is not None
                 and ownershipDocumentHash
             ):
                 locationCoordinates = geocode_location(location)
@@ -185,10 +155,10 @@ def addProperty(request):
                     area=area,
                     status=status,
                     location=locationObject,
-                    owner=User.objects.get(username=request.user.username),
+                    owner=user,
                     ownershipDocumentHash=ownershipDocumentHash,
                     availabilityDate=availableDate,
-                    propertyHashIdentifier=generatePropertyHashIdentifier(
+                    propertyHashIdentifier=generatePropertyHash(
                         ownershipDocumentHash,
                         title,
                         description,
@@ -216,29 +186,36 @@ def addProperty(request):
 @login_required
 @require_POST
 def addBid(request, propertyId):
+    """
+    @desc: adds bid to the property
+    @param {Property} propertyId: Id of the property to which bid should should be added
+    """
     if isinstance(request.user, AnonymousUser):
-        return JsonResponse({"result": "Fatal Error", "message": "Sign in first"})
-    property = Property.objects.get(propertyId=propertyId)
+        return USER_SIGNIN_RESPONSE
     user = User.objects.get(username=request.user.username)
-    bidAmount = request.POST.get("bid_amount")
-    if property.owner == user:
+
+    try:
+        property = Property.objects.get(pk=propertyId)
+    except ObjectDoesNotExist:
         return JsonResponse(
-            {"result": "Identity crisis", "message": "Cannot bid to your own property"}
-        )
-    if property.status in ("sold", "Sold", "rented", "Rented"):
-        return JsonResponse(
-            {
-                "result": "Time drift exception",
-                "message": "Bid already closed",
-            }
+            {"result": "Treasure not found", "message": "Property does not exist"}
         )
 
+    bidAmount = request.POST.get("bid_amount")
+
+    if property.owner == user:
+        return CANNOT_BID_TO_OWN_PROPERTY_RESPONSE
+    if property.status in ("sold", "Sold", "rented", "Rented"):
+        return BIDDING_CLOSED_RESPONSE
+    
     if request.method != "POST":
         return
-    if "document" in request.FILES:
-        result = check_document(request)
-        if result != None:
-            return result
+    
+    proofOfIdentity = (
+        request.FILES["document"].read() if "document" in request.FILES else None
+    )
+    if proofOfIdentity is not None and verifyUserDocument(user, proofOfIdentity):
+        return USER_DOCUMENT_HASH_MISMATCH_RESPONSE
 
     if bidAmount and float(bidAmount) > property.currentBid:
         property.currentBid = float(bidAmount)
