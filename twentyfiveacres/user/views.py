@@ -8,29 +8,12 @@ from django.contrib.auth import login
 from django.contrib.auth.hashers import make_password
 from django.contrib.auth.models import AnonymousUser
 from twentyfiveacres.models import User, Property, Contract
-from utils.hashing import hashDocument
+from utils.hashing import hashDocument, generateGcmOtp
 from django.core.exceptions import ObjectDoesNotExist
 from django.utils.timezone import now as timezoneNow
 from django.db.models import Q
-from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
-from cryptography.hazmat.backends import default_backend
-from django.contrib import messages
+from user.utils import generateUserHash
 import os
-
-
-def generate_gcm_otp(key, data):
-    nonce = os.urandom(12)
-
-    cipher = Cipher(algorithms.AES(key), modes.GCM(nonce), backend=default_backend())
-    encryptor = cipher.encryptor()
-
-    ciphertext = encryptor.update(data) + encryptor.finalize()
-
-    int_value = int.from_bytes(ciphertext[:3], "big")
-
-    otp = f"{int_value % 10**6:06}"
-
-    return otp
 
 
 secret_key = os.urandom(16)
@@ -105,8 +88,7 @@ def signup(request):
             and rollNumber
             and documentHash
         ):
-            userHash = hashDocument(f"{username}.{rollNumber}.{email}")
-            verification_code = generate_gcm_otp(secret_key, rollNumber.encode())
+            verification_code = generateGcmOtp(secret_key, rollNumber.encode())
             print(verification_code)
             user = User.objects.create(
                 username=username,
@@ -116,7 +98,7 @@ def signup(request):
                 first_name=firstName,
                 last_name=lastName,
                 documentHash=documentHash,
-                userHash=userHash,
+                userHash=generateUserHash(username, rollNumber, email),
                 verification_code=verification_code,
             )
             user.save()
@@ -390,11 +372,11 @@ def changeOwnership(request, propertyId):
         proofOfIdentity = request.FILES.get(f"proof_identity_{propertyId}")
         if not proofOfIdentity:
             return JsonResponse(
-            {
-                "result": "Identity Crisis",
-                "message": "Record for existencial proof missing",
-            }
-        )
+                {
+                    "result": "Identity Crisis",
+                    "message": "Record for existencial proof missing",
+                }
+            )
 
         # Set the file in request.FILES to be accessed by check_document function
         request.FILES["document"] = proofOfIdentity

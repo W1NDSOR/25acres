@@ -68,8 +68,6 @@ class Property(models.Model):
         availability_date
         current_bid
         bidder
-        TRANSACTION_STATUS_CHOICES
-        transaction_status
         ownership_document_hash
         reported
     """
@@ -100,53 +98,82 @@ class Property(models.Model):
     bidder = models.ForeignKey(
         User, related_name="current_bidder", on_delete=models.CASCADE, null=True
     )
-    TRANSACTION_STATUS_CHOICES = [
-        ("not_started", "Not Started"),
-        ("initiated_by_seller", "Initiated by Seller"),
-        ("initiated_by_buyer", "Initiated by Buyer"),
-        ("completed", "Completed"),
-    ]
-
-    transactionStatus = models.CharField(
-        max_length=20, choices=TRANSACTION_STATUS_CHOICES, default="not_started"
-    )
     ownershipDocumentHash = models.CharField(max_length=64, null=False, blank=False)
     reported = models.BooleanField(default=False, null=False, blank=False)
 
 
-# Transaction Model
-class Transaction(models.Model):
+# Seller Contract Model
+class SellerContract(models.Model):
     """
-    Transactions
-        transaction_id
-        property_id
-        buyer_id
-        seller_id
-        transaction_date
-        amount
-        uploaded_document_hash
-        transaction_hash_validation
+    Contracts
+        contract_id
+        property
+        seller
+        created_at
+        updated_at
+        contract_hash_identifier
+        contract_address (blockchain address)
     """
 
-    transactionId = models.AutoField(primary_key=True)
+    contractId = models.AutoField(primary_key=True)
+    property = models.ForeignKey(Property, on_delete=models.CASCADE)
+    seller = models.ForeignKey(
+        User, related_name="seller_contract", on_delete=models.CASCADE
+    )
+    createdAt = models.DateTimeField(auto_now_add=True)
+    updatedAt = models.DateTimeField(auto_now=True)
+    contractHashIdentifier = models.CharField(max_length=64, null=False, blank=False)
+    contractAddress = models.CharField(max_length=255, blank=True, null=True)
+
+
+# Buyer Contract Model
+class BuyerContract(models.Model):
+    """
+    Contracts
+        contract_id
+        property
+        buyer
+        created_at
+        updated_at
+        contract_hash_identifier
+        contract_address (blockchain address)
+    """
+
+    contractId = models.AutoField(primary_key=True)
     property = models.ForeignKey(Property, on_delete=models.CASCADE)
     buyer = models.ForeignKey(
-        User, related_name="buyer_transactions", on_delete=models.CASCADE
+        User, related_name="buyer_contract", on_delete=models.CASCADE
     )
-    seller = models.ForeignKey(
-        User, related_name="seller_transactions", on_delete=models.CASCADE
+    createdAt = models.DateTimeField(auto_now_add=True)
+    updatedAt = models.DateTimeField(auto_now=True)
+    contractHashIdentifier = models.CharField(max_length=64, null=False, blank=False)
+    contractAddress = models.CharField(max_length=255, blank=True, null=True)
+
+
+# Contract Model
+class Contract(models.Model):
+    """
+    Contract
+        property
+        seller_contract
+        buyer_contract
+    """
+
+    property = models.OneToOneField(
+        Property, on_delete=models.CASCADE, verbose_name="related_proprety"
     )
-    transactionType = models.CharField(
-        max_length=20,
-        choices=[
-            ("booking", "Booking"),
-            ("down_payment", "Down Payment"),
-            ("full_payment", "Full Payment"),
-            ("rent", "Rent"),
-        ],
+    sellerContract = models.ForeignKey(
+        SellerContract,
+        on_delete=models.CASCADE,
+        related_name="related_seller_contract",
+        default=None,
     )
-    transactionDate = models.DateField()
-    amount = models.DecimalField(max_digits=10, decimal_places=2)
+    buyerContract = models.ForeignKey(
+        BuyerContract,
+        on_delete=models.CASCADE,
+        related_name="related_buyer_contract",
+        default=None,
+    )
 
 
 # Image Model
@@ -164,39 +191,6 @@ class Image(models.Model):
     property = models.ForeignKey(Property, on_delete=models.CASCADE)
     user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
     imageUrl = models.URLField()
-    createdAt = models.DateTimeField(auto_now_add=True)
-    updatedAt = models.DateTimeField(auto_now=True)
-
-
-# Contract Model
-class Contract(models.Model):
-    """
-    Contracts
-        contract_id
-        property_id
-        seller_id
-        buyer_id
-        verified_by_buyer
-        verified_by_seller
-        verified_by_portal
-        contract_hash
-        contract_address (blockchain address)
-        created_at
-    """
-
-    contractId = models.AutoField(primary_key=True)
-    property = models.ForeignKey(Property, on_delete=models.CASCADE)
-    seller = models.ForeignKey(
-        User, related_name="seller_contracts", on_delete=models.CASCADE
-    )
-    buyer = models.ForeignKey(
-        User, related_name="buyer_contracts", on_delete=models.CASCADE
-    )
-    verifiedByBuyer = models.BooleanField(default=False, null=False, blank=False)
-    verifiedBySeller = models.BooleanField(default=False, null=False, blank=False)
-    verifiedByPortal = models.BooleanField(default=False, null=False, blank=False)
-    contractHash = models.CharField(max_length=64)
-    contractAddress = models.CharField(max_length=255, blank=True, null=True)
     createdAt = models.DateTimeField(auto_now_add=True)
     updatedAt = models.DateTimeField(auto_now=True)
 
