@@ -1,6 +1,7 @@
 from django.urls import path
 from . import views
 
+
 urlpatterns = [
     path("signup/", views.signup, name="sign_up"),
     path("signin/", views.signin, name="sign_in"),
@@ -12,7 +13,7 @@ urlpatterns = [
         name="delete_property",
     ),
     path(
-        "contract/<int:propertyId>/",
+        "contract/<int:propertyId>/",   
         views.handleContract,
         name="handle_contract",
     ),
@@ -21,4 +22,6 @@ urlpatterns = [
         views.changeOwnership,
         name="change_ownership",
     ),
+    path("verify_contract/", views.verifyContract, name="verify_contract"),
+
 ]

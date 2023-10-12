@@ -1,3 +1,10 @@
+from cryptography.hazmat.primitives.serialization import load_pem_public_key
+import base64
+from cryptography.hazmat.backends import default_backend
+from cryptography.hazmat.primitives import hashes, serialization
+from cryptography.hazmat.primitives.asymmetric import padding
+from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
+from base64 import b64encode, b64decode
 import ssl
 from django.core.mail import send_mail
 from django.shortcuts import render
@@ -323,4 +330,113 @@ def changeOwnership(request, propertyId):
         propertyObj.availabilityDate,
     )
     propertyObj.save()
+    return HttpResponseRedirect("/user/profile")
+
+from cryptography.exceptions import InvalidSignature
+
+def verify_with_portal_public_key(public_key, message, signature):
+    
+    if not (isinstance(message, bytes) and isinstance(signature, bytes)):
+        print("Error: Message and signature should be bytes-like objects.")
+        return None
+
+    
+    if not hasattr(public_key, "verify"):
+        print("Error: Invalid public key provided.")
+        return None
+
+    try:
+        
+        
+        
+        public_key.verify(
+            signature,
+            message,
+            padding.PSS(
+                mgf=padding.MGF1(hashes.SHA256()),
+                salt_length=padding.PSS.MAX_LENGTH
+            ),
+            hashes.SHA256()
+        )
+        return message
+
+    except InvalidSignature:
+        print("Error: Signature verification failed.")
+        return None
+
+    except Exception as e:
+        print(f"Unexpected error: {e}")
+        return None
+
+from cryptography.hazmat.primitives.padding import PKCS7
+
+def pad_data(data):
+    padder = PKCS7(128).padder()  
+    padded_data = padder.update(data) + padder.finalize()
+    return padded_data
+
+def unpad_data(padded_data):
+    unpadder = PKCS7(128).unpadder()
+    data = unpadder.update(padded_data) + unpadder.finalize()
+    return data
+
+def encrypt_with_user_sha(user_sha, message):
+    message = pad_data(message)
+    cipher = Cipher(algorithms.AES(user_sha), modes.ECB(), backend=default_backend())
+    encryptor = cipher.encryptor()
+    return encryptor.update(message) + encryptor.finalize()
+
+def decrypt_with_user_sha(user_sha, encrypted_message):
+    cipher = Cipher(algorithms.AES(user_sha), modes.ECB(), backend=default_backend())
+    decryptor = cipher.decryptor()
+    decrypted_message = decryptor.update(encrypted_message) + decryptor.finalize()
+    return unpad_data(decrypted_message)
+
+def generate_portal_keys():
+    from cryptography.hazmat.primitives.asymmetric import rsa
+
+    private_key = rsa.generate_private_key(
+        public_exponent=65537,
+        key_size=2048,
+        backend=default_backend()
+    )
+    public_key = private_key.public_key()
+    return private_key, public_key
+
+def verifyContract(request):
+    if request.method == "POST":
+        verification_text = request.POST.get('verification_string')
+        verification_text_bytes = base64.b64decode(verification_text)
+
+        
+        contract_sha_digest = base64.b64decode(request.POST.get('contract_sha'))
+
+        # use environemnt variable baad mein 
+        portal_public_key_encoded = "LS0tLS1CRUdJTiBQVUJMSUMgS0VZLS0tLS0KTUlJQklqQU5CZ2txaGtpRzl3MEJBUUVGQUFPQ0FROEFNSUlCQ2dLQ0FRRUF2UEplbVJtOW90djJJYUR0NEpDaAphN0tZQW1CQk0vV1lMMk5oMWR6REltNmcyVFB4MkpOd1I3cSsyeGhEajVRNlArVXkwUVJqemhEZG5sTkVOa3htCkJ5c0Q4Tlk0SmN3cVZ6QksxUENGdjAzSG1LOG0rUVRaTEUwNW1ybFdjczd3d0FaMXRUQlhBeUx2QjU3SWduNmsKTi9aaENhU20rSnlHRHA3SU9hRkdLOTlwNUVsQWNwZkRRVW0yUGZNU1ZBYW1rMVVjeEZqTE83M1JTSnJUUFU4UwpZSWpkNDRtd3VySzFtUHcxWENHR0pKT0RzQlFQVUl1aGg4UlpIbVdkVnZ1MHBoRVZwQ0Q0bktCQjEyclZMT09FCjhBS2JUenVWclJ0MkZsbXNQZXhKcXZtaG1LYURFdmJxcXNVbTQ5TVJTemR3Z3QwUE11YkcyQ1IrTCtNT0pKOVUKdXdJREFRQUIKLS0tLS1FTkQgUFVCTElDIEtFWS0tLS0tCg=="
+        portal_public_key_bytes = base64.b64decode(portal_public_key_encoded)
+        portal_public_key = load_pem_public_key(portal_public_key_bytes, backend=default_backend())
+        
+        
+        username = request.POST.get('user_identifier')
+        user = User.objects.get(username=username)
+        
+        user_sha = base64.b64decode(user.userHash)
+
+        
+        decrypted_signature = decrypt_with_user_sha(user_sha, verification_text_bytes)
+
+        
+        verified_contract_sha = verify_with_portal_public_key(portal_public_key, contract_sha_digest, decrypted_signature)
+
+        
+        if verified_contract_sha == contract_sha_digest:
+            verification_result = "sanctioned"
+        else:
+            verification_result = "not_sanctioned"
+        print(verification_result)
+        context = {'verification_result': verification_result}
+        
+        
+        return HttpResponseRedirect("/user/profile")
+
     return HttpResponseRedirect("/user/profile")
