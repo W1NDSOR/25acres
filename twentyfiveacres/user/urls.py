@@ -5,7 +5,7 @@ urlpatterns = [
     path("signup/", views.signup, name="sign_up"),
     path("signin/", views.signin, name="sign_in"),
     path("profile/", views.profile, name="profile"),
-    path("verify_email/", views.verify_email, name="verify_email"),
+    path("verify_email/", views.verifyEmail, name="verify_email"),
     path(
         "delete_property/<int:propertyId>/",
         views.deleteProperty,
@@ -19,6 +19,6 @@ urlpatterns = [
     path(
         "change_ownership/<int:propertyId>/",
         views.changeOwnership,
-        name="changeOwnership",
+        name="change_ownership",
     ),
 ]

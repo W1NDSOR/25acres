@@ -1,7 +1,6 @@
 import ssl
 from django.urls import reverse
 from django.core.mail import send_mail
-from hashlib import sha256
 from django.shortcuts import render
 from django.http import HttpResponseRedirect, JsonResponse
 from django.contrib.auth import login
@@ -12,58 +11,38 @@ from utils.hashing import hashDocument, generateGcmOtp
 from django.core.exceptions import ObjectDoesNotExist
 from django.utils.timezone import now as timezoneNow
 from django.db.models import Q
-from user.utils import generateUserHash
-import os
+from user.viewmodel import generateUserHash, verifyUserDocument
+from property.viewmodel import generatePropertyHash
+from os import urandom
 
 
-secret_key = os.urandom(16)
+secretKey = urandom(16)
 
 ssl._create_default_https_context = ssl._create_unverified_context
 EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
-
-
-def check_document(request):
-    document = request.FILES["document"].read()
-    documentHash = hashDocument(document)
-    if documentHash == User.objects.get(username=request.user.username).documentHash:
-        pass
-    else:
-        return JsonResponse(
-            {"result": "Fatal Error", "message": "Document hash does not match"}
-        )
 
 
 def signup(request):
     """
     @desc: renders a form for signing up new user
     """
+
     if request.method == "POST":
         userFields = request.POST
-        field_names = [
-            "user_name",
-            "roll_number",
-            "email",
-            "password",
-            "first_name",
-            "last_name",
-        ]
-        field_values = {}
-        for field_name in field_names:
-            field_values[field_name] = userFields.get(field_name)
-        username = field_values.get("user_name")
-        rollNumber = field_values.get("roll_number")
-        email = field_values.get("email")
-        password = field_values.get("password")
-        firstName = field_values.get("first_name")
-        lastName = field_values.get("last_name")
+        username = userFields.get("user_name")
+        rollNumber = userFields.get("roll_number")
+        email = userFields.get("email")
+        password = userFields.get("password")
+        firstName = userFields.get("first_name")
+        lastName = userFields.get("last_name")
 
         # Validate roll number against email
         try:
             # Extract the numbers from the email (before "@iiitd.ac.in")
-            extracted_roll_suffix = email.split("@")[0][-5:]
+            extractedRollSuffix = email.split("@")[0][-5:]
 
             # Compare the extracted number with the roll number's last 5 digits
-            if extracted_roll_suffix != rollNumber[-5:]:
+            if extractedRollSuffix != rollNumber[-5:]:
                 return render(
                     request,
                     "user/signup_form.html",
@@ -74,11 +53,12 @@ def signup(request):
                 request, "user/signup_form.html", {"error": "Invalid email format!"}
             )
 
-        if "document" in request.FILES:
-            document = request.FILES["document"].read()
-            documentHash = hashDocument(document)
-        else:
-            documentHash = None
+        documentHash = (
+            hashDocument(request.FILES["document"].read())
+            if "document" in request.FILES
+            else None
+        )
+
         if (
             username
             and email
@@ -88,8 +68,7 @@ def signup(request):
             and rollNumber
             and documentHash
         ):
-            verification_code = generateGcmOtp(secret_key, rollNumber.encode())
-            print(verification_code)
+            verificationCode = generateGcmOtp(secretKey, rollNumber.encode())
             user = User.objects.create(
                 username=username,
                 email=email,
@@ -99,53 +78,31 @@ def signup(request):
                 last_name=lastName,
                 documentHash=documentHash,
                 userHash=generateUserHash(username, rollNumber, email),
-                verification_code=verification_code,
+                verificationCode=verificationCode,
             )
             user.save()
             send_mail(
                 "Welcome to 25acres",
-                f"Your verification code is {verification_code}",
+                f"Your verification code is {verificationCode}",
                 "settings.EMAIL_HOST_USER",
                 [email],
                 fail_silently=False,
             )
 
-            return HttpResponseRedirect(reverse("verify_email"))
+            return HttpResponseRedirect("/user/verify_email")
 
     return render(request, "user/signup_form.html")
 
 
-def generatePropertyHashIdentifier(
-    ownreshipDocumentHash,
-    title,
-    description,
-    price,
-    bedrooms,
-    bathrooms,
-    area,
-    status,
-    location,
-    availableDate,
-):
-    """
-    @desc: generates a unique hash identifier for a property based on its details
-    @return: A unique SHA-256 hash identifier for the property
-    """
-    concatenated_info = f"{ownreshipDocumentHash}{title}{description}{price}{bedrooms}{bathrooms}{area}{status}{location}{availableDate}"
-    hash_identifier = sha256(concatenated_info.encode()).hexdigest()
-
-    return hash_identifier
-
-
-def verify_email(request):
+def verifyEmail(request):
     if request.method == "POST":
         code = request.POST.get("code")
         rollNumber = request.POST.get("roll_number")
         try:
-            user = User.objects.get(rollNumber=rollNumber, verification_code=code)
+            user = User.objects.get(rollNumber=rollNumber, verificationCode=code)
             user.verification_code = None
             user.save()
-            return HttpResponseRedirect("../signin")
+            return HttpResponseRedirect("/user/signin")
         except User.DoesNotExist:
             return render(
                 request,
@@ -169,9 +126,14 @@ def signin(request):
                 salt = user.password.split("$")[2]
                 if user.password == make_password(password, salt=salt):
                     login(request, user)
-                    return HttpResponseRedirect("../../")
-            except:
-                pass
+                    return HttpResponseRedirect("/")
+            except User.DoesNotExist:
+                return JsonResponse(
+                    {
+                        "result": "Identity Crisis",
+                        "message": "Invalid roll number",
+                    }
+                )
     return render(request, "user/signin_form.html")
 
 
@@ -181,29 +143,27 @@ def profile(request):
     """
 
     if isinstance(request.user, AnonymousUser):
-        return HttpResponseRedirect("../../")
+        return JsonResponse({"result": "Identity crisis", "message": "Signin first"})
+
+    def getPropertyContracts(properties):
+        contracts = []
+        for property in properties:
+            try:
+                contracts.append(Contract.objects.get(property=property))
+            except ObjectDoesNotExist:
+                contracts.append(None)
+        return contracts
+
     user = User.objects.get(username=request.user.username)
 
     properties = Property.objects.filter(
         owner=user, status__in=["for_sell", "For Sell", "for_rent", "For Rent"]
     )
-    contracts = []
-    for property in properties:
-        try:
-            contracts.append(Contract.objects.get(property=property))
-        except ObjectDoesNotExist:
-            contracts.append(None)
-
+    contracts = getPropertyContracts(properties)
     propertyBidings = Property.objects.filter(
         bidder=user, status__in=["for_sell", "For Sell", "for_rent", "For Rent"]
     )
-    propertyBidingsContracts = []
-    for property in propertyBidings:
-        try:
-            propertyBidingsContracts.append(Contract.objects.get(property=property))
-        except ObjectDoesNotExist:
-            propertyBidingsContracts.append(None)
-
+    propertyBidingsContracts = getPropertyContracts(propertyBidings)
     pastProperties = Property.objects.filter(
         Q(owner=user) | Q(bidder=user), status__in=["Sold", "Rented"]
     )
@@ -221,29 +181,15 @@ def profile(request):
         "pastProperties": pastProperties,
     }
 
-    if request.method == "POST":
-        if "action" in request.POST:
-            button_value = request.POST["action"]
-
-        if button_value == "profileDetailButton":
-            userFields = request.POST
-            firstName = userFields.get("first_name")
-            lastName = userFields.get("last_name")
-            if firstName and lastName:
-                user.first_name = firstName
-                user.last_name = lastName
-                user.save()
-                return HttpResponseRedirect("/")
-
-        elif button_value == "sellProperty":
-            if "document" in request.FILES:
-                check_document(request)
-            else:
-                print("Upload document")
-                return HttpResponseRedirect("/")
-
-            property.status = "Sold"
-            return render("transaction/transaction1.html")
+    if request.method == "POST" and request.POST.get("action") == "profileDetailButton":
+        userFields = request.POST
+        firstName = userFields.get("first_name")
+        lastName = userFields.get("last_name")
+        if firstName and lastName:
+            user.first_name = firstName
+            user.last_name = lastName
+            user.save()
+            return HttpResponseRedirect("/")
 
     return render(request, "user/profile.html", context=context)
 
@@ -254,7 +200,7 @@ def deleteProperty(request, propertyId):
     @params {int} propertyId: Id of the property to be deleted
     """
     if isinstance(request.user, AnonymousUser):
-        return HttpResponseRedirect("../../")
+        return JsonResponse({"result": "Identity crisis", "message": "Signin first"})
 
     user = User.objects.get(username=request.user.username)
     try:
@@ -281,7 +227,8 @@ def handleContract(request, propertyId):
     """
 
     if isinstance(request.user, AnonymousUser):
-        return HttpResponseRedirect("../../")
+        return JsonResponse({"result": "Identity crisis", "message": "Signin first"})
+
     user = User.objects.get(username=request.user.username)
 
     try:
@@ -344,6 +291,11 @@ def handleContract(request, propertyId):
 
 
 def changeOwnership(request, propertyId):
+    if request.method != "POST":
+        return JsonResponse(
+            {"result": "Trespassing", "message": "Wandering into unbeknownst valleys"}
+        )
+
     # check if the user is authenticated
     if isinstance(request.user, AnonymousUser):
         return HttpResponseRedirect("../../")
@@ -367,53 +319,51 @@ def changeOwnership(request, propertyId):
             }
         )
 
-    if request.method == "POST":
-        # check proof of identity
-        proofOfIdentity = request.FILES.get(f"proof_identity_{propertyId}")
-        if not proofOfIdentity:
-            return JsonResponse(
-                {
-                    "result": "Identity Crisis",
-                    "message": "Record for existencial proof missing",
-                }
-            )
+    # check proof of identity
+    proofOfIdentity = request.FILES.get(f"proof_identity_{propertyId}")
+    if not proofOfIdentity:
+        return JsonResponse(
+            {
+                "result": "Identity Crisis",
+                "message": "Record for existencial proof missing",
+            }
+        )
 
-        # Set the file in request.FILES to be accessed by check_document function
-        request.FILES["document"] = proofOfIdentity
-        verificationResult = check_document(request)
+    if not verifyUserDocument(user, proofOfIdentity):
+        return JsonResponse(
+            {
+                "result": "Fatal Error",
+                "message": "Document hash does not match",
+            }
+        )
 
-        # If check_document returns a JsonResponse, it means the verification failed
-        if verificationResult:
-            return verificationResult
-
-        # Update ownership document
-        ownershipDocument = request.FILES.get(f"ownership_document_{propertyId}")
-        if ownershipDocument:
-            ownershipDocumentHash = hashDocument(ownershipDocument.read())
-            propertyObj.ownershipDocumentHash = ownershipDocumentHash
-            propertyObj.propertyHashIdentifier = generatePropertyHashIdentifier(
-                ownershipDocumentHash,
-                propertyObj.title,
-                propertyObj.description,
-                propertyObj.price,
-                propertyObj.bedrooms,
-                propertyObj.bathrooms,
-                propertyObj.area,
-                propertyObj.status,
-                propertyObj.location.name,
-                propertyObj.availabilityDate,
-            )
-            propertyObj.save()
-            return HttpResponseRedirect("/user/profile")
-        else:
-            return JsonResponse(
-                {
-                    "result": "Existencial crisis",
-                    "message": "Missing crucial record aka Ownership Document",
-                }
-            )
-
-    # For GET requests or any other method
-    return JsonResponse(
-        {"result": "Trespassing", "message": "Wandering into unbeknownst valleys"}
+    ownershipDocumentHash = (
+        hashDocument(request.FILES[f"ownership_document_{propertyId}"].read())
+        if f"ownership_document_{propertyId}" in request.FILES
+        else None
     )
+
+    if ownershipDocumentHash is None:
+        return JsonResponse(
+            {
+                "result": "Existencial crisis",
+                "message": "Missing crucial record aka Ownership Document",
+            }
+        )
+    # Update ownership document if it is not None
+    ownershipDocumentHash = ownershipDocumentHash
+    propertyObj.ownershipDocumentHash = ownershipDocumentHash
+    propertyObj.propertyHashIdentifier = generatePropertyHash(
+        ownershipDocumentHash,
+        propertyObj.title,
+        propertyObj.description,
+        propertyObj.price,
+        propertyObj.bedrooms,
+        propertyObj.bathrooms,
+        propertyObj.area,
+        propertyObj.status,
+        propertyObj.location.name,
+        propertyObj.availabilityDate,
+    )
+    propertyObj.save()
+    return HttpResponseRedirect("/user/profile")

@@ -10,3 +10,8 @@ def generateUserHash(username, rollNumber, email):
     @returns {str} userHash: userHash
     """
     return hashDocument(f"{username}.{rollNumber}.{email}")
+
+
+def verifyUserDocument(user, document):
+    documentHash = hashDocument(document)
+    return documentHash == user.documentHash
