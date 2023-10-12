@@ -1,5 +1,4 @@
 from utils.hashing import hashDocument
-from twentyfiveacres.models import Property
 
 
 def generatePropertyHash(

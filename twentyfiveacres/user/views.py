@@ -1,19 +1,27 @@
 import ssl
-from django.urls import reverse
 from django.core.mail import send_mail
 from django.shortcuts import render
 from django.http import HttpResponseRedirect, JsonResponse
 from django.contrib.auth import login
 from django.contrib.auth.hashers import make_password
 from django.contrib.auth.models import AnonymousUser
-from twentyfiveacres.models import User, Property, Contract
 from utils.hashing import hashDocument, generateGcmOtp
 from django.core.exceptions import ObjectDoesNotExist
-from django.utils.timezone import now as timezoneNow
 from django.db.models import Q
 from user.viewmodel import generateUserHash, verifyUserDocument
 from property.viewmodel import generatePropertyHash
 from os import urandom
+from contract.viewmodel import (
+    generateUserPropertyContractHash,
+    getAbstractContractArray,
+)
+from twentyfiveacres.models import (
+    User,
+    Property,
+    Contract,
+    SellerContract,
+    BuyerContract,
+)
 
 
 secretKey = urandom(16)
@@ -145,25 +153,16 @@ def profile(request):
     if isinstance(request.user, AnonymousUser):
         return JsonResponse({"result": "Identity crisis", "message": "Signin first"})
 
-    def getPropertyContracts(properties):
-        contracts = []
-        for property in properties:
-            try:
-                contracts.append(Contract.objects.get(property=property))
-            except ObjectDoesNotExist:
-                contracts.append(None)
-        return contracts
-
     user = User.objects.get(username=request.user.username)
 
     properties = Property.objects.filter(
         owner=user, status__in=["for_sell", "For Sell", "for_rent", "For Rent"]
     )
-    contracts = getPropertyContracts(properties)
+    contracts = getAbstractContractArray(properties)
     propertyBidings = Property.objects.filter(
         bidder=user, status__in=["for_sell", "For Sell", "for_rent", "For Rent"]
     )
-    propertyBidingsContracts = getPropertyContracts(propertyBidings)
+    propertyBidingsContracts = getAbstractContractArray(propertyBidings)
     pastProperties = Property.objects.filter(
         Q(owner=user) | Q(bidder=user), status__in=["Sold", "Rented"]
     )
@@ -233,16 +232,17 @@ def handleContract(request, propertyId):
 
     try:
         property = Property.objects.get(propertyId=propertyId)
-        if property.owner != user and property.bidder != user:
-            return JsonResponse(
-                {
-                    "result": "Identity Crisis",
-                    "message": "You are not the bidder nor the owner of this property",
-                }
-            )
     except ObjectDoesNotExist:
         return JsonResponse(
             {"result": "Treasure not found", "message": "Property does not exist"}
+        )
+
+    if property.owner != user and property.bidder != user:
+        return JsonResponse(
+            {
+                "result": "Identity Crisis",
+                "message": "You are not the bidder nor the owner of this property",
+            }
         )
 
     try:
@@ -251,32 +251,34 @@ def handleContract(request, propertyId):
         contract = None
 
     if contract is None and property.owner == user:
-        contract = Contract.objects.create(
+        sellerContract = SellerContract.objects.create(
             property=property,
             seller=user,
-            buyer=property.bidder,
-            verifiedByBuyer=False,
-            verifiedBySeller=True,
-            verifiedByPortal=False,
-            contractHash="",
+            contractHash=generateUserPropertyContractHash(user, property),
             contractAddress=None,
+        )
+        sellerContract.save()
+        contract = Contract.objects.create(
+            property=property,
+            seller=sellerContract,
         )
         contract.save()
         return HttpResponseRedirect("/user/profile")
 
     if (
         contract is not None
-        and not contract.verifiedByBuyer
-        and not contract.verifiedByPortal
-        and contract.verifiedBySeller
+        and contract.sellerContract is not None
+        and contract.buyerContract is None
         and property.bidder == user
     ):
-        contract.verifiedByBuyer = True
-        contract.contractHash = hashDocument(
-            f"{property.owner.userHash}.{property.bidder.userHash}.{property.propertyHashIdentifier}"
+        buyerContract = BuyerContract.objects.create(
+            property=property,
+            buyer=user,
+            contractHash=generateUserPropertyContractHash(user, property),
+            contractAddress=None,
         )
-        contract.verifiedByPortal = True
-        contract.updatedAt = timezoneNow()
+        buyerContract.save()
+        contract.buyerContract = buyerContract
         contract.save()
         if property.status in ("for_sell", "For Sell"):
             property.status = "Sold"

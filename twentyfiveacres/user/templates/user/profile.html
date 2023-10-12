@@ -106,12 +106,10 @@
                             {% with contract=contracts|index:forloop.counter0 %}
                               {% if contract == None %}
                                 <a href="../contract/{{ property.propertyId }}/" class="btn btn-primary">Make contract</a>
+                              {% elif contract.verifiedByBuyer == False %}
+                                <a class="btn btn-primary disabled" aria-disabled="true">Verification from other side is pending</a>
                               {% else %}
-                                {% if contract.verifiedByBuyer == False %}
-                                  <a class="btn btn-primary disabled" aria-disabled="true">Verification from other side is pending</a>
-                                {% else %}
-                                  <a class="btn btn-primary disabled" aria-disabled="true">Contract verified</a>
-                                {% endif %}
+                                <a class="btn btn-primary disabled" aria-disabled="true">Contract verified</a>
                               {% endif %}
                             {% endwith %}
                           {% else %}
@@ -185,14 +183,12 @@
                         {% with contract=propertyBidingsContracts|index:forloop.counter0 %}
                           {% if contract == None %}
                             <a class="btn btn-primary disabled" aria-disabled="true">Waiting for other party to verify first</a>
+                          {% elif contract.verifiedBySeller == False %}
+                            <a class="btn btn-primary disabled" aria-disabled="true">Waiting for other party to verify first</a>
+                          {% elif contract.verifiedByBuyer == False %}
+                            <a href="../contract/{{ property.propertyId }}/" class="btn btn-primary">Verify to complete the contract</a>
                           {% else %}
-                            {% if contract.verifiedBySeller == False %}
-                              <a class="btn btn-primary disabled" aria-disabled="true">Waiting for other party to verify first</a>
-                            {% elif contract.verifiedByBuyer == False %}
-                              <a href="../contract/{{ property.propertyId }}/" class="btn btn-primary">Verify to complete the contract</a>
-                            {% else %}
-                              <a class="btn btn-primary disabled" aria-disabled="true">Contract verified</a>
-                            {% endif %}
+                            <a class="btn btn-primary disabled" aria-disabled="true">Contract verified</a>
                           {% endif %}
                         {% endwith %}
                       </div>

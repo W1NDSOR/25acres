@@ -24,12 +24,14 @@ class User(AbstractUser):
         roll_number
         document_hash
         user_hash
+        wallet
     """
 
     rollNumber = models.IntegerField(unique=True)
     verificationCode = models.CharField(max_length=6, null=True, blank=True)
     documentHash = models.CharField(max_length=64, null=True, blank=True)
     userHash = models.CharField(max_length=64, null=False, blank=False)
+    wallet = models.IntegerField(default=1000000000, null=False, blank=False)
     REQUIRED_FIELDS = ["rollNumber"]
 
     def __str__(self):
@@ -106,23 +108,23 @@ class Property(models.Model):
 class SellerContract(models.Model):
     """
     Contracts
-        contract_id
+        contract_hash_identifier [PK]
         property
         seller
         created_at
         updated_at
-        contract_hash_identifier
         contract_address (blockchain address)
     """
 
-    contractId = models.AutoField(primary_key=True)
+    contractHashIdentifier = models.CharField(
+        max_length=64, primary_key=True, null=False, blank=False
+    )
     property = models.ForeignKey(Property, on_delete=models.CASCADE)
     seller = models.ForeignKey(
         User, related_name="seller_contract", on_delete=models.CASCADE
     )
     createdAt = models.DateTimeField(auto_now_add=True)
     updatedAt = models.DateTimeField(auto_now=True)
-    contractHashIdentifier = models.CharField(max_length=64, null=False, blank=False)
     contractAddress = models.CharField(max_length=255, blank=True, null=True)
 
 
@@ -130,23 +132,23 @@ class SellerContract(models.Model):
 class BuyerContract(models.Model):
     """
     Contracts
-        contract_id
+        contract_hash_identifier [PK]
         property
         buyer
         created_at
         updated_at
-        contract_hash_identifier
         contract_address (blockchain address)
     """
 
-    contractId = models.AutoField(primary_key=True)
+    contractHashIdentifier = models.CharField(
+        max_length=64, primary_key=True, null=False, blank=False
+    )
     property = models.ForeignKey(Property, on_delete=models.CASCADE)
     buyer = models.ForeignKey(
         User, related_name="buyer_contract", on_delete=models.CASCADE
     )
     createdAt = models.DateTimeField(auto_now_add=True)
     updatedAt = models.DateTimeField(auto_now=True)
-    contractHashIdentifier = models.CharField(max_length=64, null=False, blank=False)
     contractAddress = models.CharField(max_length=255, blank=True, null=True)
 
 
