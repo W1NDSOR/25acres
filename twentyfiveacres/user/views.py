@@ -1,14 +1,7 @@
-from cryptography.hazmat.primitives.serialization import load_pem_public_key
-import base64
-from cryptography.hazmat.backends import default_backend
-from cryptography.hazmat.primitives import hashes, serialization
-from cryptography.hazmat.primitives.asymmetric import padding
-from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
-from base64 import b64encode, b64decode
 import ssl
 from django.core.mail import send_mail
 from django.shortcuts import render
-from django.http import HttpResponseRedirect, JsonResponse
+from django.http import HttpResponseRedirect
 from django.contrib.auth import login
 from django.contrib.auth.hashers import make_password
 from django.contrib.auth.models import AnonymousUser
@@ -18,6 +11,9 @@ from django.db.models import Q
 from user.viewmodel import generateUserHash, verifyUserDocument
 from property.viewmodel import generatePropertyHash
 from os import urandom
+from cryptography.hazmat.primitives.serialization import load_pem_public_key
+from cryptography.hazmat.backends import default_backend
+from base64 import b64decode
 from contract.viewmodel import (
     generateUserPropertyContractHash,
     getAbstractContractArray,
@@ -42,84 +38,19 @@ from twentyfiveacres.models import (
     SellerContract,
     BuyerContract,
 )
-
+from utils.crypto import (
+    verifyWithPortalPublicKey,
+    encryptWithUserSha,
+    decryptWithUserSha,
+    signWithPortalPrivateKey,
+    PORTAL_PRIVATE_KEY,
+    PORTAL_PUBLIC_ENCODED_KEY,
+)
 
 secretKey = urandom(16)
 
 ssl._create_default_https_context = ssl._create_unverified_context
 EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
-
-
-from cryptography.exceptions import InvalidSignature
-
-def verify_with_portal_public_key(public_key, message, signature):
-    
-    if not (isinstance(message, bytes) and isinstance(signature, bytes)):
-        print("Error: Message and signature should be bytes-like objects.")
-        return None
-
-    
-    if not hasattr(public_key, "verify"):
-        print("Error: Invalid public key provided.")
-        return None
-
-    try:
-        
-        
-        
-        public_key.verify(
-            signature,
-            message,
-            padding.PSS(
-                mgf=padding.MGF1(hashes.SHA256()),
-                salt_length=padding.PSS.MAX_LENGTH
-            ),
-            hashes.SHA256()
-        )
-        return message
-
-    except InvalidSignature:
-        print("Error: Signature verification failed.")
-        return None
-
-    except Exception as e:
-        print(f"Unexpected error: {e}")
-        return None
-
-from cryptography.hazmat.primitives.padding import PKCS7
-
-def pad_data(data):
-    padder = PKCS7(128).padder()  
-    padded_data = padder.update(data) + padder.finalize()
-    return padded_data
-
-def unpad_data(padded_data):
-    unpadder = PKCS7(128).unpadder()
-    data = unpadder.update(padded_data) + unpadder.finalize()
-    return data
-
-def encrypt_with_user_sha(user_sha, message):
-    message = pad_data(message)
-    cipher = Cipher(algorithms.AES(user_sha), modes.ECB(), backend=default_backend())
-    encryptor = cipher.encryptor()
-    return encryptor.update(message) + encryptor.finalize()
-
-def decrypt_with_user_sha(user_sha, encrypted_message):
-    cipher = Cipher(algorithms.AES(user_sha), modes.ECB(), backend=default_backend())
-    decryptor = cipher.decryptor()
-    decrypted_message = decryptor.update(encrypted_message) + decryptor.finalize()
-    return unpad_data(decrypted_message)
-
-def generate_portal_keys():
-    from cryptography.hazmat.primitives.asymmetric import rsa
-
-    private_key = rsa.generate_private_key(
-        public_exponent=65537,
-        key_size=2048,
-        backend=default_backend()
-    )
-    public_key = private_key.public_key()
-    return private_key, public_key
 
 
 def signup(request):
@@ -288,16 +219,6 @@ def deleteProperty(request, propertyId):
     except ObjectDoesNotExist:
         return PROPERTY_DOES_NOT_EXIST_RESPONSE
 
-def sign_with_portal_private_key(private_key, message):
-    signature = private_key.sign(
-        message,
-        padding.PSS(
-            mgf=padding.MGF1(hashes.SHA256()),
-            salt_length=padding.PSS.MAX_LENGTH
-        ),
-        hashes.SHA256()
-    )
-    return signature
 
 def handleContract(request, propertyId):
     """
@@ -306,9 +227,8 @@ def handleContract(request, propertyId):
 
     if isinstance(request.user, AnonymousUser):
         return USER_SIGNIN_RESPONSE
-
     user = User.objects.get(username=request.user.username)
-    user_sha = user.userHash
+
     try:
         property = Property.objects.get(propertyId=propertyId)
     except ObjectDoesNotExist:
@@ -321,9 +241,8 @@ def handleContract(request, propertyId):
         contract = Contract.objects.get(property=propertyId)
     except ObjectDoesNotExist:
         contract = None
-    
+
     # hardcoded the private key for the portal
-    private_portal_key = "LS0tLS1CRUdJTiBQUklWQVRFIEtFWS0tLS0tCk1JSUV2UUlCQURBTkJna3Foa2lHOXcwQkFRRUZBQVNDQktjd2dnU2pBZ0VBQW9JQkFRQ2pRTk5YZk5ZRTlQTG8KeHRYdjVzRTJwbStjUkZ4YTRGQkFPVWUveUhLR3dQMzNBaUdzaHlycFFnR1prOEhCZm92QlZFVkJKT1lpTVNhVwpVaERRa2dOalc5ZUpVczc1R21UZ1JaR3doTGR1R1lKVFdYcytkOS9QeURlL2ZoSXl6S2UyQzZWUDV2c0RKNnpvCnVSeThnNG05dnNUb1I2WFdPUTQrS2I2NGNMOEZRajg2NldTa0RRdThTYW9HdzRyL1YrTEtWa2pKTnV5UU1tbloKbTQ5WUIxRFp4L3RjZTFJTXFxVkhFNkJOTWV5dExNNitiWTdhN0R0WitLN3hIeDJJdWFHZUpHVitLRUN2dXk4aApTL3U3djMrcjRxbG5HWVFEUDVibmlzTU5tTzA1c0NwMnRzanNSalFUVCtEL2tzUC80NmF4U3BhOFlLZjVUSGpxClgyM2FEQjdaQWdNQkFBRUNnZ0VBQXAyVlJUK1F4aitPYk1CU3lTY3ZUVXJaV3UyVmRUZEcwZUNaRDYrTWRqQTkKWVdtOVZHQk9CYkt6Qjl6Z0s5TjFOY0c5NGs5UENKazAvdytOaVdudGQvZ091ZnFEcW1ZTDI3UUJvNHhjeS96SQpvOEU1UWtUMVp3VFVMOU03UTJrWC9zaXMrMXkrQk16cjdrYVkrVVE2UHJvQnVaNzhQelJtMEFRbk5CbEtWakUwCjkvQjBZS3AwS3VWSW1LdXh4dTlwdDR5ZmpCT0tqUGZraWkzY2tsQ211KytDVXdkSFZqY3ZGRHEydmpkbE9tS1oKMGZzTDJHM0lvWGZqcFZkTTlUVmZhbVpHRE5qZ1J3VDh5TUtEdzFMTVdVc3dNa0prMWNoZU5ydnlCTmY3Z0kvVgpwcHI4aWRYVnFhWUFSenBiUHJZSEc4cFpMc0pIWDRIUXlJWDJlL1g0U1FLQmdRRFVWcUVCMWdvbGZFQlExaU9oCnpWblBJbDNOTHdRNFI4KzlwaUh6ZEwwR0YwekJSdzRmei9kc1VPejZFTWVVMUFUYzZCN1dpVHBXb0dMdFJHMVgKam9HdDZqTm1vcTV1SzBBWEhIMGUvbXluL0xMZWZCalNsWWVZUzdyckQycFZRVzVWZnhCTkQwbGxYWnZFbHlQQwowcjZaYTNvZ2w4YWRCWnFndkplVkpTb0Rad0tCZ1FERTBtR3FOaWk3QXJyM01JM0NoUlhQcEhsdlBjWFA4K3RUCmI5ZUpVTFRUSm1KTGdjWlhhMkp6SVpsOWlXenFyTk1NZzdCSlJSdHl6ZkF1bWU4ajlybUJwOU9nOWhHdmJ6UnYKMmhHSjRqN3VGNlpvamJrNzNvMlNrM3ZLSmEzSEl0ZDZwb3paU1NYanphM0tNRFBqSzl2ejlmb28xRWFndEFPeAprd1lFSDQranZ3S0JnRnlpV21XQnFqV0dTa3k1enh1MGlaeXE0bjgwSnNRaTJBZGxwZVFmSnFPMG9JQ2xiZzBFCjNtMDd0TmEzWVVxVllIVzdNbERuMXpLWmorN3c3ajdIWmQyb2tib1IrTVVKUzFHSjFUQWpVT1hNZ1lBOFpWdmgKYmlGTDBJVGgyY0xONDhPYXhsTEgrMzRrWTJOVmlIMWpFVkcvS0sxMWFXbHhXMjhLTjVzU2RveTdBb0dBRHRlRwpnZDFmcU9xRnlzb2dob0NlcW0vT3NITEtEZXBvM252YWx3STlBSWN1ZGw4czQ3NjNSOU5LemNxbEtmVXFYUkU1CkkrMVFLcElaQUlxZkcra3BCL3Z0MjM5eXlmWHEwRnh6WWlCcmVtelNJYVErU2FONHJZcnRsTXJPbGV1c3NCVUwKSGYrRUdlK1NvV0tOSng1UmtjNEV0VHQ4ci9XakthcmFrMGtGL2VVQ2dZRUF2ZkxrT2NwbVU0cjFhQjM1eHh6eAowVTI2OG9ZaGZOczNFRGJMQVRVSlZPK0tHVkduUDc0NmJGRFVIK3AyQ3pnY2lwbmpCeHdHQzJ6RE4xbVBmemV4ClQ5dW9HZTVhZkJIQVdWMkhJQVJSRWlUZy9vSVEyYVU2cUFNY0VqYTROWGdCMUZVSmZMdEs2WnZIeDg3b3kwL1YKZERYZnROWm1oVVBEQzZWVk9neFFHdWM9Ci0tLS0tRU5EIFBSSVZBVEUgS0VZLS0tLS0K"
     if contract is None and property.owner == user:
         sellerContract = SellerContract.objects.create(
             property=property,
@@ -338,11 +257,11 @@ def handleContract(request, propertyId):
         )
         contract.save()
         # contract hash
-        contract_hash = sellerContract.contractHashIdentifier
-        signature = sign_with_portal_private_key(private_portal_key, contract_hash)
-        encrypted_signature = encrypt_with_user_sha(user_sha, signature)
+        contractHash = sellerContract.contractHashIdentifier
+        signature = signWithPortalPrivateKey(PORTAL_PRIVATE_KEY, contractHash)
+        encryptedSignature = encryptWithUserSha(user.userHash, signature)
+        # TODO: now need to mail these both things `contractHash` and `encryptedSignature` to the user
 
-        #  now need to mail these both things contract hash and encrypted signature to the user
         return HttpResponseRedirect("/user/profile")
 
     if (
@@ -358,12 +277,11 @@ def handleContract(request, propertyId):
             contractAddress=None,
         )
         buyerContract.save()
-        contract_hash = buyerContract.contractHashIdentifier
-        signature = sign_with_portal_private_key(private_portal_key, contract_hash)
-        encrypted_signature = encrypt_with_user_sha(user_sha, signature)
+        contractHash = buyerContract.contractHashIdentifier
+        signature = signWithPortalPrivateKey(PORTAL_PRIVATE_KEY, contractHash)
+        encryptedSignature = encryptWithUserSha(user.userHash, signature)
+        # TODO: now need to mail these both things `contractHash` and `encryptedSignature` to the user
 
-        #  now need to mail these both things contract hash and encrypted signature to the user
-        
         contract.buyerContract = buyerContract
         contract.save()
         if property.status in ("for_sell", "For Sell"):
@@ -427,47 +345,42 @@ def changeOwnership(request, propertyId):
     )
     propertyObj.save()
     return HttpResponseRedirect("/user/profile")
+
+
 def verifyContract(request):
     try:
         if request.method == "POST":
-            verification_text = request.POST.get('verification_string')
-            verification_text_bytes = base64.b64decode(verification_text)
+            verificationText = request.POST.get("verification_string")
+            verificationTextBytes = b64decode(verificationText)
+            contractShaDigest = b64decode(request.POST.get("contract_sha"))
 
+            # TODO: replace this logic with environment variable
+            portalPublicKeyBytes = b64decode(PORTAL_PUBLIC_ENCODED_KEY)
+            portalPublicKey = load_pem_public_key(
+                portalPublicKeyBytes, backend=default_backend()
+            )
 
-            contract_sha_digest = base64.b64decode(request.POST.get('contract_sha'))
-
-            # use environemnt variable baad mein 
-            portal_public_key_encoded = "LS0tLS1CRUdJTiBQVUJMSUMgS0VZLS0tLS0KTUlJQklqQU5CZ2txaGtpRzl3MEJBUUVGQUFPQ0FROEFNSUlCQ2dLQ0FRRUF2UEplbVJtOW90djJJYUR0NEpDaAphN0tZQW1CQk0vV1lMMk5oMWR6REltNmcyVFB4MkpOd1I3cSsyeGhEajVRNlArVXkwUVJqemhEZG5sTkVOa3htCkJ5c0Q4Tlk0SmN3cVZ6QksxUENGdjAzSG1LOG0rUVRaTEUwNW1ybFdjczd3d0FaMXRUQlhBeUx2QjU3SWduNmsKTi9aaENhU20rSnlHRHA3SU9hRkdLOTlwNUVsQWNwZkRRVW0yUGZNU1ZBYW1rMVVjeEZqTE83M1JTSnJUUFU4UwpZSWpkNDRtd3VySzFtUHcxWENHR0pKT0RzQlFQVUl1aGg4UlpIbVdkVnZ1MHBoRVZwQ0Q0bktCQjEyclZMT09FCjhBS2JUenVWclJ0MkZsbXNQZXhKcXZtaG1LYURFdmJxcXNVbTQ5TVJTemR3Z3QwUE11YkcyQ1IrTCtNT0pKOVUKdXdJREFRQUIKLS0tLS1FTkQgUFVCTElDIEtFWS0tLS0tCg=="
-            portal_public_key_bytes = base64.b64decode(portal_public_key_encoded)
-            portal_public_key = load_pem_public_key(portal_public_key_bytes, backend=default_backend())
-
-
-            username = request.POST.get('user_identifier')
+            username = request.POST.get("user_identifier")
             user = User.objects.get(username=username)
+            userSha = b64decode(user.userHash)
 
-            user_sha = base64.b64decode(user.userHash)
+            decryptedSignature = decryptWithUserSha(userSha, verificationTextBytes)
+            verifiedContractSha = verifyWithPortalPublicKey(
+                portalPublicKey, contractShaDigest, decryptedSignature
+            )
 
-
-            decrypted_signature = decrypt_with_user_sha(user_sha, verification_text_bytes)
-
-
-            verified_contract_sha = verify_with_portal_public_key(portal_public_key, contract_sha_digest, decrypted_signature)
-
-
-            if verified_contract_sha == contract_sha_digest:
+            if verifiedContractSha == contractShaDigest:
                 verification_result = "sanctioned"
             else:
                 verification_result = "not_sanctioned"
-            
+
             print(verification_result)
-            context = {'verification_result': verification_result}
+            context = {"verification_result": verification_result}
 
             return HttpResponseRedirect("/user/profile")
 
         return HttpResponseRedirect("/user/profile")
 
-    except Exception as e:
-        print(f"An error occurred: {e}")
-        context = {'verification_result': "not_sanctioned"}
+    except Exception as exception:
+        print(f"An error occurred: {exception}")
         return HttpResponseRedirect("/user/profile")
-
