@@ -16,12 +16,14 @@ from twentyfiveacres.models import (
 # Create your views here.
 
 def paymentGateway(request):
-    # needs fixing
     contract = Contract.objects.get(id=request.GET.get("id"))
     property = Property.objects.get(id=contract.property_id)
-    buyer = User.objects.get(id=contract.buyerContract_id)
-    seller = User.objects.get(id=contract.sellerContract_id)
 
+    return render(request, "paymentGateway.html", context={"property": property, "contract": contract})
+
+def cardDetails(request):
+    contract = Contract.objects.get(id=request.GET.get("id"))
+    property = Property.objects.get(id=contract.property_id)
     context = {
         "title": "Payment Gateway",
         "content": "Payment Gateway",
@@ -31,8 +33,21 @@ def paymentGateway(request):
         "seller_id": contract.sellerContract_id,
         "price": property.price,
     }
+    if request.method == "POST" and request.POST.get("action") == "Card Details":
+        cardNumber = request.get("cardNumber")
+        expirationDate = request.get("expirationDate")
+        cvv = request.get("cvv")
+        cardHolderName = request.get("cardHolderName")
+        amount = request.get("currentBid")
 
-    print("Reached paymentGateway 1")
+        # remove printing later, and just keep a hash or return statment
+        print(cardNumber, expirationDate, cvv, cardHolderName, amount)
+
+def pay(request):
+    contract = Contract.objects.get(id=request.GET.get("id"))
+    buyer = User.objects.get(id=contract.buyerContract_id)
+    seller = User.objects.get(id=contract.sellerContract_id)
+    print(request.method)
     if request.method == "POST":
         print("Reached paymentGateway 2")
         if request.POST.get("action") == "Pay":
@@ -43,6 +58,3 @@ def paymentGateway(request):
         else:
             messages.error(request, "Something went wrong")
             return HttpResponse("Something went wrong")
-
-
-    return render(request, "paymentGateway.html", context={})

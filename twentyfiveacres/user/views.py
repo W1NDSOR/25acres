@@ -209,16 +209,16 @@ def profile(request):
         "pastProperties": pastProperties,
     }
 
+    print(request.method)
     if request.method == "POST" and request.POST.get("action") == "profileDetailButton":
-        userFields = request.POST
-        firstName = userFields.get("first_name")
-        lastName = userFields.get("last_name")
-        if firstName and lastName:
-            user.first_name = firstName
-            user.last_name = lastName
-            user.save()
-            return HttpResponseRedirect("/")
-
+            userFields = request.POST
+            firstName = userFields.get("first_name")
+            lastName = userFields.get("last_name")
+            if firstName and lastName:
+                user.first_name = firstName
+                user.last_name = lastName
+                user.save()
+                return HttpResponseRedirect("/")
     return render(request, "user/profile.html", context=context)
 
 
@@ -415,3 +415,10 @@ def verifyContract(request):
         print(f"An error occurred: {exception}")
 
     return HttpResponseRedirect("/user/profile")
+
+
+def process_payment(request):
+    if request.method == 'POST':
+        action = request.POST.get('action')
+        if action == 'payButton':
+            return HttpResponseRedirect('/transaction/paymentGateway')

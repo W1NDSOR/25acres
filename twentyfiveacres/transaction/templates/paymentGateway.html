@@ -106,7 +106,7 @@
                 </h5>
                 <!-- Card information form (e.g., card number, expiration date, CVV) -->
                 <div class="details" style="margin-left: 20px">
-                  <form>
+                  <form method="
                     {% csrf_token %}
                     <div class="row">
                       <div class="col-md-6">
@@ -117,6 +117,7 @@
                             type="text"
                             name="cardNumber"
                             placeholder="Enter card number"
+                            value="{{ cardNumber }}"
                             required
                             />
                         </div>
@@ -130,6 +131,7 @@
                             type="text"
                             name="expirationDate"
                             placeholder="Enter expiration date"
+                            value="{{ expirationDate }}"
                             required
                             />
                         </div>
@@ -143,6 +145,7 @@
                             type="text"
                             name="cvv"
                             placeholder="Enter CVV"
+                            value="{{ cvv }}"
                             required
                             />
                         </div>
@@ -156,6 +159,7 @@
                             type="text"
                             name="cardHolderName"
                             placeholder="Enter card holder name"
+                            value="{{ cardHolderName }}"
                             required
                             />
                         </div>
@@ -169,6 +173,7 @@
                             type="text"
                             name="amount"
                             placeholder="Enter amount"
+                            value="{{ currentBid }}"
                             required
                             />
                         </div>
@@ -181,7 +186,7 @@
     </section>
 
     <!-- Payment button -->
-    <form method="POST" action=".">
+    <form method="POST" action="{% url 'pay' %}">
     <center>
       <button
         type="submit"
