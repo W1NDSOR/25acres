@@ -1,11 +1,9 @@
-import ssl
-from django.core.mail import send_mail
 from django.shortcuts import render
 from django.http import HttpResponseRedirect
 from django.contrib.auth import login
 from django.contrib.auth.hashers import make_password
 from django.contrib.auth.models import AnonymousUser
-from utils.hashing import hashDocument, generateGcmOtp
+from utils.hashing import hashDocument
 from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import Q
 from user.viewmodel import generateUserHash, verifyUserDocument
@@ -14,6 +12,7 @@ from os import urandom
 from cryptography.hazmat.primitives.serialization import load_pem_public_key
 from cryptography.hazmat.backends import default_backend
 from base64 import b64decode
+from utils.mails import generateGcmOtp, sendMail
 from contract.viewmodel import (
     generateUserPropertyContractHash,
     getAbstractContractArray,
@@ -32,6 +31,7 @@ from utils.responses import (
     USER_NOT_BIDDER_NOR_OWNER_RESPONSE,
     TRESPASSING_RESPONSE,
     PROPERTY_OWNERSHIP_DOCUMENT_MISSING_RESPONSE,
+    USER_SIGNIN_WITHOUT_VERIFICATION_REPONSE,
 )
 from twentyfiveacres.models import (
     User,
@@ -51,9 +51,6 @@ from utils.crypto import (
 
 secretKey = urandom(16)
 
-ssl._create_default_https_context = ssl._create_unverified_context
-EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
-
 
 def verifyEmail(request):
     if request.method == "POST":
@@ -61,7 +58,7 @@ def verifyEmail(request):
         rollNumber = request.POST.get("roll_number")
         try:
             user = User.objects.get(rollNumber=rollNumber, verificationCode=code)
-            user.verification_code = None
+            user.verificationCode = None
             user.save()
             return HttpResponseRedirect("/user/signin")
         except User.DoesNotExist:
@@ -119,12 +116,12 @@ def signup(request):
                 verificationCode=verificationCode,
             )
             user.save()
-            send_mail(
-                "Welcome to 25acres",
-                f"Your verification code is {verificationCode}",
-                "settings.EMAIL_HOST_USER",
-                [email],
-                fail_silently=False,
+            sendMail(
+                subject="Welcome to 25acres",
+                message=f"Your verification code is {verificationCode}",
+                senderEmail="settings.EMAIL_HOST_USER",
+                recipientEmails=[email],
+                failSilently=False,
             )
 
             return HttpResponseRedirect("/user/verify_email")
@@ -143,6 +140,8 @@ def signin(request):
         if rollNumber and password:
             try:
                 user = User.objects.get(rollNumber=rollNumber)
+                if user.verificationCode is not None:
+                    return USER_SIGNIN_WITHOUT_VERIFICATION_REPONSE
                 salt = user.password.split("$")[2]
                 if user.password == make_password(password, salt=salt):
                     login(request, user)
