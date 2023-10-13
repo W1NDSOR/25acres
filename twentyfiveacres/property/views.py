@@ -17,6 +17,7 @@ from utils.responses import (
     USER_DOCUMENT_HASH_MISMATCH_RESPONSE,
     CANNOT_BID_TO_OWN_PROPERTY_RESPONSE,
     BIDDING_CLOSED_RESPONSE,
+    PROPERTY_DOES_NOT_EXIST_RESPONSE
 )
 
 
@@ -197,10 +198,7 @@ def addBid(request, propertyId):
     try:
         property = Property.objects.get(pk=propertyId)
     except ObjectDoesNotExist:
-        return JsonResponse(
-            {"result": "Treasure not found", "message": "Property does not exist"}
-        )
-
+        return PROPERTY_DOES_NOT_EXIST_RESPONSE
     bidAmount = request.POST.get("bid_amount")
 
     if property.owner == user:
@@ -214,7 +212,7 @@ def addBid(request, propertyId):
     proofOfIdentity = (
         request.FILES["document"].read() if "document" in request.FILES else None
     )
-    if proofOfIdentity is not None and verifyUserDocument(user, proofOfIdentity):
+    if proofOfIdentity is None or not verifyUserDocument(user, proofOfIdentity):
         return USER_DOCUMENT_HASH_MISMATCH_RESPONSE
 
     if bidAmount and float(bidAmount) > property.currentBid:

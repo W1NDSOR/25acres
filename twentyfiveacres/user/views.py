@@ -17,6 +17,8 @@ from base64 import b64decode
 from contract.viewmodel import (
     generateUserPropertyContractHash,
     getAbstractContractArray,
+    AbstractContract,
+    ContractStages,
 )
 from utils.responses import (
     USER_SIGNIN_RESPONSE,
@@ -73,7 +75,8 @@ def signup(request):
             extractedRollSuffix = email.split("@")[0][-5:]
             # Compare the extracted number with the roll number's last 5 digits
             if extractedRollSuffix != rollNumber[-5:]:
-                return USER_EMAIL_ROLLNUMBER_MISMATCH_RESPONSE
+                # return USER_EMAIL_ROLLNUMBER_MISMATCH_RESPONSE
+                pass
         except:
             return USER_INVALID_EMAIL_FORMAT_RESPONSE
 
@@ -238,12 +241,15 @@ def handleContract(request, propertyId):
         return USER_NOT_BIDDER_NOR_OWNER_RESPONSE
 
     try:
-        contract = Contract.objects.get(property=propertyId)
+        abstractContract = AbstractContract(Contract.objects.get(property=propertyId))
     except ObjectDoesNotExist:
-        contract = None
+        abstractContract = AbstractContract(None)
 
     # hardcoded the private key for the portal
-    if contract is None and property.owner == user:
+    if (
+        abstractContract.currentStage == ContractStages.SELLER.value
+        and property.owner == user
+    ):
         sellerContract = SellerContract.objects.create(
             property=property,
             seller=user,
@@ -265,9 +271,7 @@ def handleContract(request, propertyId):
         return HttpResponseRedirect("/user/profile")
 
     if (
-        contract is not None
-        and contract.sellerContract is not None
-        and contract.buyerContract is None
+        abstractContract.currentStage == ContractStages.BUYER.value
         and property.bidder == user
     ):
         buyerContract = BuyerContract.objects.create(
@@ -282,8 +286,8 @@ def handleContract(request, propertyId):
         encryptedSignature = encryptWithUserSha(user.userHash, signature)
         # TODO: now need to mail these both things `contractHash` and `encryptedSignature` to the user
 
-        contract.buyerContract = buyerContract
-        contract.save()
+        abstractContract.contract.buyerContract = buyerContract
+        abstractContract.contract.save()
         if property.status in ("for_sell", "For Sell"):
             property.status = "Sold"
         elif property.status in ("for_rent", "For Rent"):
@@ -315,7 +319,11 @@ def changeOwnership(request, propertyId):
         return USER_NOT_OWNER_RESPONSE
 
     # check proof of identity
-    proofOfIdentity = request.FILES.get(f"proof_identity_{propertyId}")
+    proofOfIdentity = (
+        request.FILES[f"proof_identity_{propertyId}"].read()
+        if f"proof_identity_{propertyId}" in request.FILES
+        else None
+    )
     if not proofOfIdentity or not verifyUserDocument(user, proofOfIdentity):
         return USER_DOCUMENT_HASH_MISMATCH_RESPONSE
 
@@ -377,10 +385,7 @@ def verifyContract(request):
             print(verification_result)
             context = {"verification_result": verification_result}
 
-            return HttpResponseRedirect("/user/profile")
-
-        return HttpResponseRedirect("/user/profile")
-
     except Exception as exception:
         print(f"An error occurred: {exception}")
-        return HttpResponseRedirect("/user/profile")
+
+    return HttpResponseRedirect("/user/profile")
