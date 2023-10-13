@@ -427,42 +427,47 @@ def changeOwnership(request, propertyId):
     )
     propertyObj.save()
     return HttpResponseRedirect("/user/profile")
-
-
 def verifyContract(request):
-    if request.method == "POST":
-        verification_text = request.POST.get('verification_string')
-        verification_text_bytes = base64.b64decode(verification_text)
+    try:
+        if request.method == "POST":
+            verification_text = request.POST.get('verification_string')
+            verification_text_bytes = base64.b64decode(verification_text)
 
-        
-        contract_sha_digest = base64.b64decode(request.POST.get('contract_sha'))
 
-        # use environemnt variable baad mein 
-        portal_public_key_encoded = "LS0tLS1CRUdJTiBQVUJMSUMgS0VZLS0tLS0KTUlJQklqQU5CZ2txaGtpRzl3MEJBUUVGQUFPQ0FROEFNSUlCQ2dLQ0FRRUF2UEplbVJtOW90djJJYUR0NEpDaAphN0tZQW1CQk0vV1lMMk5oMWR6REltNmcyVFB4MkpOd1I3cSsyeGhEajVRNlArVXkwUVJqemhEZG5sTkVOa3htCkJ5c0Q4Tlk0SmN3cVZ6QksxUENGdjAzSG1LOG0rUVRaTEUwNW1ybFdjczd3d0FaMXRUQlhBeUx2QjU3SWduNmsKTi9aaENhU20rSnlHRHA3SU9hRkdLOTlwNUVsQWNwZkRRVW0yUGZNU1ZBYW1rMVVjeEZqTE83M1JTSnJUUFU4UwpZSWpkNDRtd3VySzFtUHcxWENHR0pKT0RzQlFQVUl1aGg4UlpIbVdkVnZ1MHBoRVZwQ0Q0bktCQjEyclZMT09FCjhBS2JUenVWclJ0MkZsbXNQZXhKcXZtaG1LYURFdmJxcXNVbTQ5TVJTemR3Z3QwUE11YkcyQ1IrTCtNT0pKOVUKdXdJREFRQUIKLS0tLS1FTkQgUFVCTElDIEtFWS0tLS0tCg=="
-        portal_public_key_bytes = base64.b64decode(portal_public_key_encoded)
-        portal_public_key = load_pem_public_key(portal_public_key_bytes, backend=default_backend())
-        
-        
-        username = request.POST.get('user_identifier')
-        user = User.objects.get(username=username)
-        
-        user_sha = base64.b64decode(user.userHash)
+            contract_sha_digest = base64.b64decode(request.POST.get('contract_sha'))
 
-        
-        decrypted_signature = decrypt_with_user_sha(user_sha, verification_text_bytes)
+            # use environemnt variable baad mein 
+            portal_public_key_encoded = "LS0tLS1CRUdJTiBQVUJMSUMgS0VZLS0tLS0KTUlJQklqQU5CZ2txaGtpRzl3MEJBUUVGQUFPQ0FROEFNSUlCQ2dLQ0FRRUF2UEplbVJtOW90djJJYUR0NEpDaAphN0tZQW1CQk0vV1lMMk5oMWR6REltNmcyVFB4MkpOd1I3cSsyeGhEajVRNlArVXkwUVJqemhEZG5sTkVOa3htCkJ5c0Q4Tlk0SmN3cVZ6QksxUENGdjAzSG1LOG0rUVRaTEUwNW1ybFdjczd3d0FaMXRUQlhBeUx2QjU3SWduNmsKTi9aaENhU20rSnlHRHA3SU9hRkdLOTlwNUVsQWNwZkRRVW0yUGZNU1ZBYW1rMVVjeEZqTE83M1JTSnJUUFU4UwpZSWpkNDRtd3VySzFtUHcxWENHR0pKT0RzQlFQVUl1aGg4UlpIbVdkVnZ1MHBoRVZwQ0Q0bktCQjEyclZMT09FCjhBS2JUenVWclJ0MkZsbXNQZXhKcXZtaG1LYURFdmJxcXNVbTQ5TVJTemR3Z3QwUE11YkcyQ1IrTCtNT0pKOVUKdXdJREFRQUIKLS0tLS1FTkQgUFVCTElDIEtFWS0tLS0tCg=="
+            portal_public_key_bytes = base64.b64decode(portal_public_key_encoded)
+            portal_public_key = load_pem_public_key(portal_public_key_bytes, backend=default_backend())
 
-        
-        verified_contract_sha = verify_with_portal_public_key(portal_public_key, contract_sha_digest, decrypted_signature)
 
-        
-        if verified_contract_sha == contract_sha_digest:
-            verification_result = "sanctioned"
-        else:
-            verification_result = "not_sanctioned"
-        print(verification_result)
-        context = {'verification_result': verification_result}
-        
-        
+            username = request.POST.get('user_identifier')
+            user = User.objects.get(username=username)
+
+            user_sha = base64.b64decode(user.userHash)
+
+
+            decrypted_signature = decrypt_with_user_sha(user_sha, verification_text_bytes)
+
+
+            verified_contract_sha = verify_with_portal_public_key(portal_public_key, contract_sha_digest, decrypted_signature)
+
+
+            if verified_contract_sha == contract_sha_digest:
+                verification_result = "sanctioned"
+            else:
+                verification_result = "not_sanctioned"
+            
+            print(verification_result)
+            context = {'verification_result': verification_result}
+
+            return HttpResponseRedirect("/user/profile")
+
         return HttpResponseRedirect("/user/profile")
 
-    return HttpResponseRedirect("/user/profile")
+    except Exception as e:
+        print(f"An error occurred: {e}")
+        context = {'verification_result': "not_sanctioned"}
+        return HttpResponseRedirect("/user/profile")
+
