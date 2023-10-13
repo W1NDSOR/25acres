@@ -24,7 +24,11 @@ def propertyList(request):
     """
     @desc: displays the list of properties in the database
     """
+    numOfProperties = len(Property.objects.all())
     properties = Property.objects.all()
+    if numOfProperties == 0:
+        return render(request, "property/property_list.html", {"properties": []})
+    
 
     # Type Button
     selected_type = request.GET.get("type")
@@ -107,17 +111,22 @@ def addProperty(request):
         availableDate = propertyFields.get("available_date")
         user = User.objects.get(username=request.user.username)
 
+        # Ownership Document Hash
         ownershipDocumentHash = (
             request.FILES["ownership_document"].read()
             if "ownership_document" in request.FILES
             else None
         )
 
+        # Proof of Identity Hash
         proofOfIdentity = (
             request.FILES["document"].read() if "document" in request.FILES else None
         )
-        if proofOfIdentity is not None and verifyUserDocument(user, proofOfIdentity):
+
+        # if either is not correct, do not proceed
+        if proofOfIdentity is None or verifyUserDocument(user, proofOfIdentity) == False or ownershipDocumentHash is None:
             return USER_DOCUMENT_HASH_MISMATCH_RESPONSE
+
 
         try:
             if (
@@ -130,7 +139,7 @@ def addProperty(request):
                 and status
                 and location
                 and availableDate
-                and proofOfIdentity is not None
+                and proofOfIdentity
                 and ownershipDocumentHash
             ):
                 locationCoordinates = geocode_location(location)
@@ -138,7 +147,9 @@ def addProperty(request):
                     exceptionMessage = "Not a valid location!"
                     messages.info(request, exceptionMessage)
                     raise CustomException(exceptionMessage)
+                
                 (latitude, longitude) = locationCoordinates
+                
                 locationObject = Location.objects.create(
                     name=location,
                     latitude=latitude,
@@ -190,8 +201,11 @@ def addBid(request, propertyId):
     @desc: adds bid to the property
     @param {Property} propertyId: Id of the property to which bid should should be added
     """
+
     if isinstance(request.user, AnonymousUser):
         return USER_SIGNIN_RESPONSE
+    
+
     user = User.objects.get(username=request.user.username)
 
     try:
@@ -201,6 +215,9 @@ def addBid(request, propertyId):
             {"result": "Treasure not found", "message": "Property does not exist"}
         )
 
+    if request.method != "POST":
+        return
+    
     bidAmount = request.POST.get("bid_amount")
 
     if property.owner == user:
@@ -208,13 +225,11 @@ def addBid(request, propertyId):
     if property.status in ("sold", "Sold", "rented", "Rented"):
         return BIDDING_CLOSED_RESPONSE
     
-    if request.method != "POST":
-        return
-    
     proofOfIdentity = (
         request.FILES["document"].read() if "document" in request.FILES else None
     )
-    if proofOfIdentity is not None and verifyUserDocument(user, proofOfIdentity):
+
+    if proofOfIdentity is None or verifyUserDocument(user, proofOfIdentity) == False:
         return USER_DOCUMENT_HASH_MISMATCH_RESPONSE
 
     if bidAmount and float(bidAmount) > property.currentBid:
