@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <style>
+      section {
+        margin: 20px;
+      }
+    </style>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, shrink-to-fit=no"
+    />
+    <title>Payment Gateway</title>
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+      integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN"
+      crossorigin="anonymous"
+    />
+  </head>
+  <body data-bs-theme="dark">
+    {% load static %}
+    <nav class="navbar navbar-expand-lg">
+      <!-- Your navigation bar content (if needed) -->
+      <!-- create a navigation bar with text "ShavePay" -->
+      <h2 style="color: white; margin-left: 50px; margin-top: 20px">
+        ShavePay
+      </h2>
+    </nav>
+    <section>
+      <div class="container">
+        <div class="row">
+          <div class="col-md-6">
+            <div class="card">
+              <div class="card-body">
+                <h5
+                  class="card-title"
+                  style="
+                    margin-bottom: 20px;
+                    margin-top: 20px;
+                    text-align: center;
+                    font-size: 30px;
+                  "
+                >
+                  Transaction Details
+                </h5>
+                <div class="details" style="margin-left: 20px">
+                  <div class="row">
+                    <div class="col-md-6">
+                      <p>Contract ID:</p>
+                    </div>
+                    <div class="col-md-6">
+                      <p>{{ id }}</p>
+                    </div>
+                  </div>
+                  <div class="row">
+                    <div class="col-md-6">
+                      <p>Property ID:</p>
+                    </div>
+                    <div class="col-md-6">
+                      <p>{{ property_id }}</p>
+                    </div>
+                  </div>
+                  <div class="row">
+                    <div class="col-md-6">
+                      <p>Buyer ID:</p>
+                    </div>
+                    <div class="col-md-6">
+                      <p>{{ buyerContract_id }}</p>
+                    </div>
+                  </div>
+                  <div class="row">
+                    <div class="col-md-6">
+                      <p>Seller ID:</p>
+                    </div>
+                    <div class="col-md-6">
+                      <p>{{ sellerContract_id }}</p>
+                    </div>
+                  </div>
+                  <div class="row">
+                    <div class="col-md-6">
+                      <p>Amount:</p>
+                    </div>
+                    <div class="col-md-6">
+                      <p>{{ currentBid }}</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="card">
+              <div class="card-body">
+                <h5
+                  class="card-title"
+                  style="
+                    margin-bottom: 20px;
+                    margin-top: 20px;
+                    text-align: center;
+                    font-size: 30px;
+                  "
+                >
+                  Card Details
+                </h5>
+                <!-- Card information form (e.g., card number, expiration date, CVV) -->
+                <div class="details" style="margin-left: 20px">
+                  <form>
+                    {% csrf_token %}
+                    <div class="row">
+                      <div class="col-md-6">
+                        <p>Card Number:</p>
+                      </div>
+                        <div class="col-md-6">
+                            <input
+                            type="text"
+                            name="cardNumber"
+                            placeholder="Enter card number"
+                            required
+                            />
+                        </div>
+                    </div>
+                    <div class="row">
+                      <div class="col-md-6">
+                        <p>Expiration Date:</p>
+                      </div>
+                        <div class="col-md-6">
+                            <input
+                            type="text"
+                            name="expirationDate"
+                            placeholder="Enter expiration date"
+                            required
+                            />
+                        </div>
+                    </div>
+                    <div class="row">
+                      <div class="col-md-6">
+                        <p>CVV:</p>
+                      </div>
+                        <div class="col-md-6">
+                            <input
+                            type="text"
+                            name="cvv"
+                            placeholder="Enter CVV"
+                            required
+                            />
+                        </div>
+                    </div>
+                    <div class="row">
+                      <div class="col-md-6">
+                        <p>Card Holder Name:</p>
+                      </div>
+                        <div class="col-md-6">
+                            <input
+                            type="text"
+                            name="cardHolderName"
+                            placeholder="Enter card holder name"
+                            required
+                            />
+                        </div>
+                    </div>
+                    <div class="row">
+                      <div class="col-md-6">
+                        <p>Amount:</p>
+                      </div>
+                        <div class="col-md-6">
+                            <input
+                            type="text"
+                            name="amount"
+                            placeholder="Enter amount"
+                            required
+                            />
+                        </div>
+                    </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Payment button -->
+    <form method="POST" action=".">
+    <center>
+      <button
+        type="submit"
+        class="btn btn-primary"
+        style="margin-top: 20px; margin-bottom: 20px"
+        value = "Pay"
+      >
+        Pay
+      </button>
+    </center>
+    </form>
+
+    <script
+      src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"
+      integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL"
+      crossorigin="anonymous"
+    ></script>
+  </body>
+</html>

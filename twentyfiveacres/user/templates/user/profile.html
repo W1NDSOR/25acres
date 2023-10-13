@@ -220,12 +220,13 @@
                   {% if contract == None %}
                   <a class="btn btn-primary disabled" aria-disabled="true">Waiting for other party to verify first</a>
                   {% elif contract.verifiedBySeller == False %}
-                  <a class="btn btn-primary disabled" aria-disabled="true">Waiting for other party to verify first</a>
-                  {% elif contract.verifiedByBuyer == False %}
                   <a href="../contract/{{ property.propertyId }}/" class="btn btn-primary">Verify to complete the
                     contract</a>
                   {% else %}
                   <a class="btn btn-primary disabled" aria-disabled="true">Contract verified</a>
+
+                  <!-- Add Pay Button -->
+                  
                   {% endif %}
                   {% endwith %}
                 </div>

@@ -27,6 +27,7 @@ urlpatterns = [
     path("user/", include("user.urls")),
     path("property/", include("property.urls")),
     path("contracts/", include("contract.urls")),
+    path("transaction/", include("transaction.urls")),
     re_path(
         r"^signout/$",
         LogoutView.as_view(),
