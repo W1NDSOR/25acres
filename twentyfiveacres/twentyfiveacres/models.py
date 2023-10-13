@@ -177,6 +177,8 @@ class Contract(models.Model):
         on_delete=models.CASCADE,
         related_name="related_buyer_contract",
         default=None,
+        null=True,
+        blank=True,
     )
 
 

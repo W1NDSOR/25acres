@@ -31,9 +31,9 @@ def generateGcmOtp(key, data):
 def sendMail(
     subject: str,
     message: str,
-    senderEmail: str,
     recipientEmails: list[str],
-    failSilently: bool,
+    failSilently: bool = False,
+    senderEmail: str = "settings.EMAIL_HOST_USER",
 ):
     """
     @desc: wrapper from `django.core.mail.send_mail` method

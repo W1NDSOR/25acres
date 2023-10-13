@@ -84,7 +84,8 @@ def signup(request):
         try:
             extractedRollSuffix = email.split("@")[0][-5:]
             if extractedRollSuffix != rollNumber[-5:]:
-                return USER_EMAIL_ROLLNUMBER_MISMATCH_RESPONSE
+                pass
+                # return USER_EMAIL_ROLLNUMBER_MISMATCH_RESPONSE
         except:
             return USER_INVALID_EMAIL_FORMAT_RESPONSE
 
@@ -119,9 +120,7 @@ def signup(request):
             sendMail(
                 subject="Welcome to 25acres",
                 message=f"Your verification code is {verificationCode}",
-                senderEmail="settings.EMAIL_HOST_USER",
                 recipientEmails=[email],
-                failSilently=False,
             )
 
             return HttpResponseRedirect("/user/verify_email")
@@ -274,19 +273,28 @@ def handleContract(request, propertyId):
         sellerContract = SellerContract.objects.create(
             property=property,
             seller=user,
-            contractHash=generateUserPropertyContractHash(user, property),
+            contractHashIdentifier=generateUserPropertyContractHash(user, property),
             contractAddress=None,
         )
         sellerContract.save()
         contract = Contract.objects.create(
             property=property,
-            seller=sellerContract,
+            sellerContract=sellerContract,
         )
         contract.save()
         # contract hash
         contractHash = sellerContract.contractHashIdentifier
         signature = signWithPortalPrivateKey(PORTAL_PRIVATE_KEY, contractHash)
         encryptedSignature = encryptWithUserSha(user.userHash, signature)
+        sendMail(
+            subject="Details for your property",
+            message=f"""Here your details for property
+- Property Id: {property.propertyId}
+- Property Title: {property.title}
+- Contract hash: {contractHash}
+- Encypted signature: {encryptedSignature}""",
+            recipientEmails=[user.email],
+        )
         # TODO: now need to mail these both things `contractHash` and `encryptedSignature` to the user
 
         return HttpResponseRedirect("/user/profile")
@@ -298,7 +306,7 @@ def handleContract(request, propertyId):
         buyerContract = BuyerContract.objects.create(
             property=property,
             buyer=user,
-            contractHash=generateUserPropertyContractHash(user, property),
+            contractHashIdentifier=generateUserPropertyContractHash(user, property),
             contractAddress=None,
         )
         buyerContract.save()

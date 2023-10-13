@@ -40,7 +40,7 @@
         <button type="submit" name="action" class="btn btn-primary" value="profileDetailButton">Save</button>
       </div>
     </form>
-    <div style="width: 50%; margin-top: 20px;">
+    <div style="width: 50%; margin-top: 50px;">
       <form action="{% url 'verify_contract' %}" method="POST">
         {% csrf_token %}
         <div class="input-group mb-3">
@@ -48,14 +48,13 @@
           <input type="text" class="form-control" name="contract_sha" placeholder="Enter contract SHA digest"
             required />
         </div>
-        <div class="input-group mb-3">
-          <div class="input-group-text">Contract Verification</div>
-          <input type="text" class="form-control" name="verification_string" placeholder="Enter verification string"
-            required />
-          <input type="hidden" name="user_identifier" value="{{ username }}">
-          <div class="input-group-append">
+        <div class="hstack gap-3 mb-3">
+          <div class="input-group">
+            <div class="input-group-text">Contract Verification</div>
+            <input type="text" class="form-control" name="verification_string" placeholder="Enter verification string"
+              required />
+            </div>
             <button type="submit" class="btn btn-primary">Verify</button>
-          </div>
         </div>
       </form>
       {% if verification_result %}
