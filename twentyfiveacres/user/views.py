@@ -1,11 +1,9 @@
-import ssl
-from django.core.mail import send_mail
 from django.shortcuts import render
 from django.http import HttpResponseRedirect
 from django.contrib.auth import login
 from django.contrib.auth.hashers import make_password
 from django.contrib.auth.models import AnonymousUser
-from utils.hashing import hashDocument, generateGcmOtp
+from utils.hashing import hashDocument
 from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import Q
 from user.viewmodel import generateUserHash, verifyUserDocument
@@ -14,9 +12,12 @@ from os import urandom
 from cryptography.hazmat.primitives.serialization import load_pem_public_key
 from cryptography.hazmat.backends import default_backend
 from base64 import b64decode
+from utils.mails import generateGcmOtp, sendMail
 from contract.viewmodel import (
     generateUserPropertyContractHash,
     getAbstractContractArray,
+    AbstractContract,
+    ContractStages,
 )
 from utils.responses import (
     USER_SIGNIN_RESPONSE,
@@ -30,6 +31,7 @@ from utils.responses import (
     USER_NOT_BIDDER_NOR_OWNER_RESPONSE,
     TRESPASSING_RESPONSE,
     PROPERTY_OWNERSHIP_DOCUMENT_MISSING_RESPONSE,
+    USER_SIGNIN_WITHOUT_VERIFICATION_REPONSE,
 )
 from twentyfiveacres.models import (
     User,
@@ -49,8 +51,6 @@ from utils.crypto import (
 
 secretKey = urandom(16)
 
-ssl._create_default_https_context = ssl._create_unverified_context
-EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
 
 def verifyEmail(request):
     if request.method == "POST":
@@ -58,12 +58,13 @@ def verifyEmail(request):
         rollNumber = request.POST.get("roll_number")
         try:
             user = User.objects.get(rollNumber=rollNumber, verificationCode=code)
-            user.verification_code = None
+            user.verificationCode = None
             user.save()
             return HttpResponseRedirect("/user/signin")
         except User.DoesNotExist:
             return USER_INVALID_CODE_OR_ROLLNUMBER_RESPONSE
     return render(request, "user/verify_email.html")
+
 
 def signup(request):
     """
@@ -83,8 +84,8 @@ def signup(request):
         try:
             extractedRollSuffix = email.split("@")[0][-5:]
             if extractedRollSuffix != rollNumber[-5:]:
+                pass
                 # return USER_EMAIL_ROLLNUMBER_MISMATCH_RESPONSE
-                pass # (For testing)
         except:
             return USER_INVALID_EMAIL_FORMAT_RESPONSE
 
@@ -116,12 +117,10 @@ def signup(request):
                 verificationCode=verificationCode,
             )
             user.save()
-            send_mail(
-                "Welcome to 25acres",
-                f"Your verification code is {verificationCode}",
-                "settings.EMAIL_HOST_USER",
-                [email],
-                fail_silently=False,
+            sendMail(
+                subject="Welcome to 25acres",
+                message=f"Your verification code is {verificationCode}",
+                recipientEmails=[email],
             )
 
             return HttpResponseRedirect("/user/verify_email")
@@ -140,6 +139,8 @@ def signin(request):
         if rollNumber and password:
             try:
                 user = User.objects.get(rollNumber=rollNumber)
+                if user.verificationCode is not None:
+                    return USER_SIGNIN_WITHOUT_VERIFICATION_REPONSE
                 salt = user.password.split("$")[2]
                 if user.password == make_password(password, salt=salt):
                     login(request, user)
@@ -150,6 +151,7 @@ def signin(request):
 
 
 # Profile and Property
+
 
 def profile(request):
     """
@@ -177,7 +179,22 @@ def profile(request):
     )
 
     if numProperties == 0:
-        return render(request, "user/profile.html", context={"username": user.username, "roll_number": user.rollNumber, "email": user.email, "first_name": user.first_name, "last_name": user.last_name, "properties": properties, "contracts": contracts, "propertyBindings": propertyBidings, "propertyBidingsContracts": propertyBidingsContracts, "pastProperties": pastProperties })
+        return render(
+            request,
+            "user/profile.html",
+            context={
+                "username": user.username,
+                "roll_number": user.rollNumber,
+                "email": user.email,
+                "first_name": user.first_name,
+                "last_name": user.last_name,
+                "properties": properties,
+                "contracts": contracts,
+                "propertyBindings": propertyBidings,
+                "propertyBidingsContracts": propertyBidingsContracts,
+                "pastProperties": pastProperties,
+            },
+        )
 
     context = {
         "username": user.username,
@@ -201,7 +218,7 @@ def profile(request):
             user.last_name = lastName
             user.save()
             return HttpResponseRedirect("/")
-    
+
     return render(request, "user/profile.html", context=context)
 
 
@@ -244,42 +261,52 @@ def handleContract(request, propertyId):
         return USER_NOT_BIDDER_NOR_OWNER_RESPONSE
 
     try:
-        contract = Contract.objects.get(property=propertyId)
+        abstractContract = AbstractContract(Contract.objects.get(property=propertyId))
     except ObjectDoesNotExist:
-        contract = None
+        abstractContract = AbstractContract(None)
 
     # hardcoded the private key for the portal
-    if contract is None and property.owner == user:
+    if (
+        abstractContract.currentStage == ContractStages.SELLER.value
+        and property.owner == user
+    ):
         sellerContract = SellerContract.objects.create(
             property=property,
             seller=user,
-            contractHash=generateUserPropertyContractHash(user, property),
+            contractHashIdentifier=generateUserPropertyContractHash(user, property),
             contractAddress=None,
         )
         sellerContract.save()
         contract = Contract.objects.create(
             property=property,
-            seller=sellerContract,
+            sellerContract=sellerContract,
         )
         contract.save()
         # contract hash
         contractHash = sellerContract.contractHashIdentifier
         signature = signWithPortalPrivateKey(PORTAL_PRIVATE_KEY, contractHash)
         encryptedSignature = encryptWithUserSha(user.userHash, signature)
+        sendMail(
+            subject="Details for your property",
+            message=f"""Here your details for property
+- Property Id: {property.propertyId}
+- Property Title: {property.title}
+- Contract hash: {contractHash}
+- Encypted signature: {encryptedSignature}""",
+            recipientEmails=[user.email],
+        )
         # TODO: now need to mail these both things `contractHash` and `encryptedSignature` to the user
 
         return HttpResponseRedirect("/user/profile")
 
     if (
-        contract is not None
-        and contract.sellerContract is not None
-        and contract.buyerContract is None
+        abstractContract.currentStage == ContractStages.BUYER.value
         and property.bidder == user
     ):
         buyerContract = BuyerContract.objects.create(
             property=property,
             buyer=user,
-            contractHash=generateUserPropertyContractHash(user, property),
+            contractHashIdentifier=generateUserPropertyContractHash(user, property),
             contractAddress=None,
         )
         buyerContract.save()
@@ -288,8 +315,8 @@ def handleContract(request, propertyId):
         encryptedSignature = encryptWithUserSha(user.userHash, signature)
         # TODO: now need to mail these both things `contractHash` and `encryptedSignature` to the user
 
-        contract.buyerContract = buyerContract
-        contract.save()
+        abstractContract.contract.buyerContract = buyerContract
+        abstractContract.contract.save()
         if property.status in ("for_sell", "For Sell"):
             property.status = "Sold"
         elif property.status in ("for_rent", "For Rent"):
@@ -317,9 +344,12 @@ def changeOwnership(request, propertyId):
     if propertyObj.owner != user:
         return USER_NOT_OWNER_RESPONSE
 
-# --------------------------------------------------------------------------------------------
-
-    proofOfIdentity = request.FILES.get(f"proof_identity_{propertyId}")
+    # check proof of identity
+    proofOfIdentity = (
+        request.FILES[f"proof_identity_{propertyId}"].read()
+        if f"proof_identity_{propertyId}" in request.FILES
+        else None
+    )
     if not proofOfIdentity or not verifyUserDocument(user, proofOfIdentity):
         return USER_DOCUMENT_HASH_MISMATCH_RESPONSE
 
@@ -381,10 +411,7 @@ def verifyContract(request):
             print(verification_result)
             context = {"verification_result": verification_result}
 
-            return HttpResponseRedirect("/user/profile")
-
-        return HttpResponseRedirect("/user/profile")
-
     except Exception as exception:
         print(f"An error occurred: {exception}")
-        return HttpResponseRedirect("/user/profile")
+
+    return HttpResponseRedirect("/user/profile")

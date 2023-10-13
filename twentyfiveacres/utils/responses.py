@@ -76,3 +76,11 @@ USER_NOT_BIDDER_NOR_OWNER_RESPONSE = JsonResponse(
 TRESPASSING_RESPONSE = JsonResponse(
     {"result": "Trespassing", "message": "Wandering into unbeknownst valleys"}
 )
+
+
+USER_SIGNIN_WITHOUT_VERIFICATION_REPONSE = JsonResponse(
+    {
+        "result": "Caught commiting treason",
+        "message": "Thou caught trying to signin before email verification",
+    }
+)

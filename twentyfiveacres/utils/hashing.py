@@ -20,19 +20,3 @@ def hashDocument(data: str) -> str:
         pass
     hasher.update(data)
     return hasher.hexdigest()
-
-
-def generateGcmOtp(key, data):
-    """
-    @desc: generates the `OTP` using AESGCM
-    @param {str} key: secret key
-    @param {str} data: using which the OTP should be generated
-    @returns {str} otp: otp
-    """
-    nonce = urandom(12)
-    cipher = Cipher(AES(key), GCM(nonce), backend=default_backend())
-    encryptor = cipher.encryptor()
-    ciphertext = encryptor.update(data) + encryptor.finalize()
-    intValue = int.from_bytes(ciphertext[:3], "big")
-    otp = f"{intValue % 10**6:06}"
-    return otp

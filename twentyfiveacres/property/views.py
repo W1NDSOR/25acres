@@ -1,4 +1,3 @@
-from hashlib import sha256
 from django.contrib.auth.models import AnonymousUser
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render
@@ -6,7 +5,6 @@ from django.http import JsonResponse, HttpResponseRedirect
 from django.views.decorators.http import require_POST
 from twentyfiveacres.models import User, Property, Location
 from utils.geocoder import geocode_location
-from utils.hashing import hashDocument
 from django.contrib import messages
 from utils.exceptions import CustomException
 from django.core.exceptions import ObjectDoesNotExist
@@ -17,6 +15,7 @@ from utils.responses import (
     USER_DOCUMENT_HASH_MISMATCH_RESPONSE,
     CANNOT_BID_TO_OWN_PROPERTY_RESPONSE,
     BIDDING_CLOSED_RESPONSE,
+    PROPERTY_DOES_NOT_EXIST_RESPONSE
 )
 
 
@@ -211,9 +210,7 @@ def addBid(request, propertyId):
     try:
         property = Property.objects.get(pk=propertyId)
     except ObjectDoesNotExist:
-        return JsonResponse(
-            {"result": "Treasure not found", "message": "Property does not exist"}
-        )
+        return PROPERTY_DOES_NOT_EXIST_RESPONSE
 
     if request.method != "POST":
         return
@@ -228,8 +225,7 @@ def addBid(request, propertyId):
     proofOfIdentity = (
         request.FILES["document"].read() if "document" in request.FILES else None
     )
-
-    if proofOfIdentity is None or verifyUserDocument(user, proofOfIdentity) == False:
+    if proofOfIdentity is None or not verifyUserDocument(user, proofOfIdentity):
         return USER_DOCUMENT_HASH_MISMATCH_RESPONSE
 
     if bidAmount and float(bidAmount) > property.currentBid:
