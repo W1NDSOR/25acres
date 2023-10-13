@@ -1,3 +1,5 @@
+flush: flu mak mig run
+
 mak:
 	python manage.py makemigrations
 mig:

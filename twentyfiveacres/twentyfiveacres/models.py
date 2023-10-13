@@ -119,10 +119,12 @@ class SellerContract(models.Model):
     contractHashIdentifier = models.CharField(
         max_length=64, primary_key=True, null=False, blank=False
     )
+
     property = models.ForeignKey(Property, on_delete=models.CASCADE)
     seller = models.ForeignKey(
         User, related_name="seller_contract", on_delete=models.CASCADE
     )
+
     createdAt = models.DateTimeField(auto_now_add=True)
     updatedAt = models.DateTimeField(auto_now=True)
     contractAddress = models.CharField(max_length=255, blank=True, null=True)

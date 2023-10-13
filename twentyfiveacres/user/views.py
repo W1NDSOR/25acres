@@ -55,6 +55,20 @@ ssl._create_default_https_context = ssl._create_unverified_context
 EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
 
 
+def verifyEmail(request):
+    if request.method == "POST":
+        code = request.POST.get("code")
+        rollNumber = request.POST.get("roll_number")
+        try:
+            user = User.objects.get(rollNumber=rollNumber, verificationCode=code)
+            user.verification_code = None
+            user.save()
+            return HttpResponseRedirect("/user/signin")
+        except User.DoesNotExist:
+            return USER_INVALID_CODE_OR_ROLLNUMBER_RESPONSE
+    return render(request, "user/verify_email.html")
+
+
 def signup(request):
     """
     @desc: renders a form for signing up new user
@@ -69,14 +83,11 @@ def signup(request):
         firstName = userFields.get("first_name")
         lastName = userFields.get("last_name")
 
-        # Validate roll number against email
+        # Roll No and Email Validation
         try:
-            # Extract the numbers from the email (before "@iiitd.ac.in")
             extractedRollSuffix = email.split("@")[0][-5:]
-            # Compare the extracted number with the roll number's last 5 digits
             if extractedRollSuffix != rollNumber[-5:]:
-                # return USER_EMAIL_ROLLNUMBER_MISMATCH_RESPONSE
-                pass
+                return USER_EMAIL_ROLLNUMBER_MISMATCH_RESPONSE
         except:
             return USER_INVALID_EMAIL_FORMAT_RESPONSE
 
@@ -121,20 +132,6 @@ def signup(request):
     return render(request, "user/signup_form.html")
 
 
-def verifyEmail(request):
-    if request.method == "POST":
-        code = request.POST.get("code")
-        rollNumber = request.POST.get("roll_number")
-        try:
-            user = User.objects.get(rollNumber=rollNumber, verificationCode=code)
-            user.verification_code = None
-            user.save()
-            return HttpResponseRedirect("/user/signin")
-        except User.DoesNotExist:
-            return USER_INVALID_CODE_OR_ROLLNUMBER_RESPONSE
-    return render(request, "user/verify_email.html")
-
-
 def signin(request):
     """
     @desc: renders a form for signing up new user
@@ -155,6 +152,9 @@ def signin(request):
     return render(request, "user/signin_form.html")
 
 
+# Profile and Property
+
+
 def profile(request):
     """
     @desc: renders a page where signed in user can view/update their profile
@@ -164,18 +164,39 @@ def profile(request):
         return USER_SIGNIN_RESPONSE
 
     user = User.objects.get(username=request.user.username)
+    numProperties = Property.objects.filter(owner=user).count()
 
     properties = Property.objects.filter(
         owner=user, status__in=["for_sell", "For Sell", "for_rent", "For Rent"]
     )
+
     contracts = getAbstractContractArray(properties)
     propertyBidings = Property.objects.filter(
         bidder=user, status__in=["for_sell", "For Sell", "for_rent", "For Rent"]
     )
+
     propertyBidingsContracts = getAbstractContractArray(propertyBidings)
     pastProperties = Property.objects.filter(
         Q(owner=user) | Q(bidder=user), status__in=["Sold", "Rented"]
     )
+
+    if numProperties == 0:
+        return render(
+            request,
+            "user/profile.html",
+            context={
+                "username": user.username,
+                "roll_number": user.rollNumber,
+                "email": user.email,
+                "first_name": user.first_name,
+                "last_name": user.last_name,
+                "properties": properties,
+                "contracts": contracts,
+                "propertyBindings": propertyBidings,
+                "propertyBidingsContracts": propertyBidingsContracts,
+                "pastProperties": pastProperties,
+            },
+        )
 
     context = {
         "username": user.username,
@@ -208,6 +229,7 @@ def deleteProperty(request, propertyId):
     @desc: deletes property with propertyId if user is the owner of the property
     @params {int} propertyId: Id of the property to be deleted
     """
+
     if isinstance(request.user, AnonymousUser):
         return USER_SIGNIN_RESPONSE
 
@@ -302,19 +324,16 @@ def changeOwnership(request, propertyId):
     if request.method != "POST":
         TRESPASSING_RESPONSE
 
-    # check if the user is authenticated
     if isinstance(request.user, AnonymousUser):
         return HttpResponseRedirect("../../")
 
     user = User.objects.get(username=request.user.username)
-
-    # check whether propertyId provided is valid or not
     try:
         propertyObj = Property.objects.get(pk=propertyId)
     except ObjectDoesNotExist:
         return PROPERTY_DOES_NOT_EXIST_RESPONSE
 
-    # check if the user has the right to change ownership for this property
+    # Won't occur
     if propertyObj.owner != user:
         return USER_NOT_OWNER_RESPONSE
 
@@ -336,7 +355,7 @@ def changeOwnership(request, propertyId):
     if ownershipDocumentHash is None:
         return PROPERTY_OWNERSHIP_DOCUMENT_MISSING_RESPONSE
 
-    # Update ownership document if it is not None
+    # Update ownership document if it is not None (it cannot be None, cause field required while adding property)
     ownershipDocumentHash = ownershipDocumentHash
     propertyObj.ownershipDocumentHash = ownershipDocumentHash
     propertyObj.propertyHashIdentifier = generatePropertyHash(
