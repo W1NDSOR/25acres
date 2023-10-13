@@ -52,6 +52,18 @@ secretKey = urandom(16)
 ssl._create_default_https_context = ssl._create_unverified_context
 EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
 
+def verifyEmail(request):
+    if request.method == "POST":
+        code = request.POST.get("code")
+        rollNumber = request.POST.get("roll_number")
+        try:
+            user = User.objects.get(rollNumber=rollNumber, verificationCode=code)
+            user.verification_code = None
+            user.save()
+            return HttpResponseRedirect("/user/signin")
+        except User.DoesNotExist:
+            return USER_INVALID_CODE_OR_ROLLNUMBER_RESPONSE
+    return render(request, "user/verify_email.html")
 
 def signup(request):
     """
