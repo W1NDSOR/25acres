@@ -105,10 +105,21 @@ def signWithPortalPrivateKey(privateKey, message):
         SHA256(),
     )
     return signature
-
+    
+from base64 import b64decode
+from cryptography.hazmat.primitives import serialization
+from cryptography.hazmat.backends import default_backend
 
 with open("utils/private", "r") as privateKey:
-    PORTAL_PRIVATE_KEY = privateKey.read().rstrip()
+    encoded_private_key_str = privateKey.read().rstrip()
+    private_key_bytes = b64decode(encoded_private_key_str)
+
+    PORTAL_PRIVATE_KEY = serialization.load_pem_private_key(
+        private_key_bytes,
+        password=None,  # No password for the private key
+        backend=default_backend()
+    )
+
 
 with open("utils/public", "r") as publicKey:
     PORTAL_PUBLIC_ENCODED_KEY = publicKey.read().rstrip()
