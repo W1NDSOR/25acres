@@ -1,3 +1,5 @@
+from base64 import b64decode
+from cryptography.hazmat.primitives.serialization import load_pem_private_key
 from cryptography.hazmat.primitives.asymmetric.rsa import generate_private_key
 from cryptography.hazmat.primitives.asymmetric.padding import PSS, MGF1
 from cryptography.hazmat.primitives.padding import PKCS7
@@ -37,6 +39,7 @@ def padData(data):
     @returns {str} paddedData: padded data
     """
     padder = PKCS7(128).padder()
+    data = data if isinstance(data, bytes) else str.encode(data)
     paddedData = padder.update(data) + padder.finalize()
     return paddedData
 
@@ -59,6 +62,10 @@ def encryptWithUserSha(userSha, message):
     @param {str} message: message that needs to be encrypted
     @returns {str} encryptedMessage: encrypted message
     """
+    print(f"before {len(userSha)}")
+    userSha = userSha if isinstance(userSha, bytes) else str.encode(userSha)
+    print(f"after {len(userSha)}")
+    message = message if isinstance(message, bytes) else str.encode(message)
     cipher = Cipher(AES(userSha), ECB(), backend=default_backend())
     encryptor = cipher.encryptor()
     message = padData(message)
@@ -73,6 +80,12 @@ def decryptWithUserSha(userSha, encryptedMessage):
     @param {str} encryptedMessage: message that needs to be decrypted
     @returns {str} decryptedMessage: decrypted message
     """
+    userSha = userSha if isinstance(userSha, bytes) else str.encode(userSha)
+    encryptedMessage = (
+        encryptedMessage
+        if isinstance(encryptedMessage, bytes)
+        else str.encode(encryptedMessage)
+    )
     cipher = Cipher(AES(userSha), ECB(), backend=default_backend())
     decryptor = cipher.decryptor()
     decryptedMessage = decryptor.update(encryptedMessage) + decryptor.finalize()
@@ -99,25 +112,21 @@ def signWithPortalPrivateKey(privateKey, message):
     @param {str} message: message that needs to be signed
     @returns {str} signature: generated signature
     """
+    message = message if isinstance(message, bytes) else str.encode(message)
     signature = privateKey.sign(
         message,
         PSS(mgf=MGF1(SHA256()), salt_length=PSS.MAX_LENGTH),
         SHA256(),
     )
     return signature
-    
-from base64 import b64decode
-from cryptography.hazmat.primitives import serialization
-from cryptography.hazmat.backends import default_backend
+
 
 with open("utils/private", "r") as privateKey:
-    encoded_private_key_str = privateKey.read().rstrip()
-    private_key_bytes = b64decode(encoded_private_key_str)
-
-    PORTAL_PRIVATE_KEY = serialization.load_pem_private_key(
-        private_key_bytes,
-        password=None,  # No password for the private key
-        backend=default_backend()
+    privateKeyBytes = b64decode(privateKey.read().rstrip())
+    PORTAL_PRIVATE_KEY = load_pem_private_key(
+        privateKeyBytes,
+        password=None,
+        backend=default_backend(),
     )
 
 

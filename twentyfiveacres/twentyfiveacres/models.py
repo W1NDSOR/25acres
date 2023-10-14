@@ -29,8 +29,8 @@ class User(AbstractUser):
 
     rollNumber = models.IntegerField(unique=True)
     verificationCode = models.CharField(max_length=6, null=True, blank=True)
-    documentHash = models.CharField(max_length=64, null=True, blank=True)
-    userHash = models.CharField(max_length=64, null=False, blank=False)
+    documentHash = models.CharField(max_length=128, null=True, blank=True)
+    userHash = models.CharField(max_length=128, null=False, blank=False)
     wallet = models.IntegerField(default=1000000000, null=False, blank=False)
     REQUIRED_FIELDS = ["rollNumber"]
 
@@ -95,12 +95,12 @@ class Property(models.Model):
     )
     availabilityDate = models.DateField()
     location = models.ForeignKey(Location, on_delete=models.CASCADE)
-    propertyHashIdentifier = models.CharField(max_length=64, null=False, blank=False)
+    propertyHashIdentifier = models.CharField(max_length=128, null=False, blank=False)
     currentBid = models.DecimalField(max_digits=20, decimal_places=2, null=True)
     bidder = models.ForeignKey(
         User, related_name="current_bidder", on_delete=models.CASCADE, null=True
     )
-    ownershipDocumentHash = models.CharField(max_length=64, null=False, blank=False)
+    ownershipDocumentHash = models.CharField(max_length=128, null=False, blank=False)
     reported = models.BooleanField(default=False, null=False, blank=False)
 
 
@@ -117,7 +117,7 @@ class SellerContract(models.Model):
     """
 
     contractHashIdentifier = models.CharField(
-        max_length=64, primary_key=True, null=False, blank=False
+        max_length=128, primary_key=True, null=False, blank=False
     )
 
     property = models.ForeignKey(Property, on_delete=models.CASCADE)
@@ -143,7 +143,7 @@ class BuyerContract(models.Model):
     """
 
     contractHashIdentifier = models.CharField(
-        max_length=64, primary_key=True, null=False, blank=False
+        max_length=128, primary_key=True, null=False, blank=False
     )
     property = models.ForeignKey(Property, on_delete=models.CASCADE)
     buyer = models.ForeignKey(
@@ -180,16 +180,6 @@ class Contract(models.Model):
         null=True,
         blank=True,
     )
-
-
-class SHA(models.Model):
-    """
-    SHA
-        sha
-    """
-
-    sha = models.CharField(max_length=64, primary_key=True, null=False, blank=False)
-
 
 # Image Model
 class Image(models.Model):
