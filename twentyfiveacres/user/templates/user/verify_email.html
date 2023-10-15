@@ -16,7 +16,7 @@
 </head>
 
 <body data-bs-theme="dark">
-    <form action="." method="POST" style="margin-top:100px; margin-left: 500px; margin-right:500px">
+    <form method="POST" style="margin-top:100px; margin-left: 500px; margin-right:500px">
         {% csrf_token %}
         {% if error %}
         <div class="alert alert-danger" role="alert">{{ error }}</div>
@@ -94,7 +94,36 @@
                 }
             }
         });
+        document.querySelector("form").addEventListener("submit", function(event) {
+            event.preventDefault();  // Prevent the form from submitting the traditional way
+            
+            const rollNumber = document.querySelector("input[name='roll_number']").value;
+            const code = document.querySelector("input[name='code']").value;
+            
+            // Make an AJAX call to the backend
+            fetch("/api/user/verify_email/", {
+                method: "POST",
+                headers: {
+                    "X-CSRFToken": "{{ csrf_token }}",  // Add CSRF token for Django POST request
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    "roll_number": rollNumber,
+                    "code": code
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === "success") {
+                    window.location.href = "/user/signin";  // Redirect to sign in page
+                } else {
+                    alert(data.message);  // Show error message
+                }
+            });
+        });
     </script>
 </body>
 
 </html>
+
+
