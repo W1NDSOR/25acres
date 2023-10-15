@@ -52,6 +52,7 @@ from restapi.models import (
     SellerContract,
     BuyerContract,
 )
+
 secretKey = urandom(16)
 
 from django.http import JsonResponse
@@ -60,8 +61,8 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 
-class VerifyEmailView(APIView):
 
+class VerifyEmailView(APIView):
     def post(self, request):
         code = request.data.get("code")
         rollNumber = request.data.get("roll_number")
@@ -69,25 +70,30 @@ class VerifyEmailView(APIView):
             user = User.objects.get(rollNumber=rollNumber, verificationCode=code)
             user.verificationCode = None
             user.save()
-            return Response({"message": "Successfully verified."}, status=status.HTTP_200_OK)
+            return Response(
+                {"message": "Successfully verified."}, status=status.HTTP_200_OK
+            )
         except User.DoesNotExist:
-            return Response(USER_INVALID_CODE_OR_ROLLNUMBER_RESPONSE, status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                USER_INVALID_CODE_OR_ROLLNUMBER_RESPONSE,
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
     def get(self, request):
         # This is just for demonstration, generally API endpoints don't serve templates
         return render(request, "user/verify_email.html")
 
-
 class SignupView(APIView):
-
     def post(self, request):
-        userFields = request.data
+        userFields = request.POST
         username = userFields.get("user_name")
         rollNumber = userFields.get("roll_number")
         email = userFields.get("email")
         password = userFields.get("password")
         firstName = userFields.get("first_name")
         lastName = userFields.get("last_name")
+
+        print(f"{username} {rollNumber} {email} {password} {firstName} {lastName}")
 
         # Roll No and Email Validation
         try:
@@ -96,7 +102,9 @@ class SignupView(APIView):
                 pass
                 # return Response(USER_EMAIL_ROLLNUMBER_MISMATCH_RESPONSE, status=status.HTTP_400_BAD_REQUEST)
         except:
-            return Response(USER_INVALID_EMAIL_FORMAT_RESPONSE, status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                USER_INVALID_EMAIL_FORMAT_RESPONSE, status=status.HTTP_400_BAD_REQUEST
+            )
 
         documentHash = (
             hashDocument(request.FILES["document"].read())
@@ -132,7 +140,10 @@ class SignupView(APIView):
                 recipientEmails=[email],
             )
 
-            return Response({"message": "Signup successful. Verify your email."}, status=status.HTTP_201_CREATED)
+            return Response(
+                {"message": "Signup successful. Verify your email."},
+                status=status.HTTP_201_CREATED,
+            )
 
 
 class SigninView(APIView):
@@ -147,16 +158,29 @@ class SigninView(APIView):
 
                 if user:
                     if user.verificationCode is not None:
-                        return Response(USER_SIGNIN_WITHOUT_VERIFICATION_REPONSE, status=status.HTTP_400_BAD_REQUEST)
+                        return Response(
+                            USER_SIGNIN_WITHOUT_VERIFICATION_REPONSE,
+                            status=status.HTTP_400_BAD_REQUEST,
+                        )
                     login(request, user)
-                    return Response({"message": "Successfully signed in."}, status=status.HTTP_200_OK)
+                    return Response(
+                        {"message": "Successfully signed in."},
+                        status=status.HTTP_200_OK,
+                    )
                 else:
-                    return Response(USER_INVALID_ROLLNUMBER_RESPONSE, status=status.HTTP_400_BAD_REQUEST)
+                    return Response(
+                        USER_INVALID_ROLLNUMBER_RESPONSE,
+                        status=status.HTTP_400_BAD_REQUEST,
+                    )
 
             except User.DoesNotExist:
-                return Response(USER_INVALID_ROLLNUMBER_RESPONSE, status=status.HTTP_400_BAD_REQUEST)
+                return Response(
+                    USER_INVALID_ROLLNUMBER_RESPONSE, status=status.HTTP_400_BAD_REQUEST
+                )
 
-        return Response({"message": "Invalid input data."}, status=status.HTTP_400_BAD_REQUEST)
+        return Response(
+            {"message": "Invalid input data."}, status=status.HTTP_400_BAD_REQUEST
+        )
 
 
 class ProfileView(APIView):
@@ -238,11 +262,18 @@ class DeletePropertyView(APIView):
             property = Property.objects.get(propertyId=property_id)
             if property.owner == user:
                 property.delete()
-                return Response({"message": "Property deleted successfully."}, status=status.HTTP_204_NO_CONTENT)
+                return Response(
+                    {"message": "Property deleted successfully."},
+                    status=status.HTTP_204_NO_CONTENT,
+                )
             else:
-                return Response(USER_NOT_OWNER_RESPONSE, status=status.HTTP_403_FORBIDDEN)
+                return Response(
+                    USER_NOT_OWNER_RESPONSE, status=status.HTTP_403_FORBIDDEN
+                )
         except ObjectDoesNotExist:
-            return Response(PROPERTY_DOES_NOT_EXIST_RESPONSE, status=status.HTTP_404_NOT_FOUND)
+            return Response(
+                PROPERTY_DOES_NOT_EXIST_RESPONSE, status=status.HTTP_404_NOT_FOUND
+            )
 
 
 class HandleContractView(APIView):
@@ -254,7 +285,9 @@ class HandleContractView(APIView):
         try:
             property = Property.objects.get(propertyId=property_id)
         except ObjectDoesNotExist:
-            return Response(PROPERTY_DOES_NOT_EXIST_RESPONSE, status=status.HTTP_404_NOT_FOUND)
+            return Response(
+                PROPERTY_DOES_NOT_EXIST_RESPONSE, status=status.HTTP_404_NOT_FOUND
+            )
 
         if property.owner != user and property.bidder != user:
             return Response(
@@ -276,9 +309,7 @@ class HandleContractView(APIView):
             seller_contract = SellerContract.objects.create(
                 property=property,
                 seller=user,
-                contractHashIdentifier=generateUserPropertyContractHash(
-                    user, property
-                ),
+                contractHashIdentifier=generateUserPropertyContractHash(user, property),
                 contractAddress=None,
             )
             seller_contract.save()
@@ -302,7 +333,8 @@ class HandleContractView(APIView):
             # TODO: Now need to mail both `contract_hash` and `encrypted_signature` to the user
 
             return Response(
-                {"message": "Contract created successfully."}, status=status.HTTP_201_CREATED
+                {"message": "Contract created successfully."},
+                status=status.HTTP_201_CREATED,
             )
 
         if (
@@ -312,9 +344,7 @@ class HandleContractView(APIView):
             buyer_contract = BuyerContract.objects.create(
                 property=property,
                 buyer=user,
-                contractHashIdentifier=generateUserPropertyContractHash(
-                    user, property
-                ),
+                contractHashIdentifier=generateUserPropertyContractHash(user, property),
                 contractAddress=None,
             )
             buyer_contract.save()
@@ -331,7 +361,8 @@ class HandleContractView(APIView):
                 property.status = "Rented"
             property.save()
             return Response(
-                {"message": "Contract created successfully."}, status=status.HTTP_201_CREATED
+                {"message": "Contract created successfully."},
+                status=status.HTTP_201_CREATED,
             )
 
         return Response(TRESPASSING_RESPONSE, status=status.HTTP_403_FORBIDDEN)
@@ -346,7 +377,9 @@ class ChangeOwnershipView(APIView):
         try:
             property_obj = Property.objects.get(pk=property_id)
         except ObjectDoesNotExist:
-            return Response(PROPERTY_DOES_NOT_EXIST_RESPONSE, status=status.HTTP_404_NOT_FOUND)
+            return Response(
+                PROPERTY_DOES_NOT_EXIST_RESPONSE, status=status.HTTP_404_NOT_FOUND
+            )
 
         if property_obj.owner != user:
             return Response(USER_NOT_OWNER_RESPONSE, status=status.HTTP_403_FORBIDDEN)
@@ -394,6 +427,7 @@ class ChangeOwnershipView(APIView):
             status=status.HTTP_200_OK,
         )
 
+
 class VerifyContractView(APIView):
     def post(self, request):
         try:
@@ -440,4 +474,3 @@ class VerifyContractView(APIView):
             {"verification_result": verification_result},
             status=status.HTTP_200_OK,
         )
-

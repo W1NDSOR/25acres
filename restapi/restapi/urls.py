@@ -17,9 +17,13 @@ from django.contrib import admin
 from django.urls import path, include
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
-    path('api/user/', include('user.urls')),  # Include URLs from the 'user' app
-    path('api/property/', include('property.urls')),  # Include URLs from the 'property' app
-    path('api/transaction/', include('transaction.urls')),  # Include URLs from the 'transaction' app
+    path("admin/", admin.site.urls),
+    path("api/user/", include("user.urls")),  # Include URLs from the 'user' app
+    path(
+        "api/property/", include("property.urls")
+    ),  # Include URLs from the 'property' app
+    path(
+        "api/transaction/", include("transaction.urls")
+    ),  # Include URLs from the 'transaction' app
     # Add more app-specific URL patterns here
 ]

@@ -48,8 +48,51 @@ from utils.crypto import (
     PORTAL_PRIVATE_KEY,
     PORTAL_PUBLIC_ENCODED_KEY,
 )
+import requests
 
 secretKey = urandom(16)
+
+
+def signup(request):
+    if request.method == "POST":
+        response = requests.post(
+            "http://127.0.0.1:7000/api/user/signup/", data=request.POST
+        )
+        print(response.status_code)
+    return render(request, "user/signup_form.html")
+
+
+def signin(request):
+    if request.method == "POST":
+        response = requests.post(
+            "http://127.0.0.1:7000/api/user/signin/", data=request.POST
+        )
+        print(response.status_code)
+    return render(request, "user/signin_form.html")
+
+
+def profile(request):
+    pass
+
+
+def verifyEmail(request):
+    pass
+
+
+def deleteProperty(request):
+    pass
+
+
+def handleContract(request):
+    pass
+
+
+def changeOwnership(request):
+    pass
+
+
+def verifyContract(request):
+    pass
 
 
 # def verifyEmail(request):
