@@ -20,6 +20,8 @@ def paymentGateway(request, propertyId):
     property = Property.objects.get(pk=propertyId)
     return render(request, 'paymentGateway.html', {'contract': contract, 'property': property})
 
+
+# I don't know the point of this.
 def cardDetails(request):
     print("Card Details Function")
     # contract = Contract.objects.get(id=request.GET.get("id"))
@@ -59,16 +61,13 @@ def pay(request):
         buyer = User.objects.get(id=property.bidder_id)
         seller = User.objects.get(id=property.owner_id)
         print("Contract, Buyer and Seller found")
-        # reduce the balance of the buyer
         buyer.wallet = buyer.wallet - property.price
+        property.owner_id = buyer.id
         buyer.save()
         print("Buyer balance reduced")
-        # increase the balance of the seller
         seller.wallet = seller.wallet + property.price
         seller.save()
         print("Seller balance increased")
         return HttpResponse("Payment successful")
-    #     if request.POST.get("action") == "Pay":
-    #     else:
-    # #         messages.error(request, "Something went wrong")
-    #         return HttpResponse("Something went wrong")
+    else:
+        return HttpResponse("Something went wrong")
