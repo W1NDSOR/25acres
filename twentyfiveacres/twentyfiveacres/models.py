@@ -181,6 +181,7 @@ class Contract(models.Model):
         blank=True,
     )
 
+
 # Image Model
 class Image(models.Model):
 
@@ -198,6 +199,38 @@ class Image(models.Model):
     imageUrl = models.URLField()
     createdAt = models.DateTimeField(auto_now_add=True)
     updatedAt = models.DateTimeField(auto_now=True)
+
+
+class Transaction(models.Model):
+    """
+    Transaction
+        transaction_id [PK]
+        user
+        with_portal
+        other
+        amount
+        credit
+        debit
+        time
+    """
+
+    transactionId = models.AutoField(primary_key=True)
+    user = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name="transaction_user_relation"
+    )
+    withPortal = models.BooleanField(default=False, null=False, blank=False)
+    other = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        default=None,
+        null=True,
+        blank=True,
+        related_name="transaction_other_user_relation",
+    )
+    amount = models.IntegerField(default=0, null=False, blank=False)
+    credit = models.BooleanField(default=True, null=False, blank=False)
+    debit = models.BooleanField(default=False, null=False, blank=False)
+    time = models.DateTimeField(auto_now_add=True)
 
 
 # ----------------------------------------------------------

@@ -11,14 +11,19 @@ from twentyfiveacres.models import (
     Contract,
     SellerContract,
     BuyerContract,
+    Transaction,
 )
 
 # Create your views here.
 
+
 def paymentGateway(request, propertyId):
     contract = Contract.objects.get(property=propertyId)
     property = Property.objects.get(pk=propertyId)
-    return render(request, 'paymentGateway.html', {'contract': contract, 'property': property})
+    return render(
+        request, "paymentGateway.html", {"contract": contract, "property": property}
+    )
+
 
 
 # I don't know the point of this.
@@ -49,7 +54,8 @@ def cardDetails(request):
     else:
         return HttpResponse("Something went wrong")
 
-def pay(request):  
+
+def pay(request):
     print("Paying")
     if request.method == "POST":
         print("Entered Method Post")
@@ -61,13 +67,32 @@ def pay(request):
         buyer = User.objects.get(id=property.bidder_id)
         seller = User.objects.get(id=property.owner_id)
         print("Contract, Buyer and Seller found")
-        buyer.wallet = buyer.wallet - property.price
-        property.owner_id = buyer.id
+        # reduce the balance of the buyer
+        buyer.wallet = buyer.wallet - property.currentBid
         buyer.save()
         print("Buyer balance reduced")
-        seller.wallet = seller.wallet + property.price
+        transaction = Transaction.objects.create(
+            user=buyer,
+            withPortal=False,
+            other=seller,
+            amount=property.currentBid,
+            credit=False,
+            debit=True,
+        )
+        transaction.save()
+        # increase the balance of the seller
+        seller.wallet = seller.wallet + property.currentBid
         seller.save()
         print("Seller balance increased")
+        transaction = Transaction.objects.create(
+            user=seller,
+            withPortal=False,
+            other=buyer,
+            amount=property.currentBid,
+            credit=True,
+            debit=False,
+        )
+        transaction.save()
         return HttpResponse("Payment successful")
     else:
         return HttpResponse("Something went wrong")
