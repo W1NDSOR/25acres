@@ -15,25 +15,26 @@ from twentyfiveacres.models import (
 
 # Create your views here.
 
-def paymentGateway(request):
-    contract = Contract.objects.get(id=request.GET.get("id"))
-    property = Property.objects.get(id=contract.property_id)
-
-    return render(request, "paymentGateway.html", context={"property": property, "contract": contract})
+def paymentGateway(request, propertyId):
+    contract = Contract.objects.get(property=propertyId)
+    property = Property.objects.get(pk=propertyId)
+    return render(request, 'paymentGateway.html', {'contract': contract, 'property': property})
 
 def cardDetails(request):
-    contract = Contract.objects.get(id=request.GET.get("id"))
-    property = Property.objects.get(id=contract.property_id)
-    context = {
-        "title": "Payment Gateway",
-        "content": "Payment Gateway",
-        "id": contract.id,
-        "property_id": contract.property_id,
-        "buyer_id": contract.buyerContract_id,
-        "seller_id": contract.sellerContract_id,
-        "price": property.price,
-    }
-    if request.method == "POST" and request.POST.get("action") == "Card Details":
+    print("Card Details Function")
+    # contract = Contract.objects.get(id=request.GET.get("id"))
+    # property = Property.objects.get(id=contract.property_id)
+    # context = {
+    #     "title": "Payment Gateway",
+    #     "content": "Payment Gateway",
+    #     "id": contract.id,
+    #     "property_id": contract.property_id,
+    #     "buyer_id": contract.buyerContract_id,
+    #     "seller_id": contract.sellerContract_id,
+    #     "price": property.price,
+    # }
+    print(request.method)
+    if request.method == "POST":
         cardNumber = request.get("cardNumber")
         expirationDate = request.get("expirationDate")
         cvv = request.get("cvv")
@@ -42,19 +43,32 @@ def cardDetails(request):
 
         # remove printing later, and just keep a hash or return statment
         print(cardNumber, expirationDate, cvv, cardHolderName, amount)
+        return HttpResponse("Payment successful")
+    else:
+        return HttpResponse("Something went wrong")
 
-def pay(request):
-    contract = Contract.objects.get(id=request.GET.get("id"))
-    buyer = User.objects.get(id=contract.buyerContract_id)
-    seller = User.objects.get(id=contract.sellerContract_id)
-    print(request.method)
+def pay(request):  
+    print("Paying")
     if request.method == "POST":
-        print("Reached paymentGateway 2")
-        if request.POST.get("action") == "Pay":
-            messages.success(request, "Payment successful")
-            buyer.wallet -= property.currentBid
-            seller.wallet += property.currentBid
-            return HttpResponse("Payment successful")
-        else:
-            messages.error(request, "Something went wrong")
-            return HttpResponse("Something went wrong")
+        print("Entered Method Post")
+        contract_id = request.POST.get("contract_id")
+        contract = Contract.objects.get(id=contract_id)
+        print(contract_id)
+        property = Property.objects.get(propertyId=contract.property_id)
+        print(property)
+        buyer = User.objects.get(id=property.bidder_id)
+        seller = User.objects.get(id=property.owner_id)
+        print("Contract, Buyer and Seller found")
+        # reduce the balance of the buyer
+        buyer.wallet = buyer.wallet - property.price
+        buyer.save()
+        print("Buyer balance reduced")
+        # increase the balance of the seller
+        seller.wallet = seller.wallet + property.price
+        seller.save()
+        print("Seller balance increased")
+        return HttpResponse("Payment successful")
+    #     if request.POST.get("action") == "Pay":
+    #     else:
+    # #         messages.error(request, "Something went wrong")
+    #         return HttpResponse("Something went wrong")

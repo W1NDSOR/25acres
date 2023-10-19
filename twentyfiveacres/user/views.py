@@ -5,6 +5,8 @@ from django.contrib.auth.hashers import make_password
 from django.contrib.auth.models import AnonymousUser
 from utils.hashing import hashDocument
 from django.core.exceptions import ObjectDoesNotExist
+from django.shortcuts import redirect   
+from django.http import HttpResponse
 from django.db.models import Q
 from user.viewmodel import generateUserHash, verifyUserDocument
 from property.viewmodel import generatePropertyHash
@@ -155,7 +157,6 @@ def signin(request):
 
 def profile(request):
     """
-    @desc: renders a page where signed in user can view/update their profile
     """
 
     if isinstance(request.user, AnonymousUser):
@@ -243,6 +244,61 @@ def deleteProperty(request, propertyId):
         return PROPERTY_DOES_NOT_EXIST_RESPONSE
 
 
+
+
+def changeOwnership(request, propertyId):
+    if request.method != "POST":
+        TRESPASSING_RESPONSE
+
+    if isinstance(request.user, AnonymousUser):
+        return HttpResponseRedirect("../../")
+
+    user = User.objects.get(username=request.user.username)
+    try:
+        propertyObj = Property.objects.get(pk=propertyId)
+    except ObjectDoesNotExist:
+        return PROPERTY_DOES_NOT_EXIST_RESPONSE
+
+    # Won't occur
+    if propertyObj.owner != user:
+        return USER_NOT_OWNER_RESPONSE
+
+    # check proof of identity
+    proofOfIdentity = (
+        request.FILES[f"proof_identity_{propertyId}"].read()
+        if f"proof_identity_{propertyId}" in request.FILES
+        else None
+    )
+    if not proofOfIdentity or not verifyUserDocument(user, proofOfIdentity):
+        return USER_DOCUMENT_HASH_MISMATCH_RESPONSE
+
+    ownershipDocumentHash = (
+        hashDocument(request.FILES[f"ownership_document_{propertyId}"].read())
+        if f"ownership_document_{propertyId}" in request.FILES
+        else None
+    )
+
+    if ownershipDocumentHash is None:
+        return PROPERTY_OWNERSHIP_DOCUMENT_MISSING_RESPONSE
+
+    # Update ownership document if it is not None (it cannot be None, cause field required while adding property)
+    ownershipDocumentHash = ownershipDocumentHash
+    propertyObj.ownershipDocumentHash = ownershipDocumentHash
+    propertyObj.propertyHashIdentifier = generatePropertyHash(
+        ownershipDocumentHash,
+        propertyObj.title,
+        propertyObj.description,
+        propertyObj.price,
+        propertyObj.bedrooms,
+        propertyObj.bathrooms,
+        propertyObj.area,
+        propertyObj.status,
+        propertyObj.location.name,
+        propertyObj.availabilityDate,
+    )
+    propertyObj.save()
+    return HttpResponseRedirect("/user/profile")
+
 def handleContract(request, propertyId):
     """
     @desc: handles everything related to a contract
@@ -250,8 +306,8 @@ def handleContract(request, propertyId):
 
     if isinstance(request.user, AnonymousUser):
         return USER_SIGNIN_RESPONSE
+    
     user = User.objects.get(username=request.user.username)
-
     try:
         property = Property.objects.get(propertyId=propertyId)
     except ObjectDoesNotExist:
@@ -326,61 +382,6 @@ def handleContract(request, propertyId):
 
     return TRESPASSING_RESPONSE
 
-
-def changeOwnership(request, propertyId):
-    if request.method != "POST":
-        TRESPASSING_RESPONSE
-
-    if isinstance(request.user, AnonymousUser):
-        return HttpResponseRedirect("../../")
-
-    user = User.objects.get(username=request.user.username)
-    try:
-        propertyObj = Property.objects.get(pk=propertyId)
-    except ObjectDoesNotExist:
-        return PROPERTY_DOES_NOT_EXIST_RESPONSE
-
-    # Won't occur
-    if propertyObj.owner != user:
-        return USER_NOT_OWNER_RESPONSE
-
-    # check proof of identity
-    proofOfIdentity = (
-        request.FILES[f"proof_identity_{propertyId}"].read()
-        if f"proof_identity_{propertyId}" in request.FILES
-        else None
-    )
-    if not proofOfIdentity or not verifyUserDocument(user, proofOfIdentity):
-        return USER_DOCUMENT_HASH_MISMATCH_RESPONSE
-
-    ownershipDocumentHash = (
-        hashDocument(request.FILES[f"ownership_document_{propertyId}"].read())
-        if f"ownership_document_{propertyId}" in request.FILES
-        else None
-    )
-
-    if ownershipDocumentHash is None:
-        return PROPERTY_OWNERSHIP_DOCUMENT_MISSING_RESPONSE
-
-    # Update ownership document if it is not None (it cannot be None, cause field required while adding property)
-    ownershipDocumentHash = ownershipDocumentHash
-    propertyObj.ownershipDocumentHash = ownershipDocumentHash
-    propertyObj.propertyHashIdentifier = generatePropertyHash(
-        ownershipDocumentHash,
-        propertyObj.title,
-        propertyObj.description,
-        propertyObj.price,
-        propertyObj.bedrooms,
-        propertyObj.bathrooms,
-        propertyObj.area,
-        propertyObj.status,
-        propertyObj.location.name,
-        propertyObj.availabilityDate,
-    )
-    propertyObj.save()
-    return HttpResponseRedirect("/user/profile")
-
-
 def verifyContract(request):
     try:
         if request.method == "POST":
@@ -419,6 +420,11 @@ def verifyContract(request):
 
 def process_payment(request):
     if request.method == 'POST':
-        action = request.POST.get('action')
-        if action == 'payButton':
-            return HttpResponseRedirect('/transaction/paymentGateway')
+        property_id = request.POST.get('property_id')
+        print(property_id)
+        if property_id:
+            return HttpResponseRedirect(f'/transaction/paymentGateway/{property_id}/')
+        else:
+            return HttpResponse('Property ID is missing')
+    else:
+        return HttpResponse('Invalid request')

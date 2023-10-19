@@ -226,8 +226,11 @@
                   <a class="btn btn-primary disabled" aria-disabled="true">Contract verified</a>
                   <!-- Add Pay Button -->
                   <form method="POST" action="{% url 'process_payment' %}">
-                    {% csrf_token %}
-                  <button type="submit" class="btn btn-primary" name="action" value="payButton">Proceed to Pay</button>
+                  {% csrf_token %}
+                  <input type="hidden" name="property_id" value="{{ property.propertyId }}">
+                  <center>
+                    <button type="submit" class="btn btn-primary" name="action" value="payButton">Proceed to Pay</button>
+                  </center>
                   {% endif %}
                   {% endwith %}
                   </form>
