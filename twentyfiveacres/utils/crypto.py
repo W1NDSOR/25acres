@@ -148,25 +148,25 @@ def signWithPortalPrivateKey(privateKey, message):
     return signature
 
 
-# with open("utils/private", "r") as privateKey:
-#     privateKeyBytes = b64decode(privateKey.read().rstrip())
-#     PORTAL_PRIVATE_KEY = load_pem_private_key(
-#         privateKeyBytes,
-#         password=None,
-#         backend=default_backend(),
-#     )
-
-
-
-# with open("utils/public", "r") as publicKey:
-#     PORTAL_PUBLIC_ENCODED_KEY = publicKey.read().rstrip()
-
-
-
-
 with open("utils/private", "r") as privateKey:
-    PORTAL_PRIVATE_KEY = privateKey.read().rstrip()
+    privateKeyBytes = b64decode(privateKey.read().rstrip())
+    PORTAL_PRIVATE_KEY = load_pem_private_key(
+        privateKeyBytes,
+        password=None,
+        backend=default_backend(),
+    )
+
+
 
 with open("utils/public", "r") as publicKey:
     PORTAL_PUBLIC_ENCODED_KEY = publicKey.read().rstrip()
+
+
+
+
+# with open("utils/private", "r") as privateKey:
+#     PORTAL_PRIVATE_KEY = privateKey.read().rstrip()
+
+# with open("utils/public", "r") as publicKey:
+#     PORTAL_PUBLIC_ENCODED_KEY = publicKey.read().rstrip()
 
