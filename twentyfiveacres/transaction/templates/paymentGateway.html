@@ -22,8 +22,6 @@
   <body data-bs-theme="dark">
     {% load static %}
     <nav class="navbar navbar-expand-lg">
-      <!-- Your navigation bar content (if needed) -->
-      <!-- create a navigation bar with text "ShavePay" -->
       <h2 style="color: white; margin-left: 50px; margin-top: 20px">
         ShavePay
       </h2>
@@ -51,7 +49,7 @@
                       <p>Contract ID:</p>
                     </div>
                     <div class="col-md-6">
-                      <p>{{ id }}</p>
+                      <p>{{ contract.id }}</p>
                     </div>
                   </div>
                   <div class="row">
@@ -59,7 +57,7 @@
                       <p>Property ID:</p>
                     </div>
                     <div class="col-md-6">
-                      <p>{{ property_id }}</p>
+                      <p>{{ contract.property_id }}</p>
                     </div>
                   </div>
                   <div class="row">
@@ -67,7 +65,7 @@
                       <p>Buyer ID:</p>
                     </div>
                     <div class="col-md-6">
-                      <p>{{ buyerContract_id }}</p>
+                      <p>{{ contract.buyerContract_id }}</p>
                     </div>
                   </div>
                   <div class="row">
@@ -75,7 +73,7 @@
                       <p>Seller ID:</p>
                     </div>
                     <div class="col-md-6">
-                      <p>{{ sellerContract_id }}</p>
+                      <p>{{ contract.sellerContract_id }}</p>
                     </div>
                   </div>
                   <div class="row">
@@ -83,7 +81,7 @@
                       <p>Amount:</p>
                     </div>
                     <div class="col-md-6">
-                      <p>{{ currentBid }}</p>
+                      <p>{{ property.currentBid }}</p>
                     </div>
                   </div>
                 </div>
@@ -106,8 +104,9 @@
                 </h5>
                 <!-- Card information form (e.g., card number, expiration date, CVV) -->
                 <div class="details" style="margin-left: 20px">
-                  <form method="
+                  <form method= "POST" action="{% url 'cardDetails' %}">
                     {% csrf_token %}
+                    <input type="hidden" name="contract_id" value="{{ contract.id }}">
                     <div class="row">
                       <div class="col-md-6">
                         <p>Card Number:</p>
@@ -177,7 +176,7 @@
                             required
                             />
                         </div>
-                    </div>
+                    </form>
               </div>
             </div>
           </div>
@@ -187,11 +186,14 @@
 
     <!-- Payment button -->
     <form method="POST" action="{% url 'pay' %}">
+    {% csrf_token %}
+    <input type="hidden" name="contract_id" value="{{ contract.id }}">
     <center>
       <button
         type="submit"
         class="btn btn-primary"
         style="margin-top: 20px; margin-bottom: 20px"
+        name="action"
         value = "Pay"
       >
         Pay
@@ -204,5 +206,6 @@
       integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL"
       crossorigin="anonymous"
     ></script>
+    
   </body>
 </html>

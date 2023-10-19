@@ -223,14 +223,13 @@
                     contract</a>
                   {% else %}
                   <form method="POST" action="{% url 'process_payment' %}">
-                    <div class="col-auto btn-group" role="group" aria-label="button_action">
-                      <a class="btn btn-primary disabled" aria-disabled="true">Contract verified</a>
-                      <!-- Add Pay Button -->
-                        {% csrf_token %}
-                      <button type="submit" class="btn btn-success" name="action" value="payButton">Proceed to Pay</button>
-                      {% endif %}
-                      {% endwith %}
-                    </div>
+                  {% csrf_token %}
+                  <input type="hidden" name="property_id" value="{{ property.propertyId }}">
+                  <center>
+                    <button type="submit" class="btn btn-primary" name="action" value="payButton">Proceed to Pay</button>
+                  </center>
+                  {% endif %}
+                  {% endwith %}
                   </form>
                 </div>
               </div>
