@@ -55,6 +55,24 @@ def unpadData(paddedData):
     return data
 
 
+# def encryptWithUserSha(userSha, message):
+#     """
+#     @desc: encrypt the `message` with `userSha`
+#     @param {str} userSha: user hash
+#     @param {str} message: message that needs to be encrypted
+#     @returns {str} encryptedMessage: encrypted message
+#     """
+#     print(f"before {len(userSha)}")
+#     userSha = userSha if isinstance(userSha, bytes) else str.encode(userSha)
+#     print(f"after {len(userSha)}")
+#     message = message if isinstance(message, bytes) else str.encode(message)
+#     cipher = Cipher(AES(userSha), ECB(), backend=default_backend())
+#     encryptor = cipher.encryptor()
+#     message = padData(message)
+#     encryptedMessage = encryptor.update(message) + encryptor.finalize()
+#     return encryptedMessage
+
+# old one
 def encryptWithUserSha(userSha, message):
     """
     @desc: encrypt the `message` with `userSha`
@@ -62,16 +80,31 @@ def encryptWithUserSha(userSha, message):
     @param {str} message: message that needs to be encrypted
     @returns {str} encryptedMessage: encrypted message
     """
-    print(f"before {len(userSha)}")
-    userSha = userSha if isinstance(userSha, bytes) else str.encode(userSha)
-    print(f"after {len(userSha)}")
-    message = message if isinstance(message, bytes) else str.encode(message)
     cipher = Cipher(AES(userSha), ECB(), backend=default_backend())
     encryptor = cipher.encryptor()
     message = padData(message)
     encryptedMessage = encryptor.update(message) + encryptor.finalize()
     return encryptedMessage
 
+
+# def decryptWithUserSha(userSha, encryptedMessage):
+#     """
+#     @desc: decrypt the `encryptedMessage` with `userSha`
+#     @param {str} userSha: user hash
+#     @param {str} encryptedMessage: message that needs to be decrypted
+#     @returns {str} decryptedMessage: decrypted message
+#     """
+#     userSha = userSha if isinstance(userSha, bytes) else str.encode(userSha)
+#     encryptedMessage = (
+#         encryptedMessage
+#         if isinstance(encryptedMessage, bytes)
+#         else str.encode(encryptedMessage)
+#     )
+#     cipher = Cipher(AES(userSha), ECB(), backend=default_backend())
+#     decryptor = cipher.decryptor()
+#     decryptedMessage = decryptor.update(encryptedMessage) + decryptor.finalize()
+#     decryptedMessage = unpadData(decryptedMessage)
+#     return decryptedMessage
 
 def decryptWithUserSha(userSha, encryptedMessage):
     """
@@ -80,12 +113,6 @@ def decryptWithUserSha(userSha, encryptedMessage):
     @param {str} encryptedMessage: message that needs to be decrypted
     @returns {str} decryptedMessage: decrypted message
     """
-    userSha = userSha if isinstance(userSha, bytes) else str.encode(userSha)
-    encryptedMessage = (
-        encryptedMessage
-        if isinstance(encryptedMessage, bytes)
-        else str.encode(encryptedMessage)
-    )
     cipher = Cipher(AES(userSha), ECB(), backend=default_backend())
     decryptor = cipher.decryptor()
     decryptedMessage = decryptor.update(encryptedMessage) + decryptor.finalize()
@@ -121,14 +148,25 @@ def signWithPortalPrivateKey(privateKey, message):
     return signature
 
 
-with open("utils/private", "r") as privateKey:
-    privateKeyBytes = b64decode(privateKey.read().rstrip())
-    PORTAL_PRIVATE_KEY = load_pem_private_key(
-        privateKeyBytes,
-        password=None,
-        backend=default_backend(),
-    )
+# with open("utils/private", "r") as privateKey:
+#     privateKeyBytes = b64decode(privateKey.read().rstrip())
+#     PORTAL_PRIVATE_KEY = load_pem_private_key(
+#         privateKeyBytes,
+#         password=None,
+#         backend=default_backend(),
+#     )
 
+
+
+# with open("utils/public", "r") as publicKey:
+#     PORTAL_PUBLIC_ENCODED_KEY = publicKey.read().rstrip()
+
+
+
+
+with open("utils/private", "r") as privateKey:
+    PORTAL_PRIVATE_KEY = privateKey.read().rstrip()
 
 with open("utils/public", "r") as publicKey:
     PORTAL_PUBLIC_ENCODED_KEY = publicKey.read().rstrip()
+
