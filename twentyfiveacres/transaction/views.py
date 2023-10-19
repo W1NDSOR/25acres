@@ -66,27 +66,27 @@ def pay(request):
         seller = User.objects.get(id=property.owner_id)
         print("Contract, Buyer and Seller found")
         # reduce the balance of the buyer
-        buyer.wallet = buyer.wallet - property.price
+        buyer.wallet = buyer.wallet - property.currentBid
         buyer.save()
         print("Buyer balance reduced")
         transaction = Transaction.objects.create(
             user=buyer,
             withPortal=False,
             other=seller,
-            amount=property.price,
+            amount=property.currentBid,
             credit=False,
             debit=True,
         )
         transaction.save()
         # increase the balance of the seller
-        seller.wallet = seller.wallet + property.price
+        seller.wallet = seller.wallet + property.currentBid
         seller.save()
         print("Seller balance increased")
         transaction = Transaction.objects.create(
             user=seller,
             withPortal=False,
             other=buyer,
-            amount=property.price,
+            amount=property.currentBid,
             credit=True,
             debit=False,
         )
