@@ -11,14 +11,19 @@ from twentyfiveacres.models import (
     Contract,
     SellerContract,
     BuyerContract,
+    Transaction,
 )
 
 # Create your views here.
 
+
 def paymentGateway(request, propertyId):
     contract = Contract.objects.get(property=propertyId)
     property = Property.objects.get(pk=propertyId)
-    return render(request, 'paymentGateway.html', {'contract': contract, 'property': property})
+    return render(
+        request, "paymentGateway.html", {"contract": contract, "property": property}
+    )
+
 
 def cardDetails(request):
     print("Card Details Function")
@@ -47,7 +52,8 @@ def cardDetails(request):
     else:
         return HttpResponse("Something went wrong")
 
-def pay(request):  
+
+def pay(request):
     print("Paying")
     if request.method == "POST":
         print("Entered Method Post")
@@ -63,10 +69,28 @@ def pay(request):
         buyer.wallet = buyer.wallet - property.price
         buyer.save()
         print("Buyer balance reduced")
+        transaction = Transaction.objects.create(
+            user=buyer,
+            withPortal=False,
+            other=seller,
+            amount=property.price,
+            credit=False,
+            debit=True,
+        )
+        transaction.save()
         # increase the balance of the seller
         seller.wallet = seller.wallet + property.price
         seller.save()
         print("Seller balance increased")
+        transaction = Transaction.objects.create(
+            user=seller,
+            withPortal=False,
+            other=buyer,
+            amount=property.price,
+            credit=True,
+            debit=False,
+        )
+        transaction.save()
         return HttpResponse("Payment successful")
     #     if request.POST.get("action") == "Pay":
     #     else:

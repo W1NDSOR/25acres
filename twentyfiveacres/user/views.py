@@ -5,7 +5,7 @@ from django.contrib.auth.hashers import make_password
 from django.contrib.auth.models import AnonymousUser
 from utils.hashing import hashDocument
 from django.core.exceptions import ObjectDoesNotExist
-from django.shortcuts import redirect   
+from django.shortcuts import redirect
 from django.http import HttpResponse
 from django.db.models import Q
 from user.viewmodel import generateUserHash, verifyUserDocument
@@ -41,6 +41,7 @@ from twentyfiveacres.models import (
     Contract,
     SellerContract,
     BuyerContract,
+    Transaction,
 )
 from utils.crypto import (
     verifyWithPortalPublicKey,
@@ -119,6 +120,15 @@ def signup(request):
                 verificationCode=verificationCode,
             )
             user.save()
+            transaction = Transaction.objects.create(
+                user=user,
+                withPortal=True,
+                other=None,
+                amount=1000000000,
+                credit=True,
+                debit=False,
+            )
+            transaction.save()
             sendMail(
                 subject="Welcome to 25acres",
                 message=f"Your verification code is {verificationCode}",
@@ -156,8 +166,7 @@ def signin(request):
 
 
 def profile(request):
-    """
-    """
+    """ """
 
     if isinstance(request.user, AnonymousUser):
         return USER_SIGNIN_RESPONSE
@@ -241,8 +250,6 @@ def deleteProperty(request, propertyId):
         return PROPERTY_DOES_NOT_EXIST_RESPONSE
 
 
-
-
 def changeOwnership(request, propertyId):
     if request.method != "POST":
         TRESPASSING_RESPONSE
@@ -296,6 +303,7 @@ def changeOwnership(request, propertyId):
     propertyObj.save()
     return HttpResponseRedirect("/user/profile")
 
+
 def handleContract(request, propertyId):
     """
     @desc: handles everything related to a contract
@@ -303,7 +311,7 @@ def handleContract(request, propertyId):
 
     if isinstance(request.user, AnonymousUser):
         return USER_SIGNIN_RESPONSE
-    
+
     user = User.objects.get(username=request.user.username)
     try:
         property = Property.objects.get(propertyId=propertyId)
@@ -374,10 +382,16 @@ def handleContract(request, propertyId):
         #     property.status = "Sold"
         # elif property.status in ("for_rent", "For Rent"):
         #     property.status = "Rented"
+        sendMail(
+            subject="Contract Verfied",
+            message="Your property buying contract with the portal is finalized; Kindly proceed to payment",
+            recipientEmails=[user.email],
+        )
         property.save()
         return HttpResponseRedirect("/user/profile")
 
     return TRESPASSING_RESPONSE
+
 
 def verifyContract(request):
     try:
@@ -416,12 +430,12 @@ def verifyContract(request):
 
 
 def process_payment(request):
-    if request.method == 'POST':
-        property_id = request.POST.get('property_id')
+    if request.method == "POST":
+        property_id = request.POST.get("property_id")
         print(property_id)
         if property_id:
-            return HttpResponseRedirect(f'/transaction/paymentGateway/{property_id}/')
+            return HttpResponseRedirect(f"/transaction/paymentGateway/{property_id}/")
         else:
-            return HttpResponse('Property ID is missing')
+            return HttpResponse("Property ID is missing")
     else:
-        return HttpResponse('Invalid request')
+        return HttpResponse("Invalid request")
