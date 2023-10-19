@@ -27,7 +27,7 @@ class AbstractContract:
         self.currentStage = None
         if contract is None or self.verifiedBySeller is None:
             self.currentStage = ContractStages.SELLER.value
-        elif self.verifiedByBuyer is None:
+        elif self.verifiedByBuyer is None or self.verifiedByBuyer == False:
             self.currentStage = ContractStages.BUYER.value
         else:
             self.currentStage = ContractStages.DONE.value

@@ -167,12 +167,10 @@ def profile(request):
     properties = Property.objects.filter(
         owner=user, status__in=["for_sell", "For Sell", "for_rent", "For Rent"]
     )
-
     contracts = getAbstractContractArray(properties)
     propertyBidings = Property.objects.filter(
         bidder=user, status__in=["for_sell", "For Sell", "for_rent", "For Rent"]
     )
-
     propertyBidingsContracts = getAbstractContractArray(propertyBidings)
     pastProperties = Property.objects.filter(
         Q(owner=user) | Q(bidder=user), status__in=["Sold", "Rented"]
@@ -209,16 +207,15 @@ def profile(request):
         "pastProperties": pastProperties,
     }
 
-    print(request.method)
     if request.method == "POST" and request.POST.get("action") == "profileDetailButton":
-            userFields = request.POST
-            firstName = userFields.get("first_name")
-            lastName = userFields.get("last_name")
-            if firstName and lastName:
-                user.first_name = firstName
-                user.last_name = lastName
-                user.save()
-                return HttpResponseRedirect("/")
+        userFields = request.POST
+        firstName = userFields.get("first_name")
+        lastName = userFields.get("last_name")
+        if firstName and lastName:
+            user.first_name = firstName
+            user.last_name = lastName
+            user.save()
+            return HttpResponseRedirect("/")
     return render(request, "user/profile.html", context=context)
 
 
@@ -283,18 +280,18 @@ def handleContract(request, propertyId):
         )
         contract.save()
         # contract hash
-        contractHash = sellerContract.contractHashIdentifier
-        signature = signWithPortalPrivateKey(PORTAL_PRIVATE_KEY, contractHash)
-        encryptedSignature = encryptWithUserSha(user.userHash, signature)
-        sendMail(
-            subject="Details for your property",
-            message=f"""Here your details for property
-- Property Id: {property.propertyId}
-- Property Title: {property.title}
-- Contract hash: {contractHash}
-- Encypted signature: {encryptedSignature}""",
-            recipientEmails=[user.email],
-        )
+        #         contractHash = sellerContract.contractHashIdentifier
+        #         signature = signWithPortalPrivateKey(PORTAL_PRIVATE_KEY, contractHash)
+        #         encryptedSignature = encryptWithUserSha(user.userHash, signature)
+        #         sendMail(
+        #             subject="Details for your property",
+        #             message=f"""Here your details for property
+        # - Property Id: {property.propertyId}
+        # - Property Title: {property.title}
+        # - Contract hash: {contractHash}
+        # - Encypted signature: {encryptedSignature}""",
+        #             recipientEmails=[user.email],
+        #         )
         # TODO: now need to mail these both things `contractHash` and `encryptedSignature` to the user
 
         return HttpResponseRedirect("/user/profile")
@@ -310,17 +307,17 @@ def handleContract(request, propertyId):
             contractAddress=None,
         )
         buyerContract.save()
-        contractHash = buyerContract.contractHashIdentifier
-        signature = signWithPortalPrivateKey(PORTAL_PRIVATE_KEY, contractHash)
-        encryptedSignature = encryptWithUserSha(user.userHash, signature)
+        # contractHash = buyerContract.contractHashIdentifier
+        # signature = signWithPortalPrivateKey(PORTAL_PRIVATE_KEY, contractHash)
+        # encryptedSignature = encryptWithUserSha(user.userHash, signature)
         # TODO: now need to mail these both things `contractHash` and `encryptedSignature` to the user
 
         abstractContract.contract.buyerContract = buyerContract
         abstractContract.contract.save()
-        if property.status in ("for_sell", "For Sell"):
-            property.status = "Sold"
-        elif property.status in ("for_rent", "For Rent"):
-            property.status = "Rented"
+        # if property.status in ("for_sell", "For Sell"):
+        #     property.status = "Sold"
+        # elif property.status in ("for_rent", "For Rent"):
+        #     property.status = "Rented"
         property.save()
         return HttpResponseRedirect("/user/profile")
 
@@ -418,7 +415,7 @@ def verifyContract(request):
 
 
 def process_payment(request):
-    if request.method == 'POST':
-        action = request.POST.get('action')
-        if action == 'payButton':
-            return HttpResponseRedirect('/transaction/paymentGateway')
+    if request.method == "POST":
+        action = request.POST.get("action")
+        if action == "payButton":
+            return HttpResponseRedirect("/transaction/paymentGateway")

@@ -142,7 +142,6 @@
                     {% elif contract.verifiedByBuyer == False %}
                     <a class="btn btn-primary disabled" aria-disabled="true">Verification from other side is pending</a>
                     {% else %}
-                    <p> hello </p>
                     <a class="btn btn-success disabled" aria-disabled="true">Contract verified</a>
                     {% endif %}
                     {% endwith %}
@@ -217,9 +216,9 @@
                 <div class="col-6 btn-group" role="group" aria-label="button_action">
                   {% load index %}
                   {% with contract=propertyBidingsContracts|index:forloop.counter0 %}
-                  {% if contract == None %}
+                  {% if contract == None or contract.verifiedBySeller == False %}
                   <a class="btn btn-primary disabled" aria-disabled="true">Waiting for other party to verify first</a>
-                  {% elif contract.verifiedBySeller == False %}
+                  {% elif contract.verifiedByBuyer == False %}
                   <a href="../contract/{{ property.propertyId }}/" class="btn btn-primary">Verify to complete the
                     contract</a>
                   {% else %}
