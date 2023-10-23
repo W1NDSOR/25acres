@@ -6,7 +6,7 @@
   </head>
   <body data-bs-theme="dark">
     <center>
-      <form action="/api/user/signup/" method="POST" style="margin-top:100px; width:50%;" enctype="multipart/form-data">
+      <form action="." method="POST" style="margin-top:100px; width:50%;" enctype="multipart/form-data">
         {% csrf_token %}
         <div class="mb-3">
           <input type="text" class="form-control" name="user_name" placeholder="Username" required />

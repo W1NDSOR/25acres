@@ -27,7 +27,8 @@ SECRET_KEY = "django-insecure-pkapdeydv!^uj=3+$%x!vry)z+&0axlx_is+ga3x0k6u7%+6t%
 DEBUG = True
 
 ALLOWED_HOSTS = ["*"]
-
+basic_url = "http://127.0.0.1:7000/"
+CSRF_TRUSTED_ORIGINS = ["http://127.0.0.1:7000/", "http://127.0.0.1:8000/"]
 
 # Application definition
 
@@ -44,6 +45,7 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    'rest_framework_simplejwt',
 ]
 
 MIDDLEWARE = [

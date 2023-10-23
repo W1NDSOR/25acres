@@ -6,7 +6,7 @@
   </head>
   <body data-bs-theme="dark">
     <center>
-      <form action="." method="POST" style="margin-top:100px; width:50%;" enctype="multipart/form-data">
+      <form method="POST" style="margin-top:100px; width:50%;">
         {% csrf_token %}
         <div class="mb-3">
           <input type="number" class="form-control" name="roll_number" placeholder="IIITD roll number" required />
@@ -15,7 +15,7 @@
           <input type="password" class="form-control" name="password" aria-describedby="passwordHelp" placeholder="Password" required />
         </div>
         <div class="col-6 btn-group" role="group" aria-label="button_action">
-          <a href="../signup" class="btn btn-outline-primary" >Do not have an account; signup</a>
+          <a href="../signup" class="btn btn-outline-primary">Do not have an account; signup</a>
           <button class="btn btn-primary" type="submit">Sign in</button>
         </div>
       </form>

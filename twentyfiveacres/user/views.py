@@ -1,9 +1,11 @@
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from django.http import HttpResponseRedirect
+from django.urls import reverse
 from django.contrib.auth import login
 from django.contrib.auth.hashers import make_password
 from django.contrib.auth.models import AnonymousUser
 from utils.hashing import hashDocument
+from django.contrib import messages
 from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import Q
 from user.viewmodel import generateUserHash, verifyUserDocument
@@ -49,221 +51,189 @@ from utils.crypto import (
     PORTAL_PUBLIC_ENCODED_KEY,
 )
 import requests
+from rest_framework_simplejwt.tokens import RefreshToken
+
+from twentyfiveacres.settings import basic_url
 
 secretKey = urandom(16)
 
 
-def signup(request):
-    if request.method == "POST":
-        response = requests.post(
-            "http://127.0.0.1:7000/api/user/signup/", data=request.POST
-        )
+def authenticateUser(token):
+    try:
+        url=basic_url+"auth/token/verify/"
+        data={"token":token}
+        response=requests.post(url,json=data)
         print(response.status_code)
+        if response.status_code==200:
+            return True
+            
+        return False
+
+    except Exception as e:
+        print('User not authenticated')
+        return False
+
+def index(request):
+    try:
+        if not authenticateUser(request.session['access_token']):
+            return redirect('/signin')
+
+    except Exception as e:
+        print('User not authenticated')
+        return redirect('/signin')
+
+
+
+
+def verifyEmail(request):
+    if request.method == "POST":
+        code = request.POST.get("code")
+        rollNumber = request.POST.get("roll_number")
+        url = basic_url + "auth/verifyEmail/"
+        data = {"roll_number": rollNumber, "code": code}
+        response = requests.get(url, json=data)
+        response = response.json()
+        print(response)
+        if response["status"]:
+            return HttpResponseRedirect("/user/signin")
+        else:
+            messages.success(request, response["message"])
+        # try:
+        #     user = User.objects.get(rollNumber=rollNumber, verificationCode=code)
+        #     user.verificationCode = None
+        #     user.save()
+        #     return HttpResponseRedirect("/user/signin")
+        # except User.DoesNotExist:
+        #     return USER_INVALID_CODE_OR_ROLLNUMBER_RESPONSE
+    return render(request, "user/verify_email.html")
+
+
+def signup(request):
+    """
+    @desc: renders a form for signing up new user
+    """
+
+    if request.method == "POST":
+        userFields = request.POST
+        username = userFields.get("user_name")
+        rollNumber = userFields.get("roll_number")
+        email = userFields.get("email")
+        password = userFields.get("password")
+        firstName = userFields.get("first_name")
+        lastName = userFields.get("last_name")
+
+        # Roll No and Email Validation
+        try:
+            extracted_roll_suffix = email.split("@")[0][-5:]
+            if extracted_roll_suffix != rollNumber[-5:]:
+                return render(request, "user/signup_form.html", {
+                    "error": "Your email ID and roll number don't match!"
+                })
+        except:
+            return USER_INVALID_EMAIL_FORMAT_RESPONSE
+
+        documentHash = (
+            hashDocument(request.FILES["document"].read())
+            if "document" in request.FILES
+            else None
+        )
+
+        if (
+            username
+            and email
+            and password
+            and firstName
+            and lastName
+            and rollNumber
+            and documentHash
+        ):
+            url = basic_url + "auth/register/"
+            data = {
+                "username": username,
+                "email": email,
+                "password": make_password(password),
+                "firstname": firstName,
+                "lastname": lastName,
+                "rollNumber": rollNumber,
+                "documentHash": documentHash,
+                # "verificationCode": verificationCode,
+            }
+            response = requests.post(url, json=data)
+            response = response.json()
+            print(response)
+
+            if response["status"]:
+                messages.error(request, response["message"])
+                return HttpResponseRedirect(reverse("verify_email"))
+            # verificationCode = generateGcmOtp(secretKey, rollNumber.encode())
+            # user = User.objects.create(
+            #     username=username,
+            #     email=email,
+            #     rollNumber=rollNumber,
+            #     password=make_password(password),
+            #     first_name=firstName,
+            #     last_name=lastName,
+            #     documentHash=documentHash,
+            #     userHash=generateUserHash(username, rollNumber, email),
+            #     verificationCode=verificationCode,
+            # )
     return render(request, "user/signup_form.html")
 
 
 def signin(request):
+    """
+    @desc: renders a form for signing up new user
+    """
     if request.method == "POST":
-        response = requests.post(
-            "http://127.0.0.1:7000/api/user/signin/", data=request.POST
-        )
-        print(response.status_code)
+        userFields = request.POST
+        rollNumber = userFields.get("roll_number")
+        password = userFields.get("password")
+        print('user info: ',rollNumber,password)
+        if rollNumber=='':
+            messages.error(request, 'rollNumber cannot be empty')
+            return render(request,'user/signin_form.html')
+        if password=='':
+            messages.error(request, 'Password cannot be empty')
+            return render(request,'user/signin_form.html')
+        
+        url = basic_url + "auth/signin/"
+        data = {"roll_number": rollNumber, "password": password}
+
+        response = requests.post(url, json=data)
+        response = response.json()
+        print(response)
+        if response["status"]:
+            print(response['message'])
+            print(response['data']['roll_number'])
+            request.session['roll_number']=response['data']['roll_number']
+            request.session['username']=response['data']['username']
+            request.session['access_token']=response['data']['token']['access']
+            request.session['refresh_token']=response['data']['token']['refresh']
+            return HttpResponseRedirect("/")
+        else:
+            messages.success(request, response["message"])
     return render(request, "user/signin_form.html")
-
-
-def profile(request):
-    pass
-
-
-def verifyEmail(request):
-    pass
-
-
-def deleteProperty(request):
-    pass
-
-
-def handleContract(request):
-    pass
-
-
-def changeOwnership(request):
-    pass
-
-
-def verifyContract(request):
-    pass
-
-
-# def verifyEmail(request):
-#     if request.method == "POST":
-#         code = request.POST.get("code")
-#         rollNumber = request.POST.get("roll_number")
-#         try:
-#             user = User.objects.get(rollNumber=rollNumber, verificationCode=code)
-#             user.verificationCode = None
-#             user.save()
-#             return HttpResponseRedirect("/user/signin")
-#         except User.DoesNotExist:
-#             return USER_INVALID_CODE_OR_ROLLNUMBER_RESPONSE
-#     return render(request, "user/verify_email.html")
-
-
-# def signup(request):
-#     """
-#     @desc: renders a form for signing up new user
-#     """
-
-#     if request.method == "POST":
-#         userFields = request.POST
-#         username = userFields.get("user_name")
-#         rollNumber = userFields.get("roll_number")
-#         email = userFields.get("email")
-#         password = userFields.get("password")
-#         firstName = userFields.get("first_name")
-#         lastName = userFields.get("last_name")
-
-#         # Roll No and Email Validation
-#         try:
-#             extractedRollSuffix = email.split("@")[0][-5:]
-#             if extractedRollSuffix != rollNumber[-5:]:
-#                 pass
-#                 # return USER_EMAIL_ROLLNUMBER_MISMATCH_RESPONSE
-#         except:
-#             return USER_INVALID_EMAIL_FORMAT_RESPONSE
-
-#         documentHash = (
-#             hashDocument(request.FILES["document"].read())
-#             if "document" in request.FILES
-#             else None
-#         )
-
-#         if (
-#             username
-#             and email
-#             and password
-#             and firstName
-#             and lastName
-#             and rollNumber
-#             and documentHash
-#         ):
-#             verificationCode = generateGcmOtp(secretKey, rollNumber.encode())
-#             user = User.objects.create(
-#                 username=username,
-#                 email=email,
-#                 rollNumber=rollNumber,
-#                 password=make_password(password),
-#                 first_name=firstName,
-#                 last_name=lastName,
-#                 documentHash=documentHash,
-#                 userHash=generateUserHash(username, rollNumber, email),
-#                 verificationCode=verificationCode,
-#             )
-#             user.save()
-#             sendMail(
-#                 subject="Welcome to 25acres",
-#                 message=f"Your verification code is {verificationCode}",
-#                 recipientEmails=[email],
-#             )
-
-#             return HttpResponseRedirect("/user/verify_email")
-
-#     return render(request, "user/signup_form.html")
-
-
-# def signin(request):
-#     """
-#     @desc: renders a form for signing up new user
-#     """
-#     if request.method == "POST":
-#         userFields = request.POST
-#         rollNumber = userFields.get("roll_number")
-#         password = userFields.get("password")
-#         if rollNumber and password:
-#             try:
-#                 user = User.objects.get(rollNumber=rollNumber)
-#                 if user.verificationCode is not None:
-#                     return USER_SIGNIN_WITHOUT_VERIFICATION_REPONSE
-#                 salt = user.password.split("$")[2]
-#                 if user.password == make_password(password, salt=salt):
-#                     login(request, user)
-#                     return HttpResponseRedirect("/")
-#             except User.DoesNotExist:
-#                 return USER_INVALID_ROLLNUMBER_RESPONSE
-#     return render(request, "user/signin_form.html")
 
 
 # # Profile and Property
 
 
-# def profile(request):
-#     """
-#     @desc: renders a page where signed in user can view/update their profile
-#     """
-
-#     if isinstance(request.user, AnonymousUser):
-#         return USER_SIGNIN_RESPONSE
-
-#     user = User.objects.get(username=request.user.username)
-#     numProperties = Property.objects.filter(owner=user).count()
-
-#     properties = Property.objects.filter(
-#         owner=user, status__in=["for_sell", "For Sell", "for_rent", "For Rent"]
-#     )
-
-#     contracts = getAbstractContractArray(properties)
-#     propertyBidings = Property.objects.filter(
-#         bidder=user, status__in=["for_sell", "For Sell", "for_rent", "For Rent"]
-#     )
-
-#     propertyBidingsContracts = getAbstractContractArray(propertyBidings)
-#     pastProperties = Property.objects.filter(
-#         Q(owner=user) | Q(bidder=user), status__in=["Sold", "Rented"]
-#     )
-
-#     if numProperties == 0:
-#         return render(
-#             request,
-#             "user/profile.html",
-#             context={
-#                 "username": user.username,
-#                 "roll_number": user.rollNumber,
-#                 "email": user.email,
-#                 "first_name": user.first_name,
-#                 "last_name": user.last_name,
-#                 "properties": properties,
-#                 "contracts": contracts,
-#                 "propertyBindings": propertyBidings,
-#                 "propertyBidingsContracts": propertyBidingsContracts,
-#                 "pastProperties": pastProperties,
-#             },
-#         )
-
-#     context = {
-#         "username": user.username,
-#         "roll_number": user.rollNumber,
-#         "email": user.email,
-#         "first_name": user.first_name,
-#         "last_name": user.last_name,
-#         "properties": properties,
-#         "contracts": contracts,
-#         "propertyBindings": propertyBidings,
-#         "propertyBidingsContracts": propertyBidingsContracts,
-#         "pastProperties": pastProperties,
-#     }
-
-#     if request.method == "POST" and request.POST.get("action") == "profileDetailButton":
-#         userFields = request.POST
-#         firstName = userFields.get("first_name")
-#         lastName = userFields.get("last_name")
-#         if firstName and lastName:
-#             user.first_name = firstName
-#             user.last_name = lastName
-#             user.save()
-#             return HttpResponseRedirect("/")
-
-#     return render(request, "user/profile.html", context=context)
-
+def profile(request):
+    """
+    Django view for rendering user profile template.
+    """
+    
+    if request.method == "GET":
+        return render(request, "user/profile.html")
+    
+    elif request.method == "POST" and request.POST.get("action") == "profileDetailButton":
+        user = User.objects.get(username=request.user.username)
+        user.first_name = request.POST.get("first_name", user.first_name)
+        user.last_name = request.POST.get("last_name", user.last_name)
+        user.save()
+        return HttpResponseRedirect("/user/profile/")
+    
+    return render(request, "user/profile.html")
 
 # def deleteProperty(request, propertyId):
 #     """

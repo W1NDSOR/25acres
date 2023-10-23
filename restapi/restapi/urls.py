@@ -15,10 +15,13 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
+from . import views
 
 urlpatterns = [
+    path('get_user_by_username/', views.GetUserByUsername.as_view(), name='get_user_by_username'),
     path("admin/", admin.site.urls),
-    path("api/user/", include("user.urls")),  # Include URLs from the 'user' app
+    path('auth/',include("user.urls")),
+  # Include URLs from the 'user' app
     path(
         "api/property/", include("property.urls")
     ),  # Include URLs from the 'property' app
