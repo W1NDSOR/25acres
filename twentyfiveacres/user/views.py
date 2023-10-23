@@ -1,3 +1,36 @@
+import base64
+from cryptography.hazmat.backends import default_backend
+from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
+from cryptography.hazmat.primitives.hashes import SHA256, Hash
+from cryptography.hazmat.primitives.padding import PKCS7
+from cryptography.hazmat.backends import default_backend
+
+from cryptography.hazmat.primitives import serialization, padding
+from cryptography.hazmat.primitives.asymmetric import padding as asym_padding
+from cryptography.hazmat.primitives.hashes import SHA256
+from base64 import b64decode
+from cryptography.hazmat.primitives.asymmetric import rsa, padding as asym_padding
+from base64 import b64decode
+from cryptography.hazmat.primitives.serialization import load_pem_private_key
+from cryptography.hazmat.primitives.asymmetric.rsa import generate_private_key
+from cryptography.hazmat.primitives.asymmetric.padding import PSS, MGF1
+from cryptography.hazmat.primitives.padding import PKCS7
+from cryptography.hazmat.primitives.hashes import SHA256
+from cryptography.hazmat.primitives.ciphers import Cipher
+from cryptography.hazmat.primitives.ciphers.algorithms import AES
+from cryptography.hazmat.primitives.ciphers.modes import ECB
+from cryptography.hazmat.backends import default_backend
+from cryptography.exceptions import InvalidSignature
+import base64
+from cryptography.hazmat.backends import default_backend
+from cryptography.hazmat.primitives import hashes, serialization
+from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
+from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
+from cryptography.hazmat.primitives.asymmetric import padding
+from django.core.exceptions import ObjectDoesNotExist
+from django.http import HttpResponseRedirect
+from django.shortcuts import render
+from django.contrib.auth.models import AnonymousUser
 from django.shortcuts import render
 from django.http import HttpResponseRedirect
 from django.contrib.auth import login
@@ -44,12 +77,8 @@ from twentyfiveacres.models import (
     Transaction,
 )
 from utils.crypto import (
-    verifyWithPortalPublicKey,
-    encryptWithUserSha,
-    decryptWithUserSha,
-    signWithPortalPrivateKey,
-    PORTAL_PRIVATE_KEY,
-    PORTAL_PUBLIC_ENCODED_KEY,
+    sign_data,
+    verify_contract
 )
 
 secretKey = urandom(16)
@@ -281,6 +310,7 @@ def changeOwnership(request, propertyId):
     propertyObj.save()
     return HttpResponseRedirect("/user/profile")
 
+from base64 import b64encode
 
 def handleContract(request, propertyId):
     """
@@ -323,18 +353,22 @@ def handleContract(request, propertyId):
         property.listed = False
         property.save()
         # contract hash
-        #         contractHash = sellerContract.contractHashIdentifier
-        #         signature = signWithPortalPrivateKey(PORTAL_PRIVATE_KEY, contractHash)
-        #         encryptedSignature = encryptWithUserSha(user.userHash, signature)
-        #         sendMail(
-        #             subject="Details for your property",
-        #             message=f"""Here your details for property
-        # - Property Id: {property.propertyId}
-        # - Property Title: {property.title}
-        # - Contract hash: {contractHash}
-        # - Encypted signature: {encryptedSignature}""",
-        #             recipientEmails=[user.email],
-        #         )
+        print("HERE IS WHAT YOU ARE LOOKING FOR")
+        contractHash = sellerContract.contractHashIdentifier
+        contract_hash = contractHash.encode('utf-8')
+        signature = sign_data(contract_hash)
+        signature_str = b64encode(signature).decode('utf-8')
+        sendMail(
+            subject="Details for your property",
+            message=f"""Here your details for property
+        - Property Id: {property.propertyId}
+        - Property Title: {property.title}
+        - Contract hash: {contractHash}
+        - Encypted signature: {signature_str}""",
+            recipientEmails=[user.email],
+        )
+        print("Contract sent to the email id....")
+
         # TODO: now need to mail these both things `contractHash` and `encryptedSignature` to the user
 
         return HttpResponseRedirect("/user/profile")
@@ -350,9 +384,21 @@ def handleContract(request, propertyId):
             contractAddress=None,
         )
         buyerContract.save()
-        # contractHash = buyerContract.contractHashIdentifier
-        # signature = signWithPortalPrivateKey(PORTAL_PRIVATE_KEY, contractHash)
-        # encryptedSignature = encryptWithUserSha(user.userHash, signature)
+        contractHash = buyerContract.contractHashIdentifier
+        contract_hash = contractHash.encode('utf-8')
+        signature = sign_data(contract_hash)
+        signature_str = b64encode(signature).decode('utf-8')
+
+        sendMail(
+            subject="Details for your property",
+            message=f"""Here your details for property
+        - Property Id: {property.propertyId}
+        - Property Title: {property.title}
+        - Contract hash: {contractHash}
+        - Encypted signature: {signature_str}""",
+            recipientEmails=[user.email],
+        )
+        print("Contract sent to the email id....")
         # TODO: now need to mail these both things `contractHash` and `encryptedSignature` to the user
 
         abstractContract.contract.buyerContract = buyerContract
@@ -362,46 +408,27 @@ def handleContract(request, propertyId):
             message="Your property buying contract with the portal is finalized; Kindly proceed to payment",
             recipientEmails=[user.email],
         )
+        print("Send email here as well ffff")
         return HttpResponseRedirect("/user/profile")
 
     return TRESPASSING_RESPONSE
 
-
 def verifyContract(request):
-    try:
-        if request.method == "POST":
+    if request.method == "POST":
+        try:
             verificationText = request.POST.get("verification_string")
-            verificationTextBytes = b64decode(verificationText)
-            contractShaDigest = b64decode(request.POST.get("contract_sha"))
+            signature = b64decode(verificationText)
+            contractSha = request.POST.get("contract_sha")
+            is_valid = verify_contract(contractSha, signature)
 
-            # TODO: replace this logic with environment variable
-            portalPublicKeyBytes = b64decode(PORTAL_PUBLIC_ENCODED_KEY)
-            portalPublicKey = load_pem_public_key(
-                portalPublicKeyBytes, backend=default_backend()
-            )
-
-            username = request.POST.get("user_identifier")
-            user = User.objects.get(username=username)
-            userSha = b64decode(user.userHash)
-
-            decryptedSignature = decryptWithUserSha(userSha, verificationTextBytes)
-            verifiedContractSha = verifyWithPortalPublicKey(
-                portalPublicKey, contractShaDigest, decryptedSignature
-            )
-
-            if verifiedContractSha == contractShaDigest:
-                verification_result = "sanctioned"
-            else:
-                verification_result = "not_sanctioned"
-
+            verification_result = "sanctioned" if is_valid else "not_sanctioned"
             print(verification_result)
             context = {"verification_result": verification_result}
 
-    except Exception as exception:
-        print(f"An error occurred: {exception}")
+        except Exception as exception:
+            print(f"An error occurred: {exception}")
 
     return HttpResponseRedirect("/user/profile")
-
 
 def process_payment(request):
     if request.method == "POST":
