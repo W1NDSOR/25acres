@@ -78,6 +78,14 @@ class Property(models.Model):
     owner = models.ForeignKey(
         User, related_name="owner", on_delete=models.CASCADE, null=False, blank=False
     )
+    originalOwner = models.ForeignKey(
+        User,
+        related_name="property_original_owner",
+        on_delete=models.CASCADE,
+        null=False,
+        blank=False,
+    )
+    listed = models.BooleanField(default=True, null=False, blank=False)
     title = models.CharField(max_length=255)
     description = models.TextField()
     price = models.DecimalField(max_digits=20, decimal_places=2)

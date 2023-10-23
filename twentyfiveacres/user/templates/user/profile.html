@@ -35,6 +35,10 @@
         <div class="input-group-text">Last name</div>
         <input type="text" class="form-control" name="last_name" value="{{ last_name }}" required />
       </div>
+      <div class="input-group mb-3">
+        <div class="input-group-text">₹</div>
+        <input type="text" class="form-control" value="{{ wallet }}" required disabled />
+      </div>
       <div class="col-6 btn-group mb-3" role="group" aria-label="button_action">
         <a href="../../" class="btn btn-outline-primary">Cancel</a>
         <button type="submit" name="action" class="btn btn-primary" value="profileDetailButton">Save</button>
@@ -80,46 +84,87 @@
               {% csrf_token %}
               <div class="card mb-3" style="text-align: left;">
                 <div class="card-header">
+                  {% if property.listed == True %}
+                  <div class="alert alert-success">
+                    <center>
+                      LISTED
+                    </center>
+                  </div>
+                  {% else %}
+                  <div class="alert alert-warning">
+                    <center>
+                      DELISTED
+                    </center>
+                  </div>
+                  {% endif %}
                   <h4 class="card-title">{{ property.title }}</h4>
                   <p class="card-text">{{ property.description }}</p>
                 </div>
                 <div class="card-body">
-                  <div class="input-group mb-2">
-                    <div class="input-group-text">Price</div>
-                    <input type="number" class="form-control" value="{{ property.price }}" required disabled />
-                  </div>
-                  <div class="input-group mb-2">
-                    <div class="input-group-text">Area</div>
-                    <input type="number" class="form-control" value="{{ property.area }}" required disabled />
-                  </div>
-                  <div class="input-group mb-2">
-                    <div class="input-group-text">Bedrooms</div>
-                    <input type="text" class="form-control" value="{{ property.bedrooms }}" required disabled />
-                  </div>
-                  <div class="input-group mb-2">
-                    <div class="input-group-text">Bathrooms</div>
-                    <input type="text" class="form-control" value="{{ property.bathrooms }}" required disabled />
-                  </div>
-                  <div class="input-group mb-2">
-                    <div class="input-group-text">Location</div>
-                    <input type="text" class="form-control" value="{{ property.location.name }}" required disabled />
-                  </div>
-                  <div class="input-group mb-2">
-                    <div class="input-group-text">Status</div>
-                    <input type="text" class="form-control" value="{{ property.status }}" required disabled />
-                  </div>
-                  <div class="input-group mb-2">
-                    <div class="input-group-text">Available date</div>
-                    <input type="text" class="form-control" value="{{ property.availabilityDate }}" required disabled />
-                  </div>
-                  <div class="input-group mb-2">
-                    <div class="input-group-text">Proof of Identity</div>
-                    <input type="file" class="form-control" name="proof_identity_{{property.propertyId}}" required />
-                  </div>
-                  <div class="input-group mb-2">
-                    <div class="input-group-text">Ownership Document</div>
-                    <input type="file" class="form-control" name="ownership_document_{{property.propertyId}}"
-                      required />
+                  <div class="container text-center">
+                    <div class="row">
+                      <div class="col">
+                        <div class="input-group mb-2">
+                          <div class="input-group-text">₹</div>
+                          <input type="number" class="form-control" value="{{ property.price }}" required disabled />
+                        </div>
+                      </div>
+                      <div class="col">
+                        <div class="input-group mb-2">
+                          <div class="input-group-text">Area</div>
+                          <input type="number" class="form-control" value="{{ property.area }}" required disabled />
+                        </div>
+                      </div>
+                    </div>
+                    <div class="row">
+                      <div class="col">
+                        <div class="input-group mb-2">
+                          <div class="input-group-text">Bedrooms</div>
+                          <input type="text" class="form-control" value="{{ property.bedrooms }}" required disabled />
+                        </div>
+                      </div>
+                      <div class="col">
+                        <div class="input-group mb-2">
+                          <div class="input-group-text">Bathrooms</div>
+                          <input type="text" class="form-control" value="{{ property.bathrooms }}" required disabled />
+                        </div>
+                      </div>
+                    </div>
+                    <div class="row">
+                      <div class="input-group mb-2">
+                        <div class="input-group-text">Location</div>
+                        <input type="text" class="form-control" value="{{ property.location.name }}" required disabled />
+                      </div>
+                    </div>
+                    <div class="row">
+                      <div class="col">
+                        <div class="input-group mb-2">
+                          <div class="input-group-text">Status</div>
+                          <input type="text" class="form-control" value="{{ property.status }}" required disabled />
+                        </div>
+                      </div>
+                      <div class="col">
+                        <div class="input-group mb-2">
+                          <div class="input-group-text">Available date</div>
+                          <input type="text" class="form-control" value="{{ property.availabilityDate }}" required disabled />
+                        </div>
+                      </div>
+                    </div>
+                    <div class="row">
+                      <div class="col">
+                        <div class="input-group mb-2">
+                          <div class="input-group-text">Proof of Identity</div>
+                          <input type="file" class="form-control" name="proof_identity_{{property.propertyId}}" required />
+                        </div>
+                      </div>
+                      <div class="col">
+                        <div class="input-group mb-2">
+                          <div class="input-group-text">Ownership Document</div>
+                          <input type="file" class="form-control" name="ownership_document_{{property.propertyId}}"
+                            required />
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 </div>
                 <div class="card-footer text-body-secondary" style="padding:20px;">
@@ -176,33 +221,55 @@
                 <p class="card-text">{{ property.description }}</p>
               </div>
               <div class="card-body">
-                <div class="input-group mb-2">
-                  <div class="input-group-text">Price</div>
-                  <input type="number" class="form-control" value="{{ property.price }}" required disabled />
-                </div>
-                <div class="input-group mb-2">
-                  <div class="input-group-text">Area</div>
-                  <input type="number" class="form-control" value="{{ property.area }}" required disabled />
-                </div>
-                <div class="input-group mb-2">
-                  <div class="input-group-text">Bedrooms</div>
-                  <input type="text" class="form-control" value="{{ property.bedrooms }}" required disabled />
-                </div>
-                <div class="input-group mb-2">
-                  <div class="input-group-text">Bathrooms</div>
-                  <input type="text" class="form-control" value="{{ property.bathrooms }}" required disabled />
-                </div>
-                <div class="input-group mb-2">
-                  <div class="input-group-text">Location</div>
-                  <input type="text" class="form-control" value="{{ property.location.name }}" required disabled />
-                </div>
-                <div class="input-group mb-2">
-                  <div class="input-group-text">Status</div>
-                  <input type="text" class="form-control" value="{{ property.status }}" required disabled />
-                </div>
-                <div class="input-group mb-2">
-                  <div class="input-group-text">Available date</div>
-                  <input type="text" class="form-control" value="{{ property.availabilityDate }}" required disabled />
+                <div class="container text-center">
+                  <div class="row">
+                    <div class="col">
+                      <div class="input-group mb-2">
+                        <div class="input-group-text">₹</div>
+                        <input type="number" class="form-control" value="{{ property.price }}" required disabled />
+                      </div>
+                    </div>
+                    <div class="col">
+                      <div class="input-group mb-2">
+                        <div class="input-group-text">Area</div>
+                        <input type="number" class="form-control" value="{{ property.area }}" required disabled />
+                      </div>
+                    </div>
+                  </div>
+                  <div class="row">
+                    <div class="col">
+                      <div class="input-group mb-2">
+                        <div class="input-group-text">Bedrooms</div>
+                        <input type="text" class="form-control" value="{{ property.bedrooms }}" required disabled />
+                      </div>
+                    </div>
+                    <div class="col">
+                      <div class="input-group mb-2">
+                        <div class="input-group-text">Bathrooms</div>
+                        <input type="text" class="form-control" value="{{ property.bathrooms }}" required disabled />
+                      </div>
+                    </div>
+                  </div>
+                  <div class="row">
+                    <div class="input-group mb-2">
+                      <div class="input-group-text">Location</div>
+                      <input type="text" class="form-control" value="{{ property.location.name }}" required disabled />
+                    </div>
+                  </div>
+                  <div class="row">
+                    <div class="col">
+                      <div class="input-group mb-2">
+                        <div class="input-group-text">Status</div>
+                        <input type="text" class="form-control" value="{{ property.status }}" required disabled />
+                      </div>
+                    </div>
+                    <div class="col">
+                      <div class="input-group mb-2">
+                        <div class="input-group-text">Available date</div>
+                        <input type="text" class="form-control" value="{{ property.availabilityDate }}" required disabled />
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
               <div class="card-footer text-body-secondary" style="padding:20px;">
@@ -258,33 +325,55 @@
                 <p class="card-text">{{ property.description }}</p>
               </div>
               <div class="card-body">
-                <div class="input-group mb-2">
-                  <div class="input-group-text">Price</div>
-                  <input type="number" class="form-control" value="{{ property.price }}" required disabled />
-                </div>
-                <div class="input-group mb-2">
-                  <div class="input-group-text">Area</div>
-                  <input type="number" class="form-control" value="{{ property.area }}" required disabled />
-                </div>
-                <div class="input-group mb-2">
-                  <div class="input-group-text">Bedrooms</div>
-                  <input type="text" class="form-control" value="{{ property.bedrooms }}" required disabled />
-                </div>
-                <div class="input-group mb-2">
-                  <div class="input-group-text">Bathrooms</div>
-                  <input type="text" class="form-control" value="{{ property.bathrooms }}" required disabled />
-                </div>
-                <div class="input-group mb-2">
-                  <div class="input-group-text">Location</div>
-                  <input type="text" class="form-control" value="{{ property.location.name }}" required disabled />
-                </div>
-                <div class="input-group mb-2">
-                  <div class="input-group-text">Status</div>
-                  <input type="text" class="form-control" value="{{ property.status }}" required disabled />
-                </div>
-                <div class="input-group mb-2">
-                  <div class="input-group-text">Available date</div>
-                  <input type="text" class="form-control" value="{{ property.availabilityDate }}" required disabled />
+                <div class="container text-center">
+                  <div class="row">
+                    <div class="col">
+                      <div class="input-group mb-2">
+                        <div class="input-group-text">₹</div>
+                        <input type="number" class="form-control" value="{{ property.price }}" required disabled />
+                      </div>
+                    </div>
+                    <div class="col">
+                      <div class="input-group mb-2">
+                        <div class="input-group-text">Area</div>
+                        <input type="number" class="form-control" value="{{ property.area }}" required disabled />
+                      </div>
+                    </div>
+                  </div>
+                  <div class="row">
+                    <div class="col">
+                      <div class="input-group mb-2">
+                        <div class="input-group-text">Bedrooms</div>
+                        <input type="text" class="form-control" value="{{ property.bedrooms }}" required disabled />
+                      </div>
+                    </div>
+                    <div class="col">
+                      <div class="input-group mb-2">
+                        <div class="input-group-text">Bathrooms</div>
+                        <input type="text" class="form-control" value="{{ property.bathrooms }}" required disabled />
+                      </div>
+                    </div>
+                  </div>
+                  <div class="row">
+                    <div class="input-group mb-2">
+                      <div class="input-group-text">Location</div>
+                      <input type="text" class="form-control" value="{{ property.location.name }}" required disabled />
+                    </div>
+                  </div>
+                  <div class="row">
+                    <div class="col">
+                      <div class="input-group mb-2">
+                        <div class="input-group-text">Status</div>
+                        <input type="text" class="form-control" value="{{ property.status }}" required disabled />
+                      </div>
+                    </div>
+                    <div class="col">
+                      <div class="input-group mb-2">
+                        <div class="input-group-text">Available date</div>
+                        <input type="text" class="form-control" value="{{ property.availabilityDate }}" required disabled />
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
               <div class="card-footer text-body-secondary" style="padding:20px;">

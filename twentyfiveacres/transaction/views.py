@@ -25,7 +25,6 @@ def paymentGateway(request, propertyId):
     )
 
 
-
 # I don't know the point of this.
 def cardDetails(request):
     print("Card Details Function")
@@ -56,21 +55,15 @@ def cardDetails(request):
 
 
 def pay(request):
-    print("Paying")
     if request.method == "POST":
-        print("Entered Method Post")
-        contract_id = request.POST.get("contract_id")
-        contract = Contract.objects.get(id=contract_id)
-        print(contract_id)
+        contract = Contract.objects.get(id=request.POST.get("contract_id"))
         property = Property.objects.get(propertyId=contract.property_id)
-        print(property)
-        buyer = User.objects.get(id=property.bidder_id)
-        seller = User.objects.get(id=property.owner_id)
-        print("Contract, Buyer and Seller found")
-        # reduce the balance of the buyer
+
+        buyer = property.bidder
+        seller = property.owner
+
         buyer.wallet = buyer.wallet - property.currentBid
         buyer.save()
-        print("Buyer balance reduced")
         transaction = Transaction.objects.create(
             user=buyer,
             withPortal=False,
@@ -80,7 +73,7 @@ def pay(request):
             debit=True,
         )
         transaction.save()
-        # increase the balance of the seller
+
         seller.wallet = seller.wallet + property.currentBid
         seller.save()
         print("Seller balance increased")
@@ -93,6 +86,14 @@ def pay(request):
             debit=False,
         )
         transaction.save()
+
+        property.owner = buyer
+        if property.status in ("for_sell", "For Sell"):
+            property.status = "Sold"
+        elif property.status in ("for_rent", "For Rent"):
+            property.status = "Rented"
+        property.save()
+
         return HttpResponse("Payment successful")
     else:
-        return HttpResponse("Something went wrong")
+        return HttpResponse("Only method = POST is acceptable")

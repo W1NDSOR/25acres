@@ -15,7 +15,7 @@ from utils.responses import (
     USER_DOCUMENT_HASH_MISMATCH_RESPONSE,
     CANNOT_BID_TO_OWN_PROPERTY_RESPONSE,
     BIDDING_CLOSED_RESPONSE,
-    PROPERTY_DOES_NOT_EXIST_RESPONSE
+    PROPERTY_DOES_NOT_EXIST_RESPONSE,
 )
 
 
@@ -24,10 +24,9 @@ def propertyList(request):
     @desc: displays the list of properties in the database
     """
     numOfProperties = len(Property.objects.all())
-    properties = Property.objects.all()
+    properties = Property.objects.filter(listed=True)
     if numOfProperties == 0:
         return render(request, "property/property_list.html", {"properties": []})
-    
 
     # Type Button
     selected_type = request.GET.get("type")
@@ -123,9 +122,12 @@ def addProperty(request):
         )
 
         # if either is not correct, do not proceed
-        if proofOfIdentity is None or verifyUserDocument(user, proofOfIdentity) == False or ownershipDocumentHash is None:
+        if (
+            proofOfIdentity is None
+            or verifyUserDocument(user, proofOfIdentity) == False
+            or ownershipDocumentHash is None
+        ):
             return USER_DOCUMENT_HASH_MISMATCH_RESPONSE
-
 
         try:
             if (
@@ -146,9 +148,9 @@ def addProperty(request):
                     exceptionMessage = "Not a valid location!"
                     messages.info(request, exceptionMessage)
                     raise CustomException(exceptionMessage)
-                
+
                 (latitude, longitude) = locationCoordinates
-                
+
                 locationObject = Location.objects.create(
                     name=location,
                     latitude=latitude,
@@ -166,6 +168,8 @@ def addProperty(request):
                     status=status,
                     location=locationObject,
                     owner=user,
+                    originalOwner=user,
+                    listed=True,
                     ownershipDocumentHash=ownershipDocumentHash,
                     availabilityDate=availableDate,
                     propertyHashIdentifier=generatePropertyHash(
@@ -203,7 +207,6 @@ def addBid(request, propertyId):
 
     if isinstance(request.user, AnonymousUser):
         return USER_SIGNIN_RESPONSE
-    
 
     user = User.objects.get(username=request.user.username)
 
@@ -214,21 +217,21 @@ def addBid(request, propertyId):
 
     if request.method != "POST":
         return
-    
+
     bidAmount = request.POST.get("bid_amount")
 
     if property.owner == user:
         return CANNOT_BID_TO_OWN_PROPERTY_RESPONSE
     if property.status in ("sold", "Sold", "rented", "Rented"):
         return BIDDING_CLOSED_RESPONSE
-    
+
     proofOfIdentity = (
         request.FILES["document"].read() if "document" in request.FILES else None
     )
     if proofOfIdentity is None or not verifyUserDocument(user, proofOfIdentity):
         return USER_DOCUMENT_HASH_MISMATCH_RESPONSE
 
-    if bidAmount and float(bidAmount) > property.currentBid:
+    if bidAmount and float(bidAmount) > max(property.currentBid, property.price):
         property.currentBid = float(bidAmount)
         property.bidder = user
         property.save()
@@ -240,9 +243,6 @@ def addBid(request, propertyId):
 @login_required
 @require_POST
 def report(request, propertyId):
-    if request.method != "POST":
-        return
-
     # check if the user is authenticated
     if isinstance(request.user, AnonymousUser):
         return HttpResponseRedirect("../../")
@@ -257,4 +257,13 @@ def report(request, propertyId):
 
     propertyObj.reported = True
     propertyObj.save()
-    return HttpResponseRedirect("/user/profile")
+    return HttpResponseRedirect("/property/list")
+
+
+def propertyAction(request, propertyId):
+    if request.method != "POST":
+        return
+    if request.POST.get("action") == "place_bid":
+        return addBid(request, propertyId)
+    elif request.POST.get("action") == "report":
+        return report(request, propertyId)

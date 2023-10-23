@@ -87,8 +87,9 @@ def signup(request):
         try:
             extractedRollSuffix = email.split("@")[0][-5:]
             if extractedRollSuffix != rollNumber[-5:]:
-                pass
+                # TODO: remember to uncomment what below
                 # return USER_EMAIL_ROLLNUMBER_MISMATCH_RESPONSE
+                pass
         except:
             return USER_INVALID_EMAIL_FORMAT_RESPONSE
 
@@ -166,43 +167,20 @@ def signin(request):
 
 
 def profile(request):
-    """ """
+    """
+    @desc: renders user profile
+    """
 
     if isinstance(request.user, AnonymousUser):
         return USER_SIGNIN_RESPONSE
 
     user = User.objects.get(username=request.user.username)
-    numProperties = Property.objects.filter(owner=user).count()
 
-    properties = Property.objects.filter(
-        owner=user, status__in=["for_sell", "For Sell", "for_rent", "For Rent"]
-    )
+    properties = Property.objects.filter(owner=user)
     contracts = getAbstractContractArray(properties)
-    propertyBidings = Property.objects.filter(
-        bidder=user, status__in=["for_sell", "For Sell", "for_rent", "For Rent"]
-    )
+    propertyBidings = Property.objects.filter(Q(bidder=user) & ~Q(owner=user))
     propertyBidingsContracts = getAbstractContractArray(propertyBidings)
-    pastProperties = Property.objects.filter(
-        Q(owner=user) | Q(bidder=user), status__in=["Sold", "Rented"]
-    )
-
-    if numProperties == 0:
-        return render(
-            request,
-            "user/profile.html",
-            context={
-                "username": user.username,
-                "roll_number": user.rollNumber,
-                "email": user.email,
-                "first_name": user.first_name,
-                "last_name": user.last_name,
-                "properties": properties,
-                "contracts": contracts,
-                "propertyBindings": propertyBidings,
-                "propertyBidingsContracts": propertyBidingsContracts,
-                "pastProperties": pastProperties,
-            },
-        )
+    pastProperties = Property.objects.filter(Q(originalOwner=user) & ~Q(owner=user))
 
     context = {
         "username": user.username,
@@ -210,6 +188,7 @@ def profile(request):
         "email": user.email,
         "first_name": user.first_name,
         "last_name": user.last_name,
+        "wallet": user.wallet,
         "properties": properties,
         "contracts": contracts,
         "propertyBindings": propertyBidings,
@@ -286,7 +265,6 @@ def changeOwnership(request, propertyId):
         return PROPERTY_OWNERSHIP_DOCUMENT_MISSING_RESPONSE
 
     # Update ownership document if it is not None (it cannot be None, cause field required while adding property)
-    ownershipDocumentHash = ownershipDocumentHash
     propertyObj.ownershipDocumentHash = ownershipDocumentHash
     propertyObj.propertyHashIdentifier = generatePropertyHash(
         ownershipDocumentHash,
@@ -326,7 +304,6 @@ def handleContract(request, propertyId):
     except ObjectDoesNotExist:
         abstractContract = AbstractContract(None)
 
-    # hardcoded the private key for the portal
     if (
         abstractContract.currentStage == ContractStages.SELLER.value
         and property.owner == user
@@ -343,6 +320,8 @@ def handleContract(request, propertyId):
             sellerContract=sellerContract,
         )
         contract.save()
+        property.listed = False
+        property.save()
         # contract hash
         #         contractHash = sellerContract.contractHashIdentifier
         #         signature = signWithPortalPrivateKey(PORTAL_PRIVATE_KEY, contractHash)
@@ -378,16 +357,11 @@ def handleContract(request, propertyId):
 
         abstractContract.contract.buyerContract = buyerContract
         abstractContract.contract.save()
-        # if property.status in ("for_sell", "For Sell"):
-        #     property.status = "Sold"
-        # elif property.status in ("for_rent", "For Rent"):
-        #     property.status = "Rented"
         sendMail(
             subject="Contract Verfied",
             message="Your property buying contract with the portal is finalized; Kindly proceed to payment",
             recipientEmails=[user.email],
         )
-        property.save()
         return HttpResponseRedirect("/user/profile")
 
     return TRESPASSING_RESPONSE
