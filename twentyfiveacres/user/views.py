@@ -111,7 +111,6 @@ def verifyEmail(request):
 #     else:
 #         return render(request, "user/signup_form.html", {'email': email})
 
-
 def signup(request):
     """
     @desc: renders a form for signing up new user
@@ -119,7 +118,7 @@ def signup(request):
     email = request.session.get('eKYC_email')
     if email is None:
         messages.error(request, "Please complete eKYC verification first.")
-        return redirect("/eKYC")  
+        return redirect("/user/eKYC")
     
     if request.method == "POST":
         userFields = request.POST
@@ -194,6 +193,8 @@ import requests
 from django.shortcuts import render, redirect
 from django.contrib import messages
 
+from django.shortcuts import redirect
+
 def eKYC(request):
     if request.method == "POST":
         email = request.POST.get('email')
@@ -211,15 +212,14 @@ def eKYC(request):
         try:
             # Make the POST request to the eKYC API
             response = requests.post(api_endpoint, json=data, verify=False)
-            # The following line will be used once the ceritificate path is definer
-            # response = requests.post(api_endpoint, json=data, verify=settings.CERTIFICATE_PATH)
             response_data = response.json()
             
             # Check the response from the eKYC API
-            if response_data.get("status") == "success":
-                print("Verification is succssxx")
-                # If verification is successful, redirect to the signup page
-                return render(request, "user/signup_form.html", {'email': email})
+            if response_data.get("status") == "success":  # assuming "success" indicates a successful verification
+                print("lessgo")
+                # If verification is successful, set session variable and redirect to signup
+                request.session['eKYC_email'] = email
+                return redirect('/user/signup')
                 
             else:
                 # If verification fails, return an error message
