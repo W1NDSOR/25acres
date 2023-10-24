@@ -97,12 +97,30 @@ def verifyEmail(request):
             return USER_INVALID_CODE_OR_ROLLNUMBER_RESPONSE
     return render(request, "user/verify_email.html")
 
+# def signup(request):
+#     email = request.session.get('eKYC_email')
+    
+#     if request.method == "POST":
+#         # ... (same as your provided code)
+        
+#         if (username and email and password and firstName and lastName and rollNumber and documentHash):
+#             # ... (same as your provided code)
+            
+#             del request.session['eKYC_email']  # clear email from session after successful signup
+#             return HttpResponseRedirect("/user/verify_email")
+#     else:
+#         return render(request, "user/signup_form.html", {'email': email})
+
 
 def signup(request):
     """
     @desc: renders a form for signing up new user
     """
-
+    email = request.session.get('eKYC_email')
+    if email is None:
+        messages.error(request, "Please complete eKYC verification first.")
+        return redirect("/eKYC")  
+    
     if request.method == "POST":
         userFields = request.POST
         username = userFields.get("user_name")
@@ -164,10 +182,61 @@ def signup(request):
                 message=f"Your verification code is {verificationCode}",
                 recipientEmails=[email],
             )
-
+            del request.session['eKYC_email']  # clear email from session after successful signup
             return HttpResponseRedirect("/user/verify_email")
-
+    else:
+        return render(request, "user/signup_form.html", {'email': email})
     return render(request, "user/signup_form.html")
+
+
+
+import requests
+from django.shortcuts import render, redirect
+from django.contrib import messages
+
+def eKYC(request):
+    if request.method == "POST":
+        email = request.POST.get('email')
+        password = request.POST.get('password')
+        
+        # Define the API endpoint for eKYC verification
+        api_endpoint = "https://192.168.3.39:5000/kyc"
+        
+        # Prepare the data for the POST request
+        data = {
+            "email": email,
+            "password": password
+        }
+        
+        try:
+            # Make the POST request to the eKYC API
+            response = requests.post(api_endpoint, json=data, verify=False)
+            # The following line will be used once the ceritificate path is definer
+            # response = requests.post(api_endpoint, json=data, verify=settings.CERTIFICATE_PATH)
+            response_data = response.json()
+            
+            # Check the response from the eKYC API
+            if response_data.get("status") == "success":
+                print("Verification is succssxx")
+                # If verification is successful, redirect to the signup page
+                return render(request, "user/signup_form.html", {'email': email})
+                
+            else:
+                # If verification fails, return an error message
+                context = {
+                    "error_message": "eKYC verification failed. Please try again."
+                }
+                return render(request, 'user/eKYC.html', context)
+                
+        except Exception as e:
+            # Log the exception for debugging purposes
+            print("An error occurred:", str(e))
+            context = {
+                "error_message": "An internal error occurred. Please try again later."
+            }
+            return render(request, 'user/eKYC.html', context)
+    
+    return render(request, 'user/eKYC.html')
 
 
 def signin(request):
@@ -424,7 +493,7 @@ def verifyContract(request):
             verification_result = "sanctioned" if is_valid else "not_sanctioned"
             print(verification_result)
             context = {"verification_result": verification_result}
-
+# TO DO: i want to display the result to the front end someone please do it i am too tired make sure that if the reponse is sanctioned only then show sanctioned rest in all cases show not sanctioned even if there is some error 
         except Exception as exception:
             print(f"An error occurred: {exception}")
 
