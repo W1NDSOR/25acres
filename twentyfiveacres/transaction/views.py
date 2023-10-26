@@ -5,6 +5,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.contrib.auth.models import User
 from django.shortcuts import redirect
+from django.contrib import messages
 from twentyfiveacres.models import (
     User,
     Property,
@@ -157,6 +158,8 @@ def pay(request):
             property.status = "Rented"
         property.save()
 
-        return HttpResponse("Payment successful")
+        messages.success(request, "Payment Successful!")
+        return HttpResponseRedirect("/")
+
     else:
         return HttpResponse("Only method = POST is acceptable")

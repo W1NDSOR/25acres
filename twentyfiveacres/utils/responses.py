@@ -58,6 +58,13 @@ USER_INVALID_ROLLNUMBER_RESPONSE = JsonResponse(
     }
 )
 
+USER_INVALID_PASSWORD_RESPONSE = JsonResponse(
+    {
+        "result": "Identity crisis",
+        "message": "Invalid password",
+    }
+)
+
 
 USER_NOT_OWNER_RESPONSE = JsonResponse(
     {

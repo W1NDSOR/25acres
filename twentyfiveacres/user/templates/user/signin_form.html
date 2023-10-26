@@ -14,6 +14,15 @@
         <div class="mb-3">
           <input type="password" class="form-control" name="password" aria-describedby="passwordHelp" placeholder="Password" required />
         </div>
+
+        <!-- if you forget password, login through OTP and then change it -->
+        <div class="mb-3">
+          <!-- button to send OTP -->
+          <button class="btn btn-outline-primary" type="button" onclick="send_otp()">Send OTP</button><br><br>
+          <input type="number" class="form-control" width = "20%" name="otp" placeholder="Enter OTP" />
+          <!-- Verify OTP -->
+        </div>
+
         <div class="col-6 btn-group" role="group" aria-label="button_action">
           <a href="../eKYC" class="btn btn-outline-primary" >Do not have an account; signup</a>
           <button class="btn btn-primary" type="submit">Sign in</button>
