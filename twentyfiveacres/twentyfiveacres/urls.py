@@ -23,7 +23,9 @@ from . import views
 
 urlpatterns = [
     path("", views.homepage, name="25acres"),
-    path("djangoadmin/", admin.site.urls),
+    path("djangoadmin/", views.fake_admin, name="fake_admin"),
+    path("admin/", views.fake_admin, name="fake_admin"),
+    path("fake/admin/", admin.site.urls),
     path("user/", include("user.urls")),
     path("property/", include("property.urls")),
     path("contracts/", include("contract.urls")),
