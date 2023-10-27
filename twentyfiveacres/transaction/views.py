@@ -5,6 +5,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.contrib.auth.models import User
 from django.shortcuts import redirect
+from django.contrib import messages
 from twentyfiveacres.models import (
     User,
     Property,
@@ -14,30 +15,31 @@ from twentyfiveacres.models import (
     Transaction,
 )
 from utils.mails import generateGcmOtp, sendMail
+
 # Create your views here.
 from os import urandom
 
 secretKey = urandom(16)
 
-def paymentGateway(request, propertyId):
 
-    if request.method == 'GET':
+def paymentGateway(request, propertyId):
+    if request.method == "GET":
         # Generate a 6-digit OTP
         user = User.objects.get(username=request.user.username)
         roll = user.rollNumber
         roll = str(roll)
         otp = generateGcmOtp(secretKey, roll.encode())
-        
+
         # Save the OTP in the session for later verification
-        request.session['otp'] = str(otp)
+        request.session["otp"] = str(otp)
 
         # Send the OTP via email
         # TODO: Get the user's email from the user model or from the session
         sendMail(
-                subject="The payment is under process..",
-                message=f"Your otp is {otp}",
-                recipientEmails=[user.email],
-            )
+            subject="The payment is under process..",
+            message=f"Your otp is {otp}",
+            recipientEmails=[user.email],
+        )
 
     contract = Contract.objects.get(property=propertyId)
     property = Property.objects.get(pk=propertyId)
@@ -46,14 +48,12 @@ def paymentGateway(request, propertyId):
     )
 
 
-
 # def paymentGateway(request, propertyId):
 #     contract = Contract.objects.get(property=propertyId)
 #     property = Property.objects.get(pk=propertyId)
 #     return render(
 #         request, "paymentGateway.html", {"contract": contract, "property": property}
 #     )
-
 
 
 # I don't know the point of this.
@@ -73,10 +73,10 @@ def cardDetails(request):
     # }
     print(request.method)
     if request.method == "POST":
-        user_otp = request.get('otp')
+        user_otp = request.get("otp")
 
         # Retrieve the saved OTP from the session
-        saved_otp = request.session.get('otp')
+        saved_otp = request.session.get("otp")
         print("Something else here as well")
         print(user_otp)
         print(saved_otp)
@@ -85,7 +85,7 @@ def cardDetails(request):
             print("OTPP VERIFICATION DONE FOR THE PAYMENT")
         if user_otp != saved_otp:
             return HttpResponse("Invalid OTP, please try again.")
-        
+
         cardNumber = request.get("cardNumber")
         expirationDate = request.get("expirationDate")
         cvv = request.get("cvv")
@@ -103,23 +103,25 @@ from django.shortcuts import render, redirect
 from django.http import HttpResponse
 from django.contrib import messages
 
+
 def pay(request):
     if request.method == "POST":
         contract_id = request.POST.get("contract_id")
-        user_otp = request.POST.get('otp')
+        user_otp = request.POST.get("otp")
 
         # Retrieve the saved OTP from the session
-        saved_otp = request.session.get('otp')
+        saved_otp = request.session.get("otp")
         print(user_otp)
         print(saved_otp)
         # Verify the OTP
         if user_otp != saved_otp:
             messages.error(request, "Invalid OTP, please try again.")
-            return redirect('paymentGateway.html', contract_id=contract_id)  # Assuming 'payment_page' is the name of your payment page's URL
+            return redirect(
+                "paymentGateway.html", contract_id=contract_id
+            )  # Assuming 'payment_page' is the name of your payment page's URL
 
         contract = Contract.objects.get(id=contract_id)
         property = Property.objects.get(propertyId=contract.property_id)
-
 
         buyer = property.bidder
         seller = property.owner
@@ -156,6 +158,8 @@ def pay(request):
             property.status = "Rented"
         property.save()
 
-        return HttpResponse("Payment successful")
+        messages.success(request, "Payment Successful!")
+        return HttpResponseRedirect("/")
+
     else:
         return HttpResponse("Only method = POST is acceptable")

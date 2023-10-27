@@ -61,6 +61,7 @@ from utils.responses import (
     USER_INVALID_EMAIL_FORMAT_RESPONSE,
     USER_INVALID_CODE_OR_ROLLNUMBER_RESPONSE,
     USER_INVALID_ROLLNUMBER_RESPONSE,
+    USER_INVALID_PASSWORD_RESPONSE,
     USER_NOT_OWNER_RESPONSE,
     PROPERTY_DOES_NOT_EXIST_RESPONSE,
     USER_NOT_BIDDER_NOR_OWNER_RESPONSE,
@@ -126,6 +127,7 @@ def signup(request):
         rollNumber = userFields.get("roll_number")
         email = userFields.get("email")
         password = userFields.get("password")
+        confirmPassword = userFields.get("confirm_password")
         firstName = userFields.get("first_name")
         lastName = userFields.get("last_name")
 
@@ -149,10 +151,12 @@ def signup(request):
             username
             and email
             and password
+            and confirmPassword
             and firstName
             and lastName
             and rollNumber
             and documentHash
+            and password == confirmPassword
         ):
             verificationCode = generateGcmOtp(secretKey, rollNumber.encode())
             user = User.objects.create(
@@ -252,8 +256,12 @@ def signin(request):
                 if user.password == make_password(password, salt=salt):
                     login(request, user)
                     return HttpResponseRedirect("/")
+                else:
+                    return USER_INVALID_PASSWORD_RESPONSE
             except User.DoesNotExist:
                 return USER_INVALID_ROLLNUMBER_RESPONSE
+        else:
+            messages.error(request, "Please enter both roll number and password")
     return render(request, "user/signin_form.html")
 
 

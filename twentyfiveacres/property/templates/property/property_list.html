@@ -154,7 +154,7 @@
                     <div class="hstack gap-3 mb-3">
                       <div class="input-group">
                         <div class="input-group-text">Place bid</div>
-                        <input type="number" class="form-control" name="bid_amount" min="{{ property.currentBid|add:'1' }}" placeholder="{{ property.currentBid|add:'1' }}" />
+                        <input type="number" class="form-control" name="bid_amount" min="{% if property.currentBid > property.price %}{{ property.currentBid }}{% else %}{{ property.price }}{% endif %}" placeholder="{% if property.currentBid > property.price %}{{ property.currentBid }}{% else %}{{ property.price }}{% endif %}" required />
                       </div>
                       <button class="btn btn-primary" name="action" value="place_bid" type="submit">Place&nbsp;Bid</button>
                       <div class="vr"></div>
