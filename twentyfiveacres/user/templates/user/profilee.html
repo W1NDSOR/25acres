@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous" />
+    <title>Profile</title>
+</head>
+
+<body data-bs-theme="dark">
+    <div style="text-align:right; margin-top:20px; margin-right:20px;">
+        <a href="/"><button type="button" class="btn-close"></button></a>
+    </div>
+    <center>
+        {# profile #}
+        <form action="." method="POST" style="margin-top: 70px; width: 50%" enctype="multipart/form-data">
+            {% csrf_token %}
+            <div class="input-group mb-3">
+                <div class="input-group-text">Username</div>
+                <input type="text" class="form-control" name="user_name" value="{{ username }}" required disabled />
+            </div>
+            <div class="input-group mb-3">
+                <div class="input-group-text">IIITD roll number</div>
+                <input type="number" class="form-control" name="roll_number" value="{{ roll_number }}" required disabled />
+            </div>
+            <div class="input-group mb-3">
+                <div class="input-group-text">Email</div>
+                <input type="text" class="form-control" name="email" value="{{ email }}" required disabled />
+            </div>
+            <div class="input-group mb-3">
+                <div class="input-group-text">First name</div>
+                <input type="text" class="form-control" name="first_name" value="{{ first_name }}" required />
+            </div>
+            <div class="input-group mb-3">
+                <div class="input-group-text">Last name</div>
+                <input type="text" class="form-control" name="last_name" value="{{ last_name }}" required />
+            </div>
+            <div class="input-group mb-3">
+                <div class="input-group-text">₹</div>
+                <input type="text" class="form-control" value="{{ wallet }}" required disabled />
+            </div>
+            <div class="col-6 btn-group mb-3" role="group" aria-label="button_action">
+                <a href="../../" class="btn btn-outline-primary">Cancel</a>
+                <button type="submit" name="action" class="btn btn-primary" value="profileDetailButton">Save</button>
+            </div>
+        </form>
+        <div style="width: 50%; margin-top: 50px;">
+            <form action="{% url 'verify_contract' %}" method="POST">
+                {% csrf_token %}
+                <div class="input-group mb-3">
+                    <div class="input-group-text">Contract SHA</div>
+                    <input type="text" class="form-control" name="contract_sha" placeholder="Enter contract SHA digest"
+                        required />
+                </div>
+                <div class="hstack gap-3 mb-3">
+                    <div class="input-group">
+                        <div class="input-group-text">Contract Verification</div>
+                        <input type="text" class="form-control" name="verification_string" placeholder="Enter verification string"
+                            required />
+                    </div>
+                    <button type="submit" class="btn btn-primary">Verify</button>
+                </div>
+            </form>
+            {% if verification_result %}
+            {% if verification_result == 'sanctioned' %}
+            <p>Sanctioned by portal</p>
+            {% else %}
+            <p>Not sanctioned by portal</p>
+            {% endif %}
+            {% endif %}
+        </div>
+        {# properties #}
+        <div class="accordion" style="margin-top: 50px; width: 50%; margin-bottom: 100px;">
+            <div class="accordion-item">
+                <h2 class="accordion-header"><button class="accordion-button" type="button" data-bs-toggle="collapse"
+                        data-bs-target="#panelsStayOpen-collapseOne" aria-expanded="true"
+                        aria-controls="panelsStayOpen-collapseOne">Your Properties</button></h2>
+                <div id="panelsStayOpen-collapseOne" class="accordion-collapse collapse show">
+                    <div class="accordion-body">
+                        {% if properties %}
+                        {% for property in properties %}
+                        <form id="update_form" method="POST" action="../change_ownership/{{ property.propertyId }}/"
+                            enctype="multipart/form-data">
+                            {% csrf_token %}
+                            <div class="card mb-3" style="text-align: left;">
+                                <div class="card-header">
+                                    {% if property.listed == True %}
+                                    <div class="alert alert-success">
+                                        <center>
+                                            LISTED
+                                        </center>
+                                    </div>
+                                    {% else %}
+                                    <div class="alert alert-warning">
+                                        <center>
+                                            DELISTED
+                                        </center>
+                                    </div>
+                                    {% endif %}
+                                    <h4 class="card-title">{{ property.title }}</h4>
+                                    <p class="card-text">{{ property.description }}</p>
+                                </div>
+                                <div class="card-body">
+                                    <div class="container text-center">
+                                        <div class="row">
+                                            <div class="col">
+                                                <div class="input-group mb-2">
+                                                    <div class="input-group-text">₹</div>
+                                                    <input type="number" class="form-control" value="{{ property.price }}" required disabled />
+                                                </div>
+                                            </div>
+                                            <div class="col">
+                                                <div class="input-group mb-2">
+                                                    <div class="input-group-text">Area</div>
+                                                    <input type="number" class="form-control" value="{{ property.area }}" required disabled />
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="row">
+                                            <div class="col">
+                                                <div class="input-group mb-2">
+                                                    <div class="input-group-text">Bedrooms</div>
+                                                    <input type="text" class="form-control" value="{{ property.bedrooms }}" required disabled />
+                                                </div>
+                                            </div>
+                                            <div class="col">
+                                                <div class="input-group mb-2">
+                                                    <div class="input-group-text">Bathrooms</div>
+                                                    <input type="text" class="form-control" value="{{ property.bathrooms }}" required disabled />
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="row">
+                                            <div class="input-group mb-2">
+                                                <div class="input-group-text">Location</div>
+                                                <input type="text" class="form-control" value="{{ property.location.name }}" required disabled />
+                                            </div>
+                                        </div>
+                                        <div class="row">
+                                            <div class="col">
+                                                <div class="input-group mb-2">
+                                                    <div class="input-group-text">Status</div>
+                                                    <
+                                                        <input type="text" class="form-control" value="{{ property.status }}" required disabled />
+                                                    </div>
+                                                </div>
+                                                <div class="col">
+                                                    <div class="input-group mb-2">
+                                                        <div class="input-group-text">Rent Duration</div>
+                                                        <input type="text" class="form-control" value="{{ property.rent_duration }}" required disabled />
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="card-footer text-muted">
+                                        <div class="row">
+                                            <div class="col">
+                                                <button type="submit" name="action" value="delist" class="btn btn-warning">Delist</button>
+                                            </div>
+                                            <div class="col">
+                                                <button type="submit" name="action" value="list" class="btn btn-success">List</button>
+                                            </div>
+                                            <div class="col">
+                                                <a href="../transfer/{{ property.propertyId }}/" class="btn btn-info">Transfer</a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </form>
+                            {% endfor %}
+                            {% else %}
+                            <p>You have no properties.</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </center>
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"
+            integrity="sha384-mQiZ2D0iY0YgfQkr5lKFs4q4g7FqQPBXg3a3VcH4CSbUZ4AtfGzQhH0N4TO9DpXb"
+            crossorigin="anonymous"></script>
+    </body>
+    
+    </html>
+    

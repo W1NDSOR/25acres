@@ -129,10 +129,17 @@
                       </div>
                     </div>
                     <div class="col">
+                      {% if property.status == "For Rent" and property.rent_duration %}
                       <div class="input-group mb-2">
-                        <div class="input-group-text">Available date</div>
-                        <input type="text" class="form-control" value="{{ property.availabilityDate }}" required disabled />
+                          <div class="input-group-text">Rented For (months)</div>
+                          <input type="text" class="form-control" value="{{ property.rent_duration }}" required disabled />
                       </div>
+                      {% else %}
+                      <div class="input-group mb-2">
+                          <div class="input-group-text">Available date</div>
+                          <input type="text" class="form-control" value="{{ property.availabilityDate }}" required disabled />
+                      </div>
+                      {% endif %}
                     </div>
                   </div>
                 </div>

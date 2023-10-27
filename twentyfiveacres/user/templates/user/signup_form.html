@@ -8,6 +8,14 @@
     <center>
       <form action="." method="POST" style="margin-top:100px; width:50%;" enctype="multipart/form-data">
         {% csrf_token %}
+        <!-- Display messages -->
+        {% if messages %}
+        <div class="alert alert-danger" role="alert" style="width: 50%; margin-top: 20px;">
+          {% for message in messages %}
+          {{ message|safe }}
+            {% endfor %}
+        </div>
+        {% endif %}
         <!-- Username -->
         <div class="mb-3">
           <input type="text" class="form-control" name="user_name" placeholder="Username" required />
@@ -18,7 +26,7 @@
         </div>
         <!-- Email -->
         <div class="mb-3">
-          <input type="email" class="form-control" name="email" value="{{ email }}" aria-describedby="emailHelp" placeholder="Email" required readonly />
+          <input type="email" class="form-control" name="email" value="{{ email|default:'' }}" aria-describedby="emailHelp" placeholder="Email" required readonly />
           <small id="emailHelp" class="form-text text-muted">We'll never share your email with anyone else. Make sure you use coherent roll number and email id. We have a check in place</small>
         </div>
         <!-- Password -->

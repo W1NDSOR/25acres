@@ -3,8 +3,10 @@ from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 from cryptography.hazmat.primitives.hashes import SHA256, Hash
 from cryptography.hazmat.primitives.padding import PKCS7
+from datetime import datetime, date
 from cryptography.hazmat.backends import default_backend
-
+from django.contrib import messages
+import requests
 from cryptography.hazmat.primitives import serialization, padding
 from cryptography.hazmat.primitives.asymmetric import padding as asym_padding
 from cryptography.hazmat.primitives.hashes import SHA256
@@ -20,6 +22,7 @@ from cryptography.hazmat.primitives.ciphers import Cipher
 from cryptography.hazmat.primitives.ciphers.algorithms import AES
 from cryptography.hazmat.primitives.ciphers.modes import ECB
 from cryptography.hazmat.backends import default_backend
+from django.db import IntegrityError
 from cryptography.exceptions import InvalidSignature
 import base64
 from cryptography.hazmat.backends import default_backend
@@ -86,6 +89,7 @@ secretKey = urandom(16)
 
 
 def verifyEmail(request):
+    context = {}
     if request.method == "POST":
         code = request.POST.get("code")
         rollNumber = request.POST.get("roll_number")
@@ -95,7 +99,8 @@ def verifyEmail(request):
             user.save()
             return HttpResponseRedirect("/user/signin")
         except User.DoesNotExist:
-            return USER_INVALID_CODE_OR_ROLLNUMBER_RESPONSE
+            context["error"] = "Invalid verification code or rollnumber"
+            return render(request, "user/verify_email.html", context)
     return render(request, "user/verify_email.html")
 
 # def signup(request):
@@ -122,82 +127,89 @@ def signup(request):
         return redirect("/user/eKYC")
     
     if request.method == "POST":
-        userFields = request.POST
-        username = userFields.get("user_name")
-        rollNumber = userFields.get("roll_number")
-        email = userFields.get("email")
-        password = userFields.get("password")
-        confirmPassword = userFields.get("confirm_password")
-        firstName = userFields.get("first_name")
-        lastName = userFields.get("last_name")
-
-        # Roll No and Email Validation
         try:
-            extractedRollSuffix = email.split("@")[0][-5:]
-            if extractedRollSuffix != rollNumber[-5:]:
-                # TODO: remember to uncomment what below
-                # return USER_EMAIL_ROLLNUMBER_MISMATCH_RESPONSE
-                pass
-        except:
-            return USER_INVALID_EMAIL_FORMAT_RESPONSE
+            userFields = request.POST
+            username = userFields.get("user_name")
+            rollNumber = userFields.get("roll_number")
+            email = userFields.get("email")
+            password = userFields.get("password")
+            confirmPassword = userFields.get("confirm_password")
+            firstName = userFields.get("first_name")
+            lastName = userFields.get("last_name")
 
-        documentHash = (
-            hashDocument(request.FILES["document"].read())
-            if "document" in request.FILES
-            else None
-        )
+            # Roll No and Email Validation
+            try:
+                extractedRollSuffix = email.split("@")[0][-5:]
+                if extractedRollSuffix != rollNumber[-5:]:
+                    # TODO: remember to uncomment what below
+                    # return USER_EMAIL_ROLLNUMBER_MISMATCH_RESPONSE
+                    pass
+            except:
+                return USER_INVALID_EMAIL_FORMAT_RESPONSE
 
-        if (
-            username
-            and email
-            and password
-            and confirmPassword
-            and firstName
-            and lastName
-            and rollNumber
-            and documentHash
-            and password == confirmPassword
-        ):
-            verificationCode = generateGcmOtp(secretKey, rollNumber.encode())
-            user = User.objects.create(
-                username=username,
-                email=email,
-                rollNumber=rollNumber,
-                password=make_password(password),
-                first_name=firstName,
-                last_name=lastName,
-                documentHash=documentHash,
-                userHash=generateUserHash(username, rollNumber, email),
-                verificationCode=verificationCode,
+            documentHash = (
+                hashDocument(request.FILES["document"].read())
+                if "document" in request.FILES
+                else None
             )
-            user.save()
-            transaction = Transaction.objects.create(
-                user=user,
-                withPortal=True,
-                other=None,
-                amount=1000000000,
-                credit=True,
-                debit=False,
-            )
-            transaction.save()
-            sendMail(
-                subject="Welcome to 25acres",
-                message=f"Your verification code is {verificationCode}",
-                recipientEmails=[email],
-            )
-            del request.session['eKYC_email']  # clear email from session after successful signup
-            return HttpResponseRedirect("/user/verify_email")
+
+            if (
+                username
+                and email
+                and password
+                and confirmPassword
+                and firstName
+                and lastName
+                and rollNumber
+                and documentHash
+                and password == confirmPassword
+            ):
+                verificationCode = generateGcmOtp(secretKey, rollNumber.encode())
+                user = User.objects.create(
+                    username=username,
+                    email=email,
+                    rollNumber=rollNumber,
+                    password=make_password(password),
+                    first_name=firstName,
+                    last_name=lastName,
+                    documentHash=documentHash,
+                    userHash=generateUserHash(username, rollNumber, email),
+                    verificationCode=verificationCode,
+                )
+                user.save()
+                transaction = Transaction.objects.create(
+                    user=user,
+                    withPortal=True,
+                    other=None,
+                    amount=1000000000,
+                    credit=True,
+                    debit=False,
+                )
+                print(verificationCode)
+                transaction.save()
+                sendMail(
+                    subject="Welcome to 25acres",
+                    
+                    message=f"Your verification code is {verificationCode}",
+                    recipientEmails=[email],
+                )
+                del request.session['eKYC_email']  # clear email from session after successful signup
+                return HttpResponseRedirect("/user/verify_email")
+        except IntegrityError:
+            messages.error(request, 'User already exists. Please choose a roll number or go back and <a href="/user/signin"> Signin.</a>')
+            return redirect('/user/signup')
+
     else:
         return render(request, "user/signup_form.html", {'email': email})
     return render(request, "user/signup_form.html")
 
 
 
-import requests
-from django.shortcuts import render, redirect
-from django.contrib import messages
+
 
 from django.shortcuts import redirect
+from requests.exceptions import ConnectTimeout
+
 
 def eKYC(request):
     context = {}
@@ -205,6 +217,15 @@ def eKYC(request):
         email = request.POST.get('email')
         password = request.POST.get('password')
         
+        # Check if user with the given email already exists
+        user_exists = User.objects.filter(email=email).exists()
+        
+        if user_exists:
+            context["error_message"] = "User with this email already exists. Please proceed to <a href='/user/signin'>Signin.</a>"
+            return render(request, 'user/eKYC.html', context)  # Render the template with the error message
+        if email[-11:] != "iiitd.ac.in":
+            context["error_message"] = "We are currently only accepting IIITD email addresses. Please try again with your IIITD email address."
+            return render(request, 'user/eKYC.html', context)  # Render the template with the error message
         # Define the API endpoint for eKYC verification
         api_endpoint = "https://192.168.3.39:5000/kyc"
         
@@ -220,19 +241,18 @@ def eKYC(request):
             response_data = response.json()
             
             # Check the response from the eKYC API
-            if response_data.get("status") == "success":  # assuming "success" indicates a successful verification
-                print("lessgo")
-                # If verification is successful, set session variable and redirect to signup
+            if response_data.get("status") != "success":  # assuming "success" indicates a successful verification
                 request.session['eKYC_email'] = email
                 return redirect('/user/signup')
                 
             else:
                 # If verification fails, return an error message
                 context["error_message"] = "eKYC verification failed. Please check your credentials and try again."
-                
+        
+        except ConnectTimeout:
+            context["error_message"] = "Connection timeout occurred. Please ensure you are connected to the VPN and try again."
                 
         except Exception as e:
-            # Log the exception for debugging purposes
             print("An error occurred:", str(e))
             context["error_message"] = "An internal error occurred. Please try again later."
 
@@ -251,21 +271,42 @@ def signin(request):
             try:
                 user = User.objects.get(rollNumber=rollNumber)
                 if user.verificationCode is not None:
-                    return USER_SIGNIN_WITHOUT_VERIFICATION_REPONSE
+                    messages.error(request, "Caught commiting treason! Thou caught trying to signin before email verification")
                 salt = user.password.split("$")[2]
                 if user.password == make_password(password, salt=salt):
                     login(request, user)
                     return HttpResponseRedirect("/")
                 else:
-                    return USER_INVALID_PASSWORD_RESPONSE
+                    messages.error(request, "Identity crisis! Invalid password")
             except User.DoesNotExist:
-                return USER_INVALID_ROLLNUMBER_RESPONSE
+                messages.error(request, "Identity crisis! User with provided roll number does not exists")
         else:
             messages.error(request, "Please enter both roll number and password")
     return render(request, "user/signin_form.html")
 
 
 # Profile and Property
+def pay_monthly():
+    # Get all rented properties
+    rented_properties = Property.objects.filter(status="Rented")
+
+    for property in rented_properties:
+        # Calculate the months passed since the availabilityDate
+        today = date.today()
+        today = datetime.strptime(str("2023-12-31"), '%Y-%m-%d').date()
+        delta = today - property.availabilityDate
+        months_passed = delta.days // 30
+
+        months_remaining = property.rent_duration - months_passed
+        # print(f"Property title: {property.title}, availability date:{property.availabilityDate} Rent Duration: {property.rent_duration}, Status: {property.status}, months remaining: {months_remaining}")
+        if months_remaining <= 0:
+            property.monthsRemaining = 0
+            property.owner = property.originalOwner
+            property.status = "For Rent"  
+        else:
+            property.monthsRemaining = months_remaining
+
+        property.save()
 
 
 def profile(request):
@@ -279,6 +320,7 @@ def profile(request):
     user = User.objects.get(username=request.user.username)
 
     properties = Property.objects.filter(owner=user)
+    
     contracts = getAbstractContractArray(properties)
     propertyBidings = Property.objects.filter(Q(bidder=user) & ~Q(owner=user))
     propertyBidingsContracts = getAbstractContractArray(propertyBidings)
@@ -297,6 +339,12 @@ def profile(request):
         "propertyBidingsContracts": propertyBidingsContracts,
         "pastProperties": pastProperties,
     }
+    #print rent duration
+    pay_monthly()
+
+
+
+   
 
     if request.method == "POST" and request.POST.get("action") == "profileDetailButton":
         userFields = request.POST

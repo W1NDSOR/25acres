@@ -12,7 +12,7 @@ USER_DOCUMENT_HASH_MISMATCH_RESPONSE = JsonResponse(
 )
 
 CANNOT_BID_TO_OWN_PROPERTY_RESPONSE = JsonResponse(
-    {"result": "Identity crisis", "message": "Cannot bid to your own property"}
+    {"result": "Identity crisis", "message": "Cannot bid to your own property lmao"}
 )
 
 PROPERTY_DOES_NOT_EXIST_RESPONSE = JsonResponse(

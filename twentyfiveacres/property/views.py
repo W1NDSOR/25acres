@@ -9,6 +9,7 @@ from django.contrib import messages
 from utils.exceptions import CustomException
 from django.core.exceptions import ObjectDoesNotExist
 from user.viewmodel import verifyUserDocument
+from django.shortcuts import redirect
 from property.viewmodel import generatePropertyHash
 from utils.responses import (
     USER_SIGNIN_RESPONSE,
@@ -105,6 +106,8 @@ def addProperty(request):
         bathrooms = propertyFields.get("bathrooms")
         area = propertyFields.get("area")
         status = propertyFields.get("status")
+        rent_duration = int(propertyFields.get('rent_duration', 0))
+        rent_duration = rent_duration if status in ["for_rent", "For Rent"] else None
         location = propertyFields.get("location")
         availableDate = propertyFields.get("available_date")
         user = User.objects.get(username=request.user.username)
@@ -127,7 +130,8 @@ def addProperty(request):
             or verifyUserDocument(user, proofOfIdentity) == False
             or ownershipDocumentHash is None
         ):
-            return USER_DOCUMENT_HASH_MISMATCH_RESPONSE
+            messages.error(request, "Document hash mismatch. Please check your documents.")
+            return redirect(propertyList) 
 
         try:
             if (
@@ -157,7 +161,7 @@ def addProperty(request):
                     longitude=longitude,
                 )
                 locationObject.save()
-
+                print(rent_duration),
                 property = Property.objects.create(
                     title=title,
                     description=description,
@@ -166,6 +170,8 @@ def addProperty(request):
                     bathrooms=bathrooms,
                     area=area,
                     status=status,
+                    
+                    rent_duration=rent_duration,
                     location=locationObject,
                     owner=user,
                     originalOwner=user,
@@ -221,7 +227,7 @@ def addBid(request, propertyId):
     bidAmount = request.POST.get("bid_amount")
 
     if property.owner == user:
-        return CANNOT_BID_TO_OWN_PROPERTY_RESPONSE
+        return redirect('/property/list/?bid_error=True')
     if property.status in ("sold", "Sold", "rented", "Rented"):
         return BIDDING_CLOSED_RESPONSE
 
@@ -229,11 +235,13 @@ def addBid(request, propertyId):
         request.FILES["document"].read() if "document" in request.FILES else None
     )
     if proofOfIdentity is None or not verifyUserDocument(user, proofOfIdentity):
-        return USER_DOCUMENT_HASH_MISMATCH_RESPONSE
+            messages.error(request, "Document hash mismatch. Please check your documents.")
+            return redirect(propertyList) 
 
     if bidAmount and float(bidAmount) > max(property.currentBid, property.price):
         property.currentBid = float(bidAmount)
         property.bidder = user
+        messages.success(request, "Bid placed successfully")
         property.save()
         return HttpResponseRedirect("/property/list?bid_success=True")
     else:

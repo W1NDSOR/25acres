@@ -42,6 +42,20 @@
                 </div>
               </div>
               <div class="row">
+                  {% if property.status == "For Rent" and property.rent_duration %}
+                  <div class="input-group mb-2">
+                      <div class="input-group-text">Paying for Month</div>
+                      <input type="text" class="form-control" value="{{ property.rent_duration }}" required disabled />
+                  </div>
+                  {% else %}
+                  <div class="input-group mb-2">
+                      <div class="input-group-text"> </div>
+                      <input type="text" class="form-control" value="{{ property.availabilityDate }}" required disabled />
+                  </div>
+                  {% endif %}
+                </div>
+              </div>
+              <div class="row">
                 <div class="col">
                   <div class="input-group mb-2">
                     <div class="input-group-text">Buyer</div>

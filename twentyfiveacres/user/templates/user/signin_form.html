@@ -8,7 +8,15 @@
     <center>
       <form action="." method="POST" style="margin-top:100px; width:50%;" enctype="multipart/form-data">
         {% csrf_token %}
+        {% if messages %}
+        <div class="alert alert-danger" role="alert" style="width: 50%; margin-top: 20px;">
+            {% for message in messages %}
+            {{ message|safe }}
+            {% endfor %}
+        </div>
+        {% endif %}
         <div class="mb-3">
+          
           <input type="number" class="form-control" name="roll_number" placeholder="IIITD roll number" required />
         </div>
         <div class="mb-3">

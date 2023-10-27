@@ -6,6 +6,8 @@
   </head>
   <body data-bs-theme="dark">
     <center>
+      <h1> ‎ </h1>
+      <h2>NEW USER eKYC VERIFICATION</h1>
       <form action="." method="POST" style="margin-top:100px; width:50%;">
         {% csrf_token %}
         <div class="mb-3">
@@ -18,7 +20,7 @@
       </form>
       {% if error_message %}
         <div class="alert alert-danger" role="alert" style="margin-top:20px; width:50%;">
-          {{ error_message }}
+          {{ error_message|safe }}
         </div>
       {% endif %}
     </center>

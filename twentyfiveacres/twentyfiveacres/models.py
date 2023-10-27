@@ -101,6 +101,8 @@ class Property(models.Model):
             ("rented", "Rented"),
         ],
     )
+    monthsRemaining = models.PositiveIntegerField(null=True, blank=True)
+    rent_duration = models.PositiveIntegerField(null=True, blank=True, choices=[(i, f"{i} months") for i in range(1, 13)])
     availabilityDate = models.DateField()
     location = models.ForeignKey(Location, on_delete=models.CASCADE)
     propertyHashIdentifier = models.CharField(max_length=128, null=False, blank=False)
