@@ -196,6 +196,7 @@ from django.contrib import messages
 from django.shortcuts import redirect
 
 def eKYC(request):
+    context = {}
     if request.method == "POST":
         email = request.POST.get('email')
         password = request.POST.get('password')
@@ -223,20 +224,15 @@ def eKYC(request):
                 
             else:
                 # If verification fails, return an error message
-                context = {
-                    "error_message": "eKYC verification failed. Please try again."
-                }
-                return render(request, 'user/eKYC.html', context)
+                context["error_message"] = "eKYC verification failed. Please check your credentials and try again."
+                
                 
         except Exception as e:
             # Log the exception for debugging purposes
             print("An error occurred:", str(e))
-            context = {
-                "error_message": "An internal error occurred. Please try again later."
-            }
-            return render(request, 'user/eKYC.html', context)
-    
-    return render(request, 'user/eKYC.html')
+            context["error_message"] = "An internal error occurred. Please try again later."
+
+    return render(request, 'user/eKYC.html', context)
 
 
 def signin(request):
