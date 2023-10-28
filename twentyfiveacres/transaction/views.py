@@ -1,8 +1,8 @@
-from django.shortcuts import render
-from django.http import HttpResponse
 from django.http import HttpResponseRedirect
-from django.contrib.auth.decorators import login_required
+from django.shortcuts import render, redirect
+from django.http import HttpResponse
 from django.contrib import messages
+from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.shortcuts import redirect
 from django.contrib import messages
@@ -37,7 +37,7 @@ def paymentGateway(request, propertyId):
         # TODO: Get the user's email from the user model or from the session
         sendMail(
             subject="The payment is under process..",
-            message=f"Your otp is {otp}",
+            message=f"Your otp for payment is {otp}",
             recipientEmails=[user.email],
         )
 
@@ -47,13 +47,6 @@ def paymentGateway(request, propertyId):
         request, "paymentGateway.html", {"contract": contract, "property": property}
     )
 
-
-# def paymentGateway(request, propertyId):
-#     contract = Contract.objects.get(property=propertyId)
-#     property = Property.objects.get(pk=propertyId)
-#     return render(
-#         request, "paymentGateway.html", {"contract": contract, "property": property}
-#     )
 
 
 # I don't know the point of this.
@@ -98,12 +91,6 @@ def cardDetails(request):
     else:
         return HttpResponse("Something went wrong")
 
-
-from django.shortcuts import render, redirect
-from django.http import HttpResponse
-from django.contrib import messages
-
-
 def pay(request):
     if request.method == "POST":
         contract_id = request.POST.get("contract_id")
@@ -113,12 +100,11 @@ def pay(request):
         saved_otp = request.session.get("otp")
         print(user_otp)
         print(saved_otp)
-        # Verify the OTP
         if user_otp != saved_otp:
             messages.error(request, "Invalid OTP, please try again.")
             return redirect(
                 "paymentGateway.html", contract_id=contract_id
-            )  # Assuming 'payment_page' is the name of your payment page's URL
+            ) 
 
         contract = Contract.objects.get(id=contract_id)
         property = Property.objects.get(propertyId=contract.property_id)

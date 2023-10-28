@@ -86,19 +86,15 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL" crossorigin="anonymous"></script>
     <script type="module" src="https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.9.0/cdn/shoelace-autoloader.js"></script>
     <script>
-      // Check the initial state on page load
       if (statusDropdown.value === 'For Rent') {
           rentDurationField.style.display = 'block';
       }
     </script>
     <script>
-      // Get the status dropdown and the rent duration field
       const statusDropdown = document.getElementById('statusDropdown');
       const rentDurationField = document.getElementById('rentDurationField');
   
-      // Add an event listener to the status dropdown to detect changes
       statusDropdown.addEventListener('change', function() {
-          // Check if the selected value is "For Rent"
           if (statusDropdown.value === 'For Rent') {
               rentDurationField.style.display = 'block';
           } else {

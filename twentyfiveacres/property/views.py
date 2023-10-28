@@ -170,7 +170,6 @@ def addProperty(request):
                     bathrooms=bathrooms,
                     area=area,
                     status=status,
-                    
                     rent_duration=rent_duration,
                     location=locationObject,
                     owner=user,

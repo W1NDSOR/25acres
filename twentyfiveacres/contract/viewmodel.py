@@ -4,16 +4,11 @@ from utils.hashing import hashDocument
 from enum import Enum
 
 
-def generateUserPropertyContractHash(user: User, property: Property):
-    return hashDocument(f"{user.userHash}.{property.propertyHashIdentifier}")
-
-
 class ContractStages(Enum):
     SELLER = 0
     BUYER = 1
     PAYMENT = 2
     DONE = 3
-
 
 class AbstractContract:
     def __init__(self, contract: Contract):
@@ -43,3 +38,6 @@ def getAbstractContractArray(properties):
         except ObjectDoesNotExist:
             abstractContracts.append(None)
     return abstractContracts
+
+def generateUserPropertyContractHash(user: User, property: Property):
+    return hashDocument(f"{user.userHash}.{property.propertyHashIdentifier}")

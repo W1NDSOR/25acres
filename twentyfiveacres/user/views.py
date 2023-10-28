@@ -50,6 +50,7 @@ from os import urandom
 from cryptography.hazmat.primitives.serialization import load_pem_public_key
 from cryptography.hazmat.backends import default_backend
 from base64 import b64decode
+from requests.exceptions import ConnectTimeout
 from utils.mails import generateGcmOtp, sendMail
 from contract.viewmodel import (
     generateUserPropertyContractHash,
@@ -102,20 +103,6 @@ def verifyEmail(request):
             context["error"] = "Invalid verification code or rollnumber"
             return render(request, "user/verify_email.html", context)
     return render(request, "user/verify_email.html")
-
-# def signup(request):
-#     email = request.session.get('eKYC_email')
-    
-#     if request.method == "POST":
-#         # ... (same as your provided code)
-        
-#         if (username and email and password and firstName and lastName and rollNumber and documentHash):
-#             # ... (same as your provided code)
-            
-#             del request.session['eKYC_email']  # clear email from session after successful signup
-#             return HttpResponseRedirect("/user/verify_email")
-#     else:
-#         return render(request, "user/signup_form.html", {'email': email})
 
 def signup(request):
     """
@@ -202,14 +189,6 @@ def signup(request):
     else:
         return render(request, "user/signup_form.html", {'email': email})
     return render(request, "user/signup_form.html")
-
-
-
-
-
-from django.shortcuts import redirect
-from requests.exceptions import ConnectTimeout
-
 
 def eKYC(request):
     context = {}
@@ -308,7 +287,6 @@ def pay_monthly():
 
         property.save()
 
-
 def profile(request):
     """
     @desc: renders user profile
@@ -339,13 +317,7 @@ def profile(request):
         "propertyBidingsContracts": propertyBidingsContracts,
         "pastProperties": pastProperties,
     }
-    #print rent duration
     pay_monthly()
-
-
-
-   
-
     if request.method == "POST" and request.POST.get("action") == "profileDetailButton":
         userFields = request.POST
         firstName = userFields.get("first_name")

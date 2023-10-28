@@ -1,6 +1,5 @@
 from utils.hashing import hashDocument
 
-
 def generatePropertyHash(
     ownershipDocumentHash,
     title,
