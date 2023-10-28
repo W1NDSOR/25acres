@@ -241,7 +241,7 @@ def eKYC(request):
             response_data = response.json()
             
             # Check the response from the eKYC API
-            if response_data.get("status") != "success":  # assuming "success" indicates a successful verification
+            if response_data.get("status") == "success":  # assuming "success" indicates a successful verification
                 request.session['eKYC_email'] = email
                 return redirect('/user/signup')
                 
