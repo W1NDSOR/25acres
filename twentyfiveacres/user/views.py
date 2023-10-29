@@ -43,8 +43,6 @@ from twentyfiveacres.models import (
 )
 from utils.crypto import sign_data, verify_contract
 
-secretKey = urandom(16)
-
 
 def verifyEmail(request):
     context = {}
@@ -109,6 +107,7 @@ def signup(request):
                 and documentHash
                 and password == confirmPassword
             ):
+                secretKey = urandom(16)
                 verificationCode = generateGcmOtp(secretKey, rollNumber.encode())
                 user = User.objects.create(
                     username=username,
@@ -218,6 +217,10 @@ def signin(request):
     """
     @desc: renders a form for signing up new user
     """
+    return render(request, "user/signin_form.html")
+
+
+def signinWithPassword(request):
     if request.method == "POST":
         userFields = request.POST
         rollNumber = userFields.get("roll_number")
@@ -230,12 +233,12 @@ def signin(request):
                         request,
                         "Caught commiting treason! Thou caught trying to signin before email verification",
                     )
-                salt = user.password.split("$")[2]
-                if user.password == make_password(password, salt=salt):
-                    login(request, user)
-                    return HttpResponseRedirect("/")
-                else:
-                    messages.error(request, "Identity crisis! Invalid password")
+                    salt = user.password.split("$")[2]
+                    if user.password == make_password(password, salt=salt):
+                        login(request, user)
+                        return HttpResponseRedirect("/")
+                    else:
+                        messages.error(request, "Identity crisis! Invalid password")
             except User.DoesNotExist:
                 messages.error(
                     request,
@@ -243,7 +246,52 @@ def signin(request):
                 )
         else:
             messages.error(request, "Please enter both roll number and password")
-    return render(request, "user/signin_form.html")
+
+
+def signinWithOTP(request):
+    if request.method == "POST":
+        userFields = request.POST
+        rollNumber = userFields.get("roll_number")
+        otp = userFields.get("otp")
+        otpSent = userFields.get("otp_sent")
+        print("otp_sent from request: ", otpSent)
+        if "send_otp" in request.POST:
+            print("received the request to send the otp")
+            try:
+                user = User.objects.get(rollNumber=rollNumber)
+                secretKey = urandom(16)
+                otp = generateGcmOtp(secretKey, rollNumber.encode())
+                sendMail(
+                    subject="OTP for login",
+                    message=f"""Here is your OTP for login: {otp}""",
+                    recipientEmails=[user.email],
+                )
+                print("OTP sent to the email id....")
+                user.verificationCode = otp
+                user.save()
+                messages.success(request, "OTP sent to your email.")
+                print(otp)
+                print(user.verificationCode)
+                return render(request, "user/signin_form.html", {"otp_sent": "1"})
+            except:
+                messages.error(request, "Invalid roll number")
+
+        if otp:
+            print("are we even reachinghere or not")
+            try:
+                user = User.objects.get(rollNumber=rollNumber)
+                print(otp)
+                print(user.verificationCode)
+                if otp == user.verificationCode:
+                    login(request, user)
+                    print("here you are logged in")
+                    return HttpResponseRedirect("/")
+                else:
+                    messages.error(request, "Invalid OTP")
+                    HttpResponseRedirect("/user/signin")
+            except:
+                messages.error(request, "Invalid roll number")
+    return HttpResponseRedirect("/user/signin")
 
 
 # Profile and Property
