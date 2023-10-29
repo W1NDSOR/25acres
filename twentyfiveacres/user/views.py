@@ -1,55 +1,20 @@
-import base64
-from cryptography.hazmat.backends import default_backend
-from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
-from cryptography.hazmat.primitives.hashes import SHA256, Hash
-from cryptography.hazmat.primitives.padding import PKCS7
 from datetime import datetime, date
-from cryptography.hazmat.backends import default_backend
 from django.contrib import messages
-import requests
-from cryptography.hazmat.primitives import serialization, padding
-from cryptography.hazmat.primitives.asymmetric import padding as asym_padding
-from cryptography.hazmat.primitives.hashes import SHA256
+from requests import post as requestsPost
 from base64 import b64decode
-from cryptography.hazmat.primitives.asymmetric import rsa, padding as asym_padding
-from base64 import b64decode
-from cryptography.hazmat.primitives.serialization import load_pem_private_key
-from cryptography.hazmat.primitives.asymmetric.rsa import generate_private_key
-from cryptography.hazmat.primitives.asymmetric.padding import PSS, MGF1
-from cryptography.hazmat.primitives.padding import PKCS7
-from cryptography.hazmat.primitives.hashes import SHA256
-from cryptography.hazmat.primitives.ciphers import Cipher
-from cryptography.hazmat.primitives.ciphers.algorithms import AES
-from cryptography.hazmat.primitives.ciphers.modes import ECB
-from cryptography.hazmat.backends import default_backend
 from django.db import IntegrityError
-from cryptography.exceptions import InvalidSignature
-import base64
-from cryptography.hazmat.backends import default_backend
-from cryptography.hazmat.primitives import hashes, serialization
-from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
-from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
-from cryptography.hazmat.primitives.asymmetric import padding
 from django.core.exceptions import ObjectDoesNotExist
 from django.http import HttpResponseRedirect
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from django.contrib.auth.models import AnonymousUser
-from django.shortcuts import render
-from django.http import HttpResponseRedirect
 from django.contrib.auth import login
 from django.contrib.auth.hashers import make_password
-from django.contrib.auth.models import AnonymousUser
 from utils.hashing import hashDocument
-from django.core.exceptions import ObjectDoesNotExist
-from django.shortcuts import redirect
 from django.http import HttpResponse
 from django.db.models import Q
 from user.viewmodel import generateUserHash, verifyUserDocument
 from property.viewmodel import generatePropertyHash
 from os import urandom
-from cryptography.hazmat.primitives.serialization import load_pem_public_key
-from cryptography.hazmat.backends import default_backend
-from base64 import b64decode
 from requests.exceptions import ConnectTimeout
 from utils.mails import generateGcmOtp, sendMail
 from contract.viewmodel import (
@@ -61,17 +26,12 @@ from contract.viewmodel import (
 from utils.responses import (
     USER_SIGNIN_RESPONSE,
     USER_DOCUMENT_HASH_MISMATCH_RESPONSE,
-    USER_EMAIL_ROLLNUMBER_MISMATCH_RESPONSE,
     USER_INVALID_EMAIL_FORMAT_RESPONSE,
-    USER_INVALID_CODE_OR_ROLLNUMBER_RESPONSE,
-    USER_INVALID_ROLLNUMBER_RESPONSE,
-    USER_INVALID_PASSWORD_RESPONSE,
     USER_NOT_OWNER_RESPONSE,
     PROPERTY_DOES_NOT_EXIST_RESPONSE,
     USER_NOT_BIDDER_NOR_OWNER_RESPONSE,
     TRESPASSING_RESPONSE,
     PROPERTY_OWNERSHIP_DOCUMENT_MISSING_RESPONSE,
-    USER_SIGNIN_WITHOUT_VERIFICATION_REPONSE,
 )
 from twentyfiveacres.models import (
     User,
@@ -81,10 +41,7 @@ from twentyfiveacres.models import (
     BuyerContract,
     Transaction,
 )
-from utils.crypto import (
-    sign_data,
-    verify_contract
-)
+from utils.crypto import sign_data, verify_contract
 
 secretKey = urandom(16)
 
@@ -104,15 +61,16 @@ def verifyEmail(request):
             return render(request, "user/verify_email.html", context)
     return render(request, "user/verify_email.html")
 
+
 def signup(request):
     """
     @desc: renders a form for signing up new user
     """
-    email = request.session.get('eKYC_email')
+    email = request.session.get("eKYC_email")
     if email is None:
         messages.error(request, "Please complete eKYC verification first.")
         return redirect("/user/eKYC")
-    
+
     if request.method == "POST":
         try:
             userFields = request.POST
@@ -176,66 +134,84 @@ def signup(request):
                 transaction.save()
                 sendMail(
                     subject="Welcome to 25acres",
-                    
                     message=f"Your verification code is {verificationCode}",
                     recipientEmails=[email],
                 )
-                del request.session['eKYC_email']  # clear email from session after successful signup
+                del request.session[
+                    "eKYC_email"
+                ]  # clear email from session after successful signup
                 return HttpResponseRedirect("/user/verify_email")
         except IntegrityError:
-            messages.error(request, 'User already exists. Please choose a roll number or go back and <a href="/user/signin"> Signin.</a>')
-            return redirect('/user/signup')
+            messages.error(
+                request,
+                'User already exists. Please choose a roll number or go back and <a href="/user/signin"> Signin.</a>',
+            )
+            return redirect("/user/signup")
 
     else:
-        return render(request, "user/signup_form.html", {'email': email})
+        return render(request, "user/signup_form.html", {"email": email})
     return render(request, "user/signup_form.html")
+
 
 def eKYC(request):
     context = {}
     if request.method == "POST":
-        email = request.POST.get('email')
-        password = request.POST.get('password')
-        
+        email = request.POST.get("email")
+        password = request.POST.get("password")
+
         # Check if user with the given email already exists
         user_exists = User.objects.filter(email=email).exists()
-        
+
         if user_exists:
-            context["error_message"] = "User with this email already exists. Please proceed to <a href='/user/signin'>Signin.</a>"
-            return render(request, 'user/eKYC.html', context)  # Render the template with the error message
+            context[
+                "error_message"
+            ] = "User with this email already exists. Please proceed to <a href='/user/signin'>Signin.</a>"
+            return render(
+                request, "user/eKYC.html", context
+            )  # Render the template with the error message
         if email[-11:] != "iiitd.ac.in":
-            context["error_message"] = "We are currently only accepting IIITD email addresses. Please try again with your IIITD email address."
-            return render(request, 'user/eKYC.html', context)  # Render the template with the error message
+            context[
+                "error_message"
+            ] = "We are currently only accepting IIITD email addresses. Please try again with your IIITD email address."
+            return render(
+                request, "user/eKYC.html", context
+            )  # Render the template with the error message
         # Define the API endpoint for eKYC verification
         api_endpoint = "https://192.168.3.39:5000/kyc"
-        
+
         # Prepare the data for the POST request
-        data = {
-            "email": email,
-            "password": password
-        }
-        
+        data = {"email": email, "password": password}
+
         try:
             # Make the POST request to the eKYC API
-            response = requests.post(api_endpoint, json=data, verify=False)
+            response = requestsPost(api_endpoint, json=data, verify=False)
             response_data = response.json()
-            
+
             # Check the response from the eKYC API
-            if response_data.get("status") == "success":  # assuming "success" indicates a successful verification
-                request.session['eKYC_email'] = email
-                return redirect('/user/signup')
-                
+            if (
+                response_data.get("status") == "success"
+            ):  # assuming "success" indicates a successful verification
+                request.session["eKYC_email"] = email
+                return redirect("/user/signup")
+
             else:
                 # If verification fails, return an error message
-                context["error_message"] = "eKYC verification failed. Please check your credentials and try again."
-        
+                context[
+                    "error_message"
+                ] = "eKYC verification failed. Please check your credentials and try again."
+
         except ConnectTimeout:
-            context["error_message"] = "Connection timeout occurred. Please ensure you are connected to the VPN and try again."
-                
+            context[
+                "error_message"
+            ] = "Connection timeout occurred. Please ensure you are connected to the VPN and try again."
+
         except Exception as e:
             print("An error occurred:", str(e))
-            context["error_message"] = "An internal error occurred. Please try again later."
+            context[
+                "error_message"
+            ] = "An internal error occurred. Please try again later."
 
-    return render(request, 'user/eKYC.html', context)
+    return render(request, "user/eKYC.html", context)
 
 
 def signin(request):
@@ -250,7 +226,10 @@ def signin(request):
             try:
                 user = User.objects.get(rollNumber=rollNumber)
                 if user.verificationCode is not None:
-                    messages.error(request, "Caught commiting treason! Thou caught trying to signin before email verification")
+                    messages.error(
+                        request,
+                        "Caught commiting treason! Thou caught trying to signin before email verification",
+                    )
                 salt = user.password.split("$")[2]
                 if user.password == make_password(password, salt=salt):
                     login(request, user)
@@ -258,7 +237,10 @@ def signin(request):
                 else:
                     messages.error(request, "Identity crisis! Invalid password")
             except User.DoesNotExist:
-                messages.error(request, "Identity crisis! User with provided roll number does not exists")
+                messages.error(
+                    request,
+                    "Identity crisis! User with provided roll number does not exists",
+                )
         else:
             messages.error(request, "Please enter both roll number and password")
     return render(request, "user/signin_form.html")
@@ -272,7 +254,7 @@ def pay_monthly():
     for property in rented_properties:
         # Calculate the months passed since the availabilityDate
         today = date.today()
-        today = datetime.strptime(str("2023-12-31"), '%Y-%m-%d').date()
+        today = datetime.strptime(str("2023-12-31"), "%Y-%m-%d").date()
         delta = today - property.availabilityDate
         months_passed = delta.days // 30
 
@@ -281,11 +263,12 @@ def pay_monthly():
         if months_remaining <= 0:
             property.monthsRemaining = 0
             property.owner = property.originalOwner
-            property.status = "For Rent"  
+            property.status = "For Rent"
         else:
             property.monthsRemaining = months_remaining
 
         property.save()
+
 
 def profile(request):
     """
@@ -298,7 +281,7 @@ def profile(request):
     user = User.objects.get(username=request.user.username)
 
     properties = Property.objects.filter(owner=user)
-    
+
     contracts = getAbstractContractArray(properties)
     propertyBidings = Property.objects.filter(Q(bidder=user) & ~Q(owner=user))
     propertyBidingsContracts = getAbstractContractArray(propertyBidings)
@@ -403,7 +386,9 @@ def changeOwnership(request, propertyId):
     propertyObj.save()
     return HttpResponseRedirect("/user/profile")
 
+
 from base64 import b64encode
+
 
 def handleContract(request, propertyId):
     """
@@ -448,9 +433,9 @@ def handleContract(request, propertyId):
         # contract hash
         print("HERE IS WHAT YOU ARE LOOKING FOR")
         contractHash = sellerContract.contractHashIdentifier
-        contract_hash = contractHash.encode('utf-8')
+        contract_hash = contractHash.encode("utf-8")
         signature = sign_data(contract_hash)
-        signature_str = b64encode(signature).decode('utf-8')
+        signature_str = b64encode(signature).decode("utf-8")
         sendMail(
             subject="Details for your property",
             message=f"""Here your details for property
@@ -478,9 +463,9 @@ def handleContract(request, propertyId):
         )
         buyerContract.save()
         contractHash = buyerContract.contractHashIdentifier
-        contract_hash = contractHash.encode('utf-8')
+        contract_hash = contractHash.encode("utf-8")
         signature = sign_data(contract_hash)
-        signature_str = b64encode(signature).decode('utf-8')
+        signature_str = b64encode(signature).decode("utf-8")
 
         sendMail(
             subject="Details for your property",
@@ -506,6 +491,7 @@ def handleContract(request, propertyId):
 
     return TRESPASSING_RESPONSE
 
+
 def verifyContract(request):
     if request.method == "POST":
         try:
@@ -517,11 +503,12 @@ def verifyContract(request):
             verification_result = "sanctioned" if is_valid else "not_sanctioned"
             print(verification_result)
             context = {"verification_result": verification_result}
-# TO DO: i want to display the result to the front end someone please do it i am too tired make sure that if the reponse is sanctioned only then show sanctioned rest in all cases show not sanctioned even if there is some error 
+        # TO DO: i want to display the result to the front end someone please do it i am too tired make sure that if the reponse is sanctioned only then show sanctioned rest in all cases show not sanctioned even if there is some error
         except Exception as exception:
             print(f"An error occurred: {exception}")
 
     return HttpResponseRedirect("/user/profile")
+
 
 def process_payment(request):
     if request.method == "POST":

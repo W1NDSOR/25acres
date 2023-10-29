@@ -9,31 +9,51 @@
       <form action="." method="POST" style="margin-top:100px; width:50%;" enctype="multipart/form-data">
         {% csrf_token %}
         {% if messages %}
-        <div class="alert alert-danger" role="alert" style="width: 50%; margin-top: 20px;">
+          <div class="alert alert-danger" role="alert" style="width: 50%; margin-top: 20px;">
             {% for message in messages %}
-            {{ message|safe }}
+              {{ message|safe }}
             {% endfor %}
-        </div>
+          </div>
         {% endif %}
-        <div class="mb-3">
-          
-          <input type="number" class="form-control" name="roll_number" placeholder="IIITD roll number" required />
-        </div>
-        <div class="mb-3">
-          <input type="password" class="form-control" name="password" aria-describedby="passwordHelp" placeholder="Password" required />
+        <div class="card mb-3" style="text-align: left;">
+          <div class="card-header">
+            <h4 class="card-title">Signin via Password</h4>
+          </div>
+          <div class="card-body">
+            <div class="input-group mb-2">
+              <div class="input-group-text">Roll number</div>
+              <input type="number" class="form-control" name="roll_number" required />
+            </div>
+            <div class="input-group mb-2">
+              <div class="input-group-text">Password</div>
+              <input type="password" class="form-control" name="password" />
+            </div>
+          </div>
+          <div class="card-footer text-body-secondary" style="padding:20px;">
+            <div class="col-6 btn-group" role="group" aria-label="button_action">
+              <a href="../eKYC" class="btn btn-outline-primary">Do not have an account; signup</a>
+              <button class="btn btn-primary" type="submit">Sign in</button>
+            </div>
+          </div>
         </div>
 
-        <!-- if you forget password, login through OTP and then change it -->
-        <div class="mb-3">
-          <!-- button to send OTP -->
-          <button class="btn btn-outline-primary" type="button" onclick="send_otp()">Send OTP</button><br><br>
-          <input type="number" class="form-control" width = "20%" name="otp" placeholder="Enter OTP" />
-          <!-- Verify OTP -->
-        </div>
-
-        <div class="col-6 btn-group" role="group" aria-label="button_action">
-          <a href="../eKYC" class="btn btn-outline-primary" >Do not have an account; signup</a>
-          <button class="btn btn-primary" type="submit">Sign in</button>
+        <div class="card mb-3" style="text-align: left; margin-top: 50px;">
+          <div class="card-header">
+            <h4 class="card-title">Signin via OTP</h4>
+            <small>Forgot your password then signin via OTP verification</small>
+          </div>
+          <div class="card-body">
+            <div class="hstack gap-3 mb-2">
+              <div class="input-group">
+                <div class="input-group-text">OTP</div>
+                <input type="number" class="form-control" name="otp" />
+              </div>
+              <button class="btn btn-primary" type="button" onclick="send_otp()">Send&nbsp;OTP</button>
+            </div>
+          </div>
+          <div class="card-footer text-body-secondary" style="padding:20px;">
+            <button class="btn col-6 btn-primary" type="submit">Sign in</button>
+          </div>
         </div>
       </form>
     </center>
