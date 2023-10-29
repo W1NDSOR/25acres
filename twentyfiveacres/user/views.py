@@ -86,7 +86,7 @@ from utils.crypto import (
     verify_contract
 )
 
-secretKey = urandom(16)
+
 
 
 def verifyEmail(request):
@@ -151,6 +151,7 @@ def signup(request):
                 and documentHash
                 and password == confirmPassword
             ):
+                secretKey = urandom(16)
                 verificationCode = generateGcmOtp(secretKey, rollNumber.encode())
                 user = User.objects.create(
                     username=username,
@@ -238,6 +239,7 @@ def eKYC(request):
     return render(request, 'user/eKYC.html', context)
 
 
+    
 def signin(request):
     """
     @desc: renders a form for signing up new user
@@ -246,17 +248,51 @@ def signin(request):
         userFields = request.POST
         rollNumber = userFields.get("roll_number")
         password = userFields.get("password")
-        if rollNumber and password:
+        otp = userFields.get("otp")
+        otp_sent = userFields.get("otp_sent")
+        print("otp_sent from request: ", otp_sent)
+        if 'send_otp' in request.POST:
+            print("received the request to send the otp")
+            user = User.objects.get(rollNumber=rollNumber)
+            secretKey = urandom(16)
+            otp = generateGcmOtp(secretKey, rollNumber.encode())
+            sendMail(
+            subject="OTP for login",
+            message=f"""Here is your OTP for login: {otp}""",
+            recipientEmails=[user.email],
+            )
+            print("OTP sent to the email id....")
+            user.verificationCode = otp
+            user.save()
+            messages.success(request, "OTP sent to your email.")
+            print(otp)
+            print(user.verificationCode)
+
+            return render(request, "user/signin_form.html", {'otp_sent': "1"})
+        
+        if otp:
+            print("are we even reachinghere or not")
+            user = User.objects.get(rollNumber=rollNumber)
+            print(otp)
+            print(user.verificationCode)
+            if otp == user.verificationCode:
+                login(request, user)
+                print("here you are logged in")
+                return HttpResponseRedirect("/")
+            else:
+                messages.error(request, "Invalid OTP")
+        elif rollNumber and password:
             try:
                 user = User.objects.get(rollNumber=rollNumber)
+                
                 if user.verificationCode is not None:
                     messages.error(request, "Caught commiting treason! Thou caught trying to signin before email verification")
-                salt = user.password.split("$")[2]
-                if user.password == make_password(password, salt=salt):
-                    login(request, user)
-                    return HttpResponseRedirect("/")
-                else:
-                    messages.error(request, "Identity crisis! Invalid password")
+                    salt = user.password.split("$")[2]
+                    if user.password == make_password(password, salt=salt):
+                        login(request, user)
+                        return HttpResponseRedirect("/")
+                    else:
+                        messages.error(request, "Identity crisis! Invalid password")
             except User.DoesNotExist:
                 messages.error(request, "Identity crisis! User with provided roll number does not exists")
         else:

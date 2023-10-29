@@ -8,7 +8,6 @@ urlpatterns = [
     path("profile/", views.profile, name="profile"),
     path("verify_email/", views.verifyEmail, name="verify_email"),
     path('process_payment/', views.process_payment, name='process_payment'),
-
     path(
         "delete_property/<int:propertyId>/",
         views.deleteProperty,
