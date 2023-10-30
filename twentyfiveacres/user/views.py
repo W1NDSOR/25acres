@@ -239,13 +239,16 @@ def signinWithPassword(request):
                         return HttpResponseRedirect("/")
                     else:
                         messages.error(request, "Identity crisis! Invalid password")
+                        HttpResponseRedirect("/user/signin")
             except User.DoesNotExist:
                 messages.error(
                     request,
                     "Identity crisis! User with provided roll number does not exists",
                 )
+                HttpResponseRedirect("/user/signin")
         else:
             messages.error(request, "Please enter both roll number and password")
+            HttpResponseRedirect("/user/signin")
     return HttpResponseRedirect("/user/signin")
 
 
@@ -276,6 +279,7 @@ def signinWithOTP(request):
                 return render(request, "user/signin_form.html", {"otp_sent": "1"})
             except:
                 messages.error(request, "Invalid roll number")
+                HttpResponseRedirect("/user/signin")
 
         if otp:
             print("are we even reachinghere or not")
@@ -292,6 +296,7 @@ def signinWithOTP(request):
                     HttpResponseRedirect("/user/signin")
             except:
                 messages.error(request, "Invalid roll number")
+                HttpResponseRedirect("/user/signin")
     return HttpResponseRedirect("/user/signin")
 
 
