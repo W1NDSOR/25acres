@@ -24,12 +24,14 @@ class User(AbstractUser):
         roll_number
         document_hash
         user_hash
+        wallet
     """
 
     rollNumber = models.IntegerField(unique=True)
-    verification_code = models.CharField(max_length=6, null=True, blank=True)
-    documentHash = models.CharField(max_length=64, null=True, blank=True)
-    userHash = models.CharField(max_length=64, null=False, blank=False)
+    verificationCode = models.CharField(max_length=6, null=True, blank=True)
+    documentHash = models.CharField(max_length=128, null=True, blank=True)
+    userHash = models.CharField(max_length=128, null=False, blank=False)
+    wallet = models.IntegerField(default=1000000000, null=False, blank=False)
     REQUIRED_FIELDS = ["rollNumber"]
 
     def __str__(self):
@@ -68,15 +70,22 @@ class Property(models.Model):
         availability_date
         current_bid
         bidder
-        TRANSACTION_STATUS_CHOICES
-        transaction_status
         ownership_document_hash
+        reported
     """
 
     propertyId = models.AutoField(primary_key=True)
     owner = models.ForeignKey(
         User, related_name="owner", on_delete=models.CASCADE, null=False, blank=False
     )
+    originalOwner = models.ForeignKey(
+        User,
+        related_name="property_original_owner",
+        on_delete=models.CASCADE,
+        null=False,
+        blank=False,
+    )
+    listed = models.BooleanField(default=True, null=False, blank=False)
     title = models.CharField(max_length=255)
     description = models.TextField()
     price = models.DecimalField(max_digits=20, decimal_places=2)
@@ -92,59 +101,95 @@ class Property(models.Model):
             ("rented", "Rented"),
         ],
     )
+    monthsRemaining = models.PositiveIntegerField(null=True, blank=True)
+    rent_duration = models.PositiveIntegerField(null=True, blank=True, choices=[(i, f"{i} months") for i in range(1, 13)])
     availabilityDate = models.DateField()
     location = models.ForeignKey(Location, on_delete=models.CASCADE)
-    propertyHashIdentifier = models.CharField(max_length=64, null=False, blank=False)
+    propertyHashIdentifier = models.CharField(max_length=128, null=False, blank=False)
     currentBid = models.DecimalField(max_digits=20, decimal_places=2, null=True)
     bidder = models.ForeignKey(
         User, related_name="current_bidder", on_delete=models.CASCADE, null=True
     )
-    TRANSACTION_STATUS_CHOICES = [
-        ("not_started", "Not Started"),
-        ("initiated_by_seller", "Initiated by Seller"),
-        ("initiated_by_buyer", "Initiated by Buyer"),
-        ("completed", "Completed"),
-    ]
+    ownershipDocumentHash = models.CharField(max_length=128, null=False, blank=False)
+    reported = models.BooleanField(default=False, null=False, blank=False)
 
-    transactionStatus = models.CharField(
-        max_length=20, choices=TRANSACTION_STATUS_CHOICES, default="not_started"
+
+# Seller Contract Model
+class SellerContract(models.Model):
+    """
+    Contracts
+        contract_hash_identifier [PK]
+        property
+        seller
+        created_at
+        updated_at
+        contract_address (blockchain address)
+    """
+
+    contractHashIdentifier = models.CharField(
+        max_length=128, primary_key=True, null=False, blank=False
     )
-    ownershipDocumentHash = models.CharField(max_length=64, null=False, blank=False)
+
+    property = models.ForeignKey(Property, on_delete=models.CASCADE)
+    seller = models.ForeignKey(
+        User, related_name="seller_contract", on_delete=models.CASCADE
+    )
+
+    createdAt = models.DateTimeField(auto_now_add=True)
+    updatedAt = models.DateTimeField(auto_now=True)
+    contractAddress = models.CharField(max_length=255, blank=True, null=True)
 
 
-# Transaction Model
-class Transaction(models.Model):
+# Buyer Contract Model
+class BuyerContract(models.Model):
     """
-    Transactions
-        transaction_id
-        property_id
-        buyer_id
-        seller_id
-        transaction_date
-        amount
-        uploaded_document_hash
-        transaction_hash_validation
+    Contracts
+        contract_hash_identifier [PK]
+        property
+        buyer
+        created_at
+        updated_at
+        contract_address (blockchain address)
     """
 
-    transactionId = models.AutoField(primary_key=True)
+    contractHashIdentifier = models.CharField(
+        max_length=128, primary_key=True, null=False, blank=False
+    )
     property = models.ForeignKey(Property, on_delete=models.CASCADE)
     buyer = models.ForeignKey(
-        User, related_name="buyer_transactions", on_delete=models.CASCADE
+        User, related_name="buyer_contract", on_delete=models.CASCADE
     )
-    seller = models.ForeignKey(
-        User, related_name="seller_transactions", on_delete=models.CASCADE
+    createdAt = models.DateTimeField(auto_now_add=True)
+    updatedAt = models.DateTimeField(auto_now=True)
+    contractAddress = models.CharField(max_length=255, blank=True, null=True)
+
+
+# Contract Model
+class Contract(models.Model):
+    """
+    Contract
+        property
+        seller_contract
+        buyer_contract
+    """
+
+    property = models.OneToOneField(
+        Property, on_delete=models.CASCADE, verbose_name="related_proprety"
     )
-    transactionType = models.CharField(
-        max_length=20,
-        choices=[
-            ("booking", "Booking"),
-            ("down_payment", "Down Payment"),
-            ("full_payment", "Full Payment"),
-            ("rent", "Rent"),
-        ],
+    sellerContract = models.ForeignKey(
+        SellerContract,
+        on_delete=models.CASCADE,
+        related_name="related_seller_contract",
+        default=None,
     )
-    transactionDate = models.DateField()
-    amount = models.DecimalField(max_digits=10, decimal_places=2)
+    buyerContract = models.ForeignKey(
+        BuyerContract,
+        on_delete=models.CASCADE,
+        related_name="related_buyer_contract",
+        default=None,
+        null=True,
+        blank=True,
+    )
 
 
 # Image Model
@@ -166,37 +211,36 @@ class Image(models.Model):
     updatedAt = models.DateTimeField(auto_now=True)
 
 
-# Contract Model
-class Contract(models.Model):
+class Transaction(models.Model):
     """
-    Contracts
-        contract_id
-        property_id
-        seller_id
-        buyer_id
-        verified_by_buyer
-        verified_by_seller
-        verified_by_portal
-        contract_hash
-        contract_address (blockchain address)
-        created_at
+    Transaction
+        transaction_id [PK]
+        user
+        with_portal
+        other
+        amount
+        credit
+        debit
+        time
     """
 
-    contractId = models.AutoField(primary_key=True)
-    property = models.ForeignKey(Property, on_delete=models.CASCADE)
-    seller = models.ForeignKey(
-        User, related_name="seller_contracts", on_delete=models.CASCADE
+    transactionId = models.AutoField(primary_key=True)
+    user = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name="transaction_user_relation"
     )
-    buyer = models.ForeignKey(
-        User, related_name="buyer_contracts", on_delete=models.CASCADE
+    withPortal = models.BooleanField(default=False, null=False, blank=False)
+    other = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        default=None,
+        null=True,
+        blank=True,
+        related_name="transaction_other_user_relation",
     )
-    verifiedByBuyer = models.BooleanField(default=False, null=False, blank=False)
-    verifiedBySeller = models.BooleanField(default=False, null=False, blank=False)
-    verifiedByPortal = models.BooleanField(default=False, null=False, blank=False)
-    contractHash = models.CharField(max_length=64)
-    contractAddress = models.CharField(max_length=255, blank=True, null=True)
-    createdAt = models.DateTimeField(auto_now_add=True)
-    updatedAt = models.DateTimeField(auto_now=True)
+    amount = models.IntegerField(default=0, null=False, blank=False)
+    credit = models.BooleanField(default=True, null=False, blank=False)
+    debit = models.BooleanField(default=False, null=False, blank=False)
+    time = models.DateTimeField(auto_now_add=True)
 
 
 # ----------------------------------------------------------

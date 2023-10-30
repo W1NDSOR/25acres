@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+{% load custom_tags %}
 <html>
   <head>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous" />
@@ -18,6 +19,16 @@
           <sl-icon slot="prefix" name="plus-circle"></sl-icon>Add new property
         </sl-breadcrumb-item>
       </sl-breadcrumb>
+      {% if messages %}
+        <ul class="messages">
+          {% for message in messages %}
+            <div class="alert alert-danger alert-dismissible fade show" style="width: 50%; text-align:left;" role="alert">
+              <h4 class="alert-heading">Error <small><button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button></small></h4>
+              <p>{{ message }}</p>
+            </div>
+          {% endfor %}
+        </ul>
+      {% endif %}
       <form action="." method="POST" style="width: 50%; margin-top:100px;" enctype="multipart/form-data">
         {% csrf_token %}
         <div class="mb-3">
@@ -42,11 +53,20 @@
           <input type="text" class="form-control" name="location" placeholder="Location" required />
         </div>
         <div class="mb-3">
-          <select class="form-control" name="status" required>
-            <option>For Sell</option>
-            <option>For Rent</option>
+          <select class="form-control" name="status" id="statusDropdown" required>
+              <option>For Sale</option>
+              <option>For Rent</option>
+          </select>
+      </div>
+        
+        <div class="mb-3" id="rentDurationField" style="display: none;">
+          <select class="form-control" name="rent_duration">
+            {% for i in "12"|times %}
+            <option value="{{ i }}">{{ i }} months</option>
+            {% endfor %}
           </select>
         </div>
+        
         <div class="mb-3">
           <input type="date" class="form-control" name="available_date" placeholder="Date of availability" required />
         </div>
@@ -65,5 +85,23 @@
     </center>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL" crossorigin="anonymous"></script>
     <script type="module" src="https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.9.0/cdn/shoelace-autoloader.js"></script>
+    <script>
+      if (statusDropdown.value === 'For Rent') {
+          rentDurationField.style.display = 'block';
+      }
+    </script>
+    <script>
+      const statusDropdown = document.getElementById('statusDropdown');
+      const rentDurationField = document.getElementById('rentDurationField');
+  
+      statusDropdown.addEventListener('change', function() {
+          if (statusDropdown.value === 'For Rent') {
+              rentDurationField.style.display = 'block';
+          } else {
+              rentDurationField.style.display = 'none';
+          }
+      });
+    </script>
+  
   </body>
 </html>

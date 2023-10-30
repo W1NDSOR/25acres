@@ -4,5 +4,5 @@ from .views import *
 urlpatterns = [
     path("list/", propertyList, name="propertyList"),
     path("add/", addProperty, name="addProperty"),
-    path("add_bid/<int:propertyId>/", addBid, name="addBid"),
+    path("action/<int:propertyId>/", propertyAction, name="addBid")
 ]
