@@ -20,6 +20,160 @@ from utils.responses import (
 )
 
 
+from web3 import Web3
+from web3.middleware import geth_poa_middleware
+
+node_url = 'https://rpc.sepolia.org'
+w3 = Web3(Web3.HTTPProvider(node_url))
+if w3.is_connected():
+    print("Connected to the Ethereum node: ", node_url)
+else:
+    print("Could not connect to the Ethereum node: ", node_url)
+    exit(1)
+
+
+
+w3.middleware_onion.inject(geth_poa_middleware, layer=0)
+
+ethereum_account = '0x7c816034A35AC2BFd92f04F73C428C9805584f41'
+private_key = "" # private key
+lower_case_address = '0xba204c7da7b417f0553fef66f95c67aab0a1fc6f'
+contract_address = Web3.to_checksum_address(lower_case_address)
+
+
+nonce = w3.eth.get_transaction_count(ethereum_account)
+
+contract_abi = [
+	{
+		"inputs": [
+			{
+				"internalType": "string",
+				"name": "title",
+				"type": "string"
+			},
+			{
+				"internalType": "string",
+				"name": "description",
+				"type": "string"
+			},
+			{
+				"internalType": "string",
+				"name": "price",
+				"type": "string"
+			},
+			{
+				"internalType": "string",
+				"name": "bedrooms",
+				"type": "string"
+			},
+			{
+				"internalType": "string",
+				"name": "bathrooms",
+				"type": "string"
+			},
+			{
+				"internalType": "string",
+				"name": "area",
+				"type": "string"
+			},
+			{
+				"internalType": "string",
+				"name": "status",
+				"type": "string"
+			},
+			{
+				"internalType": "string",
+				"name": "location",
+				"type": "string"
+			},
+			{
+				"internalType": "string",
+				"name": "availableDate",
+				"type": "string"
+			}
+		],
+		"name": "listProperty",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"name": "properties",
+		"outputs": [
+			{
+				"internalType": "string",
+				"name": "title",
+				"type": "string"
+			},
+			{
+				"internalType": "string",
+				"name": "description",
+				"type": "string"
+			},
+			{
+				"internalType": "string",
+				"name": "price",
+				"type": "string"
+			},
+			{
+				"internalType": "string",
+				"name": "bedrooms",
+				"type": "string"
+			},
+			{
+				"internalType": "string",
+				"name": "bathrooms",
+				"type": "string"
+			},
+			{
+				"internalType": "string",
+				"name": "area",
+				"type": "string"
+			},
+			{
+				"internalType": "string",
+				"name": "status",
+				"type": "string"
+			},
+			{
+				"internalType": "string",
+				"name": "location",
+				"type": "string"
+			},
+			{
+				"internalType": "string",
+				"name": "availableDate",
+				"type": "string"
+			},
+			{
+				"internalType": "address",
+				"name": "owner",
+				"type": "address"
+			},
+			{
+				"internalType": "bool",
+				"name": "listed",
+				"type": "bool"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	}
+]
+
+
+contract = w3.eth.contract(address=contract_address, abi=contract_abi)
+
+print("Contract:", contract)
+
+
 def propertyList(request):
     """
     @desc: displays the list of properties in the database
@@ -100,16 +254,25 @@ def addProperty(request):
     if request.method == "POST":
         propertyFields = request.POST
         title = propertyFields.get("title")
+        print("title type:", type(title))
         description = propertyFields.get("description")
+        print("description type:", type(description))
         price = propertyFields.get("price")
+        print("price type:", type(price))
         bedrooms = propertyFields.get("bedrooms")
+        print("bedrooms type:", type(bedrooms))
         bathrooms = propertyFields.get("bathrooms")
+        print("bathrooms type:", type(bathrooms))
         area = propertyFields.get("area")
+        print("area type:", type(area))
         status = propertyFields.get("status")
+        print("status type:", type(status))
         rent_duration = int(propertyFields.get('rent_duration', 0))
         rent_duration = rent_duration if status in ["for_rent", "For Rent"] else None
         location = propertyFields.get("location")
+        print("location type:", type(location))
         availableDate = propertyFields.get("available_date")
+        print("availableDate type:", type(availableDate))
         user = User.objects.get(username=request.user.username)
 
         # Ownership Document Hash
@@ -193,6 +356,21 @@ def addProperty(request):
                     bidder=None,
                 )
                 property.save()
+
+
+                # # Blockchain (uncomment it)
+                # chain_id = w3.eth.chain_id
+                # call_function = contract.functions.listProperty(title, description, price, bedrooms, bathrooms, area, status, location, availableDate).build_transaction({
+                # 'chainId': chain_id,
+                # 'nonce': nonce,
+                # 'gas': 1000000,
+                # })
+
+                # signed_tx = w3.eth.account.sign_transaction(call_function, private_key=private_key)
+                # send_tx = w3.eth.send_raw_transaction(signed_tx.rawTransaction)
+
+                # tx_receipt = w3.eth.wait_for_transaction_receipt(send_tx)
+                # print("receipt:", tx_receipt)
 
                 return HttpResponseRedirect("/")
         except CustomException as exception:
