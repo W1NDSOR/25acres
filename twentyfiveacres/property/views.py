@@ -96,7 +96,6 @@ def addProperty(request):
         return USER_SIGNIN_RESPONSE
 
     context = dict()
-
     if request.method == "POST":
         propertyFields = request.POST
         title = propertyFields.get("title")
@@ -130,8 +129,8 @@ def addProperty(request):
             or verifyUserDocument(user, proofOfIdentity) == False
             or ownershipDocumentHash is None
         ):
-            messages.error(request, "Document hash mismatch. Please check your documents.")
-            return redirect(propertyList) 
+            context["error_message"] = "Document hash mismatch. Please check your documents"
+            return render(request, "property/add_form.html", context=context) 
 
         try:
             if (
@@ -147,11 +146,35 @@ def addProperty(request):
                 and proofOfIdentity
                 and ownershipDocumentHash
             ):
+                if title.isnumeric():
+                    context["error_message"] = "Title can not be just numbers"
+                    return render(request, "property/add_form.html", context=context)
+                
+                if description.isnumeric():
+                    context["error_message"] = "Description can not be just numbers"
+                    return render(request, "property/add_form.html", context=context)
+
+                if price <= 0 or area <= 0 or bedrooms <= 0 or bathrooms <= 0 :
+                    context["error_message"] = "Numeric fields cannot be less than or equal to 0"
+                    return render(request, "property/add_form.html", context=context)
+
+                if (
+                    not isinstance(price, int) or
+                    not isinstance(area, int) or
+                    not isinstance(bedrooms, int) or
+                    not isinstance(bathrooms, int)
+                ):
+                    context["error_message"] = "Numeric fields should not contain text"
+                    return render(request, "property/add_form.html", context=context)
+
+                if proofOfIdentity == ownershipDocumentHash:
+                    context["error_message"] = "Proof of identity and ownership document cannot be the same"
+                    return render(request, "property/add_form.html", context=context)
+                
                 locationCoordinates = geocode_location(location)
                 if locationCoordinates is None:
-                    exceptionMessage = "Not a valid location!"
-                    messages.info(request, exceptionMessage)
-                    raise CustomException(exceptionMessage)
+                    context["error_message"] = "Not a valid location"
+                    return render(request, "property/add_form.html", context=context)
 
                 (latitude, longitude) = locationCoordinates
 
@@ -193,7 +216,6 @@ def addProperty(request):
                     bidder=None,
                 )
                 property.save()
-
                 return HttpResponseRedirect("/")
         except CustomException as exception:
             pass

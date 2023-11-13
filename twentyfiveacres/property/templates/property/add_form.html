@@ -8,78 +8,103 @@
   </head>
   <body data-bs-theme="dark" style="margin: 20px;">
     <center>
-      <sl-breadcrumb>
-        <sl-breadcrumb-item href="/">
-          <sl-icon slot="prefix" name="house"></sl-icon>Homepage
-        </sl-breadcrumb-item>
-        <sl-breadcrumb-item href="/property/list">
-          <sl-icon slot="prefix" name="buildings"></sl-icon>Properties
-        </sl-breadcrumb-item>
-        <sl-breadcrumb-item href=".">
-          <sl-icon slot="prefix" name="plus-circle"></sl-icon>Add new property
-        </sl-breadcrumb-item>
-      </sl-breadcrumb>
-      {% if messages %}
-        <ul class="messages">
-          {% for message in messages %}
-            <div class="alert alert-danger alert-dismissible fade show" style="width: 50%; text-align:left;" role="alert">
-              <h4 class="alert-heading">Error <small><button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button></small></h4>
-              <p>{{ message }}</p>
-            </div>
-          {% endfor %}
-        </ul>
+      {% if error_message %}
+        <div class="alert alert-danger" role="alert" style="margin-top:20px; width:50%;">{{ error_message|safe }}</div>
       {% endif %}
-      <form action="." method="POST" style="width: 50%; margin-top:100px;" enctype="multipart/form-data">
+      <form action="." method="POST" style="margin-top:100px; width:50%;" enctype="multipart/form-data">
         {% csrf_token %}
-        <div class="mb-3">
-          <input type="text" class="form-control" name="title" placeholder="Title" required />
-        </div>
-        <div class="mb-3">
-          <textarea class="form-control" placeholder="Description" name="description" rows="3" required></textarea>
-        </div>
-        <div class="mb-3">
-          <input type="number" class="form-control" name="price" placeholder="Price" min="0" required />
-        </div>
-        <div class="mb-3">
-          <input type="number" class="form-control" name="area" placeholder="Area (in acres)" min="0" required />
-        </div>
-        <div class="mb-3">
-          <input type="number" class="form-control" name="bedrooms" placeholder="Bedrooms" min="0" required />
-        </div>
-        <div class="mb-3">
-          <input type="number" class="form-control" name="bathrooms" placeholder="Bathrooms" min="0" required />
-        </div>
-        <div class="mb-3">
-          <input type="text" class="form-control" name="location" placeholder="Location" required />
-        </div>
-        <div class="mb-3">
-          <select class="form-control" name="status" id="statusDropdown" required>
-              <option>For Sale</option>
-              <option>For Rent</option>
-          </select>
-      </div>
-        
-        <div class="mb-3" id="rentDurationField" style="display: none;">
-          <select class="form-control" name="rent_duration">
-            {% for i in "12"|times %}
-            <option value="{{ i }}">{{ i }} months</option>
-            {% endfor %}
-          </select>
-        </div>
-        
-        <div class="mb-3">
-          <input type="date" class="form-control" name="available_date" placeholder="Date of availability" required />
-        </div>
-        <div class="mb-3">
-          <input type="file" class="form-control" name="document" aria-describedby="document_help" required />
-          <small id="document_help" class="form-text text-muted">Submit your proof of document</small>
-        </div>
-        <div class="mb-3">
-          <input type="file" class="form-control" name="ownership_document" aria-describedby="ownership_document_help" required />
-          <small id="ownership_document_help" class="form-text text-muted">Submit your property ownership document</small>
-        </div>
-        <div class="d-grid gap-2 col-6 mx-auto mb-3">
-          <button class="btn btn-primary" type="submit">Submit</button>
+        <div class="card mb-3" style="text-align: left;">
+          <div class="card-header">
+            <h4 class="card-title">Add new property form</h4>
+          </div>
+          <div class="card-body container text-center">
+            <div class="row">
+              <div class="col input-group mb-2">
+                <div class="input-group-text">Title</div>
+                <input type="text" class="form-control" name="title" required />
+              </div>
+            </div>
+            <div class="row">
+              <div class="col input-group mb-2">
+                <div class="input-group-text">Description</div>
+                <input type="text" class="form-control" name="description" rows="3" required />
+              </div>
+            </div>
+            <div class="row">
+              <div class="col input-group mb-2">
+                <div class="input-group-text">Base price (₹)</div>
+                <input type="number" class="form-control" name="price" min="1" required />
+              </div>
+              <div class="col input-group mb-2">
+                <div class="input-group-text">Area (not in acres)</div>
+                <input type="number" class="form-control" name="area" min="1" required />
+              </div>
+            </div>
+            <div class="row">
+              <div class="col input-group mb-2">
+                <div class="input-group-text">Bedrooms</div>
+                <input type="number" class="form-control" name="bedrooms" min="1" required />
+              </div>
+              <div class="col input-group mb-2">
+                <div class="input-group-text">Bathrooms</div>
+                <input type="number" class="form-control" name="bathrooms" min="1" required />
+              </div>
+            </div>
+            <div class="row">
+              <div class="col input-group mb-2">
+                <div class="input-group-text">Location</div>
+                <input type="text" class="form-control" name="location" required />
+              </div>
+            </div>
+            <div class="row">
+              <div class="col input-group mb-2">
+                <div class="input-group-text">Status</div>
+                <select class="form-control" name="status" id="statusDropdown" required>
+                  <option>For Sale</option>
+                  <option>For Rent</option>
+                </select>
+              </div>
+            </div>
+            <div id="rentDurationField" style="display: none;">
+              <div class="row">
+                <div class="col input-group mb-2">
+                  <div class="input-group-text">Rent duration</div>
+                  <select class="form-control" name="rent_duration">
+                    {% for i in "12"|times %}
+                      <option value="{{ i }}">{{ i }} months</option>
+                    {% endfor %}
+                  </select>
+                </div>
+              </div>
+              <div class="row mb-2">
+                <small class="form-text text-muted">Monthly rent would be the base price in the case rent is chosen</small>
+              </div>
+            </div>
+            <div class="row">
+              <div class="col input-group mb-2">
+                <div class="input-group-text">Availability date</div>
+                <input type="date" class="form-control" name="available_date" required />
+              </div>
+            </div>
+            <div class="row">
+              <div class="col input-group mb-2">
+                <div class="input-group-text">Proof Of Identity</div>
+                <input type="file" class="form-control" name="document" required />
+              </div>
+              <div class="col input-group mb-2">
+                <div class="input-group-text">Ownership document</div>
+                <input type="file" class="form-control" name="ownership_document" required />
+              </div>
+            </div>
+            <div class="row">
+              <small class="form-text text-muted">Ownership document: A document that will later be used to show that you own this property.</small>
+            </div>
+          </div>
+          <div class="card-footer text-body-secondary" style="padding:20px;">
+            <div class="d-grid gap-2 col-6" role="group" aria-label="button_action">
+              <button class="btn btn-primary" type="submit">Submit</button>
+            </div>
+          </div>
         </div>
       </form>
     </center>
