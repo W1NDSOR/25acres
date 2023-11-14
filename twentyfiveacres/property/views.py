@@ -18,6 +18,8 @@ from utils.responses import (
 
 
 def propertyList(request):
+    if isinstance(request.user, AnonymousUser):
+        return redirect("/user/signin")
     properties = Property.objects.filter(listed=True)
     if len(Property.objects.all()) == 0:
         return render(request, "property/property_list.html", {"properties": []})

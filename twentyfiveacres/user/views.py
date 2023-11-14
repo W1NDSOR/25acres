@@ -233,9 +233,17 @@ def signinWithPassword(request):
                         login(request, user)
                         return HttpResponseRedirect("/")
                     else:
+                        print(00000000000)
                         messages.error(request, "Identity crisis! Invalid password")
                         HttpResponseRedirect("/user/signin")
+                else:
+                    messages.error(
+                        request,
+                        "Identity crisis! Please verify your email first. <a href='/user/verify_email'>Verify now.</a>",
+                    )
+                    HttpResponseRedirect("/user/signin")
             except User.DoesNotExist:
+                print("1212121212121212")
                 messages.error(
                     request,
                     "Identity crisis! User with provided roll number does not exists",
