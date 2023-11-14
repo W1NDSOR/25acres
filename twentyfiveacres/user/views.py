@@ -304,10 +304,6 @@ def pay_monthly():
 
 
 def profile(request):
-    """
-    @desc: renders user profile
-    """
-
     if isinstance(request.user, AnonymousUser):
         return USER_SIGNIN_RESPONSE
 
