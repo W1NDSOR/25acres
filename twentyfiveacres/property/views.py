@@ -16,6 +16,158 @@ from utils.responses import (
     PROPERTY_DOES_NOT_EXIST_RESPONSE,
 )
 
+from web3 import Web3
+from web3.middleware import geth_poa_middleware
+
+# Blockchain
+node_url = 'https://rpc.sepolia.org'
+w3 = Web3(Web3.HTTPProvider(node_url))
+if w3.is_connected():
+    print("Connected to the Ethereum node: ", node_url)
+else:
+    print("Could not connect to the Ethereum node: ", node_url)
+    exit(1)
+
+w3.middleware_onion.inject(geth_poa_middleware, layer=0)
+
+ethereum_account = '0x7c816034A35AC2BFd92f04F73C428C9805584f41'
+private_key = "" # private key
+lower_case_address = '0xba204c7da7b417f0553fef66f95c67aab0a1fc6f'
+contract_address = Web3.to_checksum_address(lower_case_address)
+
+
+nonce = w3.eth.get_transaction_count(ethereum_account)
+
+contract_abi = [
+	{
+		"inputs": [
+			{
+				"internalType": "string",
+				"name": "title",
+				"type": "string"
+			},
+			{
+				"internalType": "string",
+				"name": "description",
+				"type": "string"
+			},
+			{
+				"internalType": "string",
+				"name": "price",
+				"type": "string"
+			},
+			{
+				"internalType": "string",
+				"name": "bedrooms",
+				"type": "string"
+			},
+			{
+				"internalType": "string",
+				"name": "bathrooms",
+				"type": "string"
+			},
+			{
+				"internalType": "string",
+				"name": "area",
+				"type": "string"
+			},
+			{
+				"internalType": "string",
+				"name": "status",
+				"type": "string"
+			},
+			{
+				"internalType": "string",
+				"name": "location",
+				"type": "string"
+			},
+			{
+				"internalType": "string",
+				"name": "availableDate",
+				"type": "string"
+			}
+		],
+		"name": "listProperty",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"name": "properties",
+		"outputs": [
+			{
+				"internalType": "string",
+				"name": "title",
+				"type": "string"
+			},
+			{
+				"internalType": "string",
+				"name": "description",
+				"type": "string"
+			},
+			{
+				"internalType": "string",
+				"name": "price",
+				"type": "string"
+			},
+			{
+				"internalType": "string",
+				"name": "bedrooms",
+				"type": "string"
+			},
+			{
+				"internalType": "string",
+				"name": "bathrooms",
+				"type": "string"
+			},
+			{
+				"internalType": "string",
+				"name": "area",
+				"type": "string"
+			},
+			{
+				"internalType": "string",
+				"name": "status",
+				"type": "string"
+			},
+			{
+				"internalType": "string",
+				"name": "location",
+				"type": "string"
+			},
+			{
+				"internalType": "string",
+				"name": "availableDate",
+				"type": "string"
+			},
+			{
+				"internalType": "address",
+				"name": "owner",
+				"type": "address"
+			},
+			{
+				"internalType": "bool",
+				"name": "listed",
+				"type": "bool"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	}
+]
+
+
+contract = w3.eth.contract(address=contract_address, abi=contract_abi)
+
+print("Contract:", contract)
+
 def propertyList(request):
     if isinstance(request.user, AnonymousUser):
         return redirect("/user/signin")
@@ -203,6 +355,20 @@ def addProperty(request):
                 bidder=None,
             )
             property.save()
+            # Blockchain
+                chain_id = w3.eth.chain_id
+                call_function = contract.functions.listProperty(title, description, price, bedrooms, bathrooms, area, status, location, availableDate).build_transaction({
+                'chainId': chain_id,
+                'nonce': nonce,
+                'gas': 1000000,
+                })
+
+                signed_tx = w3.eth.account.sign_transaction(call_function, private_key=private_key)
+                send_tx = w3.eth.send_raw_transaction(signed_tx.rawTransaction)
+
+                tx_receipt = w3.eth.wait_for_transaction_receipt(send_tx)
+                print("receipt:", tx_receipt)
+            
             return redirect("/")
         else:
             context["error_message"] = "All fields are not filled"
