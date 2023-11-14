@@ -16,154 +16,154 @@ from utils.responses import (
     PROPERTY_DOES_NOT_EXIST_RESPONSE,
 )
 
-from web3 import Web3
-from web3.middleware import geth_poa_middleware
+# from web3 import Web3
+# from web3.middleware import geth_poa_middleware
 
-# Blockchain
-node_url = 'https://rpc.sepolia.org'
-w3 = Web3(Web3.HTTPProvider(node_url))
-if w3.is_connected():
-    print("Connected to the Ethereum node: ", node_url)
-else:
-    print("Could not connect to the Ethereum node: ", node_url)
-    exit(1)
+# # Blockchain
+# node_url = 'https://rpc.sepolia.org'
+# w3 = Web3(Web3.HTTPProvider(node_url))
+# if w3.is_connected():
+#     print("Connected to the Ethereum node: ", node_url)
+# else:
+#     print("Could not connect to the Ethereum node: ", node_url)
+#     exit(1)
 
-w3.middleware_onion.inject(geth_poa_middleware, layer=0)
+# w3.middleware_onion.inject(geth_poa_middleware, layer=0)
 
-ethereum_account = '0x7c816034A35AC2BFd92f04F73C428C9805584f41'
-private_key = "a77ad862efda0a3097d0a25ba6cd392468472adeb524316234c1d8f75cf91734" # private key
-lower_case_address = '0x6D88d408AA31Afb3f81E0908A1B01fdc3D274bAf'
-contract_address = Web3.to_checksum_address(lower_case_address)
+# ethereum_account = '0x7c816034A35AC2BFd92f04F73C428C9805584f41'
+# private_key = "a77ad862efda0a3097d0a25ba6cd392468472adeb524316234c1d8f75cf91734" # private key
+# lower_case_address = '0x6D88d408AA31Afb3f81E0908A1B01fdc3D274bAf'
+# contract_address = Web3.to_checksum_address(lower_case_address)
 
-contract_abi = [
-	{
-		"inputs": [
-			{
-				"internalType": "string",
-				"name": "title",
-				"type": "string"
-			},
-			{
-				"internalType": "string",
-				"name": "description",
-				"type": "string"
-			},
-			{
-				"internalType": "int256",
-				"name": "price",
-				"type": "int256"
-			},
-			{
-				"internalType": "int256",
-				"name": "bedrooms",
-				"type": "int256"
-			},
-			{
-				"internalType": "int256",
-				"name": "bathrooms",
-				"type": "int256"
-			},
-			{
-				"internalType": "int256",
-				"name": "area",
-				"type": "int256"
-			},
-			{
-				"internalType": "string",
-				"name": "status",
-				"type": "string"
-			},
-			{
-				"internalType": "string",
-				"name": "location",
-				"type": "string"
-			},
-			{
-				"internalType": "string",
-				"name": "availableDate",
-				"type": "string"
-			}
-		],
-		"name": "listProperty",
-		"outputs": [],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "uint256",
-				"name": "",
-				"type": "uint256"
-			}
-		],
-		"name": "properties",
-		"outputs": [
-			{
-				"internalType": "string",
-				"name": "title",
-				"type": "string"
-			},
-			{
-				"internalType": "string",
-				"name": "description",
-				"type": "string"
-			},
-			{
-				"internalType": "int256",
-				"name": "price",
-				"type": "int256"
-			},
-			{
-				"internalType": "int256",
-				"name": "bedrooms",
-				"type": "int256"
-			},
-			{
-				"internalType": "int256",
-				"name": "bathrooms",
-				"type": "int256"
-			},
-			{
-				"internalType": "int256",
-				"name": "area",
-				"type": "int256"
-			},
-			{
-				"internalType": "string",
-				"name": "status",
-				"type": "string"
-			},
-			{
-				"internalType": "string",
-				"name": "location",
-				"type": "string"
-			},
-			{
-				"internalType": "string",
-				"name": "availableDate",
-				"type": "string"
-			},
-			{
-				"internalType": "address",
-				"name": "owner",
-				"type": "address"
-			},
-			{
-				"internalType": "bool",
-				"name": "listed",
-				"type": "bool"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	}
-]
+# contract_abi = [
+# 	{
+# 		"inputs": [
+# 			{
+# 				"internalType": "string",
+# 				"name": "title",
+# 				"type": "string"
+# 			},
+# 			{
+# 				"internalType": "string",
+# 				"name": "description",
+# 				"type": "string"
+# 			},
+# 			{
+# 				"internalType": "int256",
+# 				"name": "price",
+# 				"type": "int256"
+# 			},
+# 			{
+# 				"internalType": "int256",
+# 				"name": "bedrooms",
+# 				"type": "int256"
+# 			},
+# 			{
+# 				"internalType": "int256",
+# 				"name": "bathrooms",
+# 				"type": "int256"
+# 			},
+# 			{
+# 				"internalType": "int256",
+# 				"name": "area",
+# 				"type": "int256"
+# 			},
+# 			{
+# 				"internalType": "string",
+# 				"name": "status",
+# 				"type": "string"
+# 			},
+# 			{
+# 				"internalType": "string",
+# 				"name": "location",
+# 				"type": "string"
+# 			},
+# 			{
+# 				"internalType": "string",
+# 				"name": "availableDate",
+# 				"type": "string"
+# 			}
+# 		],
+# 		"name": "listProperty",
+# 		"outputs": [],
+# 		"stateMutability": "nonpayable",
+# 		"type": "function"
+# 	},
+# 	{
+# 		"inputs": [
+# 			{
+# 				"internalType": "uint256",
+# 				"name": "",
+# 				"type": "uint256"
+# 			}
+# 		],
+# 		"name": "properties",
+# 		"outputs": [
+# 			{
+# 				"internalType": "string",
+# 				"name": "title",
+# 				"type": "string"
+# 			},
+# 			{
+# 				"internalType": "string",
+# 				"name": "description",
+# 				"type": "string"
+# 			},
+# 			{
+# 				"internalType": "int256",
+# 				"name": "price",
+# 				"type": "int256"
+# 			},
+# 			{
+# 				"internalType": "int256",
+# 				"name": "bedrooms",
+# 				"type": "int256"
+# 			},
+# 			{
+# 				"internalType": "int256",
+# 				"name": "bathrooms",
+# 				"type": "int256"
+# 			},
+# 			{
+# 				"internalType": "int256",
+# 				"name": "area",
+# 				"type": "int256"
+# 			},
+# 			{
+# 				"internalType": "string",
+# 				"name": "status",
+# 				"type": "string"
+# 			},
+# 			{
+# 				"internalType": "string",
+# 				"name": "location",
+# 				"type": "string"
+# 			},
+# 			{
+# 				"internalType": "string",
+# 				"name": "availableDate",
+# 				"type": "string"
+# 			},
+# 			{
+# 				"internalType": "address",
+# 				"name": "owner",
+# 				"type": "address"
+# 			},
+# 			{
+# 				"internalType": "bool",
+# 				"name": "listed",
+# 				"type": "bool"
+# 			}
+# 		],
+# 		"stateMutability": "view",
+# 		"type": "function"
+# 	}
+# ]
 
 
-contract = w3.eth.contract(address=contract_address, abi=contract_abi)
+# contract = w3.eth.contract(address=contract_address, abi=contract_abi)
 
-print("Contract:", contract)
+# print("Contract:", contract)
 
 def propertyList(request):
     if isinstance(request.user, AnonymousUser):
@@ -354,19 +354,19 @@ def addProperty(request):
             property.save()
 
 
-            # Blockchain
-            nonce_counter = 0
-            nonce = w3.eth.get_transaction_count(ethereum_account)
-            nonce = nonce + nonce_counter
-            
-            chain_id = w3.eth.chain_id
-            call_function = contract.functions.listProperty(title, description, int(price), int(bedrooms), int(bathrooms), int(area), status, location, availableDate).build_transaction({
-            'chainId': chain_id,
-            'nonce': nonce,
-            'gas': 1000000,
-            })
+            # # Blockchain
+            # nonce_counter = 0
+            # nonce = w3.eth.get_transaction_count(ethereum_account)
+            # nonce = nonce + nonce_counter
 
-            nonce_counter = nonce_counter + 1
+            # chain_id = w3.eth.chain_id
+            # call_function = contract.functions.listProperty(title, description, int(price), int(bedrooms), int(bathrooms), int(area), status, location, availableDate).build_transaction({
+            # 'chainId': chain_id,
+            # 'nonce': nonce,
+            # 'gas': 1000000,
+            # })
+
+            # nonce_counter = nonce_counter + 1
 
             signed_tx = w3.eth.account.sign_transaction(call_function, private_key=private_key)
             send_tx = w3.eth.send_raw_transaction(signed_tx.rawTransaction)
