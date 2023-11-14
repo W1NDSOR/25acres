@@ -7,31 +7,24 @@
   </head>
   <body data-bs-theme="dark" style="margin: 20px">
     <center>
-      <sl-breadcrumb>
-        <sl-breadcrumb-item href="/">
-          <sl-icon slot="prefix" name="house"></sl-icon>Homepage
-        </sl-breadcrumb-item>
-        <sl-breadcrumb-item href=".">
-          <sl-icon slot="prefix" name="buildings"></sl-icon>Properties
-        </sl-breadcrumb-item>
-      </sl-breadcrumb>
+      <nav style="--bs-breadcrumb-divider: '>';  width:50%; margin-top:20px;" aria-label="breadcrumb">
+        <ol class="breadcrumb">
+          <li class="breadcrumb-item"><a href="/">Homepage</a></li>
+          <li class="breadcrumb-item active" aria-current="page">Properties</li>
+          <li class="breadcrumb-item"><a href="/property/add">New</a></li>
+        </ol>
+      </nav>
       {# filter options #}
       <form method="GET" action="">
-        <div class="btn-group" role="group" aria-label="Button group with nested dropdown">
+        <div class="btn-group" style="width:50%;" role="group" aria-label="Button group with nested dropdown">
           <div class="btn-group" role="group">
             <button type="button" class="btn btn-primary dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">Type</button>
             <ul class="dropdown-menu">
               <li>
-                <a class="dropdown-item" href="?type=For Sell">For Sale</a>
+                <a class="dropdown-item" href="?type=For Sale">For Sale</a>
               </li>
               <li>
                 <a class="dropdown-item" href="?type=For Rent">For Rent</a>
-              </li>
-              <li>
-                <a class="dropdown-item" href="?type=Sold">Sold</a>
-              </li>
-              <li>
-                <a class="dropdown-item" href="?type=Rented">Rented</a>
               </li>
             </ul>
           </div>
@@ -39,13 +32,13 @@
             <button type="button" class="btn btn-primary dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">Budget</button>
             <ul class="dropdown-menu">
               <li>
-                <a class="dropdown-item" href="?budget=Between 1 to 1000">Between 1 to 1000</a>
+                <a class="dropdown-item" href="?budget=Between 1 to 10,00,000">Between 1 to 10,00,000</a>
               </li>
               <li>
-                <a class="dropdown-item" href="?budget=Between 1001 to 5000">Between 1001 to 5000</a>
+                <a class="dropdown-item" href="?budget=Between 10,00,001 to 1,00,00,000">Between 10,00,001 to 1,00,00,000</a>
               </li>
               <li>
-                <a class="dropdown-item" href="?budget=Between 5001 to 10000">Between 5001 to 10000</a>
+                <a class="dropdown-item" href="?budget=Between 1,00,00,001 to 100,00,00,000">Between 1,00,00,001 to 100,00,00,000</a>
               </li>
             </ul>
           </div>
@@ -73,6 +66,9 @@
                 <a class="dropdown-item" href="?availability_date=7days">Last 7 days</a>
               </li>
             </ul>
+          </div>
+          <div class="btn-group" role="group">
+            <a class="btn btn-outline-primary" aria-expanded="false" href="/property/list">Clear filter</a>
           </div>
         </div>
       </form>

@@ -21,206 +21,196 @@ from utils.responses import (
 
 
 def propertyList(request):
-    """
-    @desc: displays the list of properties in the database
-    """
-    numOfProperties = len(Property.objects.all())
     properties = Property.objects.filter(listed=True)
-    if numOfProperties == 0:
+    if len(Property.objects.all()) == 0:
         return render(request, "property/property_list.html", {"properties": []})
 
-    # Type Button
-    selected_type = request.GET.get("type")
-    if selected_type:
-        properties = properties.filter(status=selected_type)
+    if request.method == "GET":
+        filter = request.GET
+        
+        if selectedType := request.GET.get("type"): 
+            properties = properties.filter(status=selectedType)
 
-    # Budget Button
-    selected_budget = request.GET.get("budget")
-    budget_ranges = {
-        "Between 1 to 10,00,000": (1, 10_00_000),
-        "Between 10,00,001 to 1,00,00,000": (10_00_001, 1_00_00_000),
-        "Between 1,00,00,001 to 100,00,00,000": (1_00_00_001, 100_00_00_000),
+        selectedBudget = request.GET.get("budget")
+        budgetRanges = {
+            "Between 1 to 10,00,000": (1, 10_00_000),
+            "Between 10,00,001 to 1,00,00,000": (10_00_001, 1_00_00_000),
+            "Between 1,00,00,001 to 100,00,00,000": (1_00_00_001, 100_00_00_000),
+        }
+        if selectedBudget:
+            if priceRange := budgetRanges.get(selectedBudget): 
+                properties = properties.filter(
+                    price__gte=priceRange[0], price__lte=priceRange[1]
+                )
+
+        selectedArea = request.GET.get("location_area")
+        areaRanges = {
+            "Between 1 to 100 acres": (0, 100),
+            "Between 101 to 500 acres": (101, 500),
+            "Between 501 to 1000 acres": (501, 1000),
+        }
+        if selectedArea:
+            if areaRange := areaRanges.get(selectedArea): 
+                properties = properties.filter(
+                    area__gte=areaRange[0], area__lte=areaRange[1]
+                )
+
+        selectedAvailabilityDate = request.GET.get("availability_date")
+        timeRanges = {
+            "24hours": "2023-09-29/2023-09-30",
+            "7days": "2021-04-01/2021-04-08",
+        }
+        if selectedAvailabilityDate:
+            if (timeRange := timeRanges.get(selectedAvailabilityDate)):
+                timeRange = timeRange.split("/")
+                properties = properties.filter(
+                    availabilityDate__gte=timeRange[0], availabilityDate__lte=timeRange[1]
+                )
+
+    context = {
+        "properties": properties,
+        "bid_success": request.GET.get("bid_success") == "True",
+        "bid_error": request.GET.get("bid_error") == "True"
     }
-    if selected_budget:
-        price_range = budget_ranges.get(selected_budget)
-        if price_range:
-            properties = properties.filter(
-                price__gte=price_range[0], price__lte=price_range[1]
-            )
-
-    # Location_Area Button
-    selected_location_area = request.GET.get("location_area")
-    location_area_ranges = {
-        "Between 0 to 100 acres": (0, 100),
-        "Between 101 to 500 acres": (101, 500),
-        "Between 501 to 1000 acres": (501, 1000),
-    }
-    if selected_location_area:
-        area_range = location_area_ranges.get(selected_location_area)
-        if area_range:
-            properties = properties.filter(
-                area__gte=area_range[0], area__lte=area_range[1]
-            )
-
-    # Availability_date Button
-    selected_availability_date = request.GET.get("availability_date")
-    time_ranges = {
-        "24hours": "2023-09-29/2023-09-30",
-        "7days": "2021-04-01/2021-04-08",
-    }
-    if selected_availability_date:
-        time_range = time_ranges.get(selected_availability_date)
-        if time_range:
-            time_range = time_range.split("/")
-            properties = properties.filter(
-                availabilityDate__gte=time_range[0], availabilityDate__lte=time_range[1]
-            )
-
-    # -----------------------------------------------------------------------
-
-    bidSuccess = request.GET.get("bid_success") == "True"
-    bidError = request.GET.get("bid_error") == "True"
-    return render(
-        request,
-        "property/property_list.html",
-        {"properties": properties, "bid_success": bidSuccess, "bid_error": bidError},
-    )
+    return render(request, "property/property_list.html", context=context)
 
 
 def addProperty(request):
-    """
-    @desc: renders a form for adding new property
-    """
 
     if isinstance(request.user, AnonymousUser):
         return USER_SIGNIN_RESPONSE
 
+    if request.method != "POST":
+        return render(request, "property/add_form.html")
+        
     context = dict()
-    if request.method == "POST":
-        propertyFields = request.POST
-        title = propertyFields.get("title")
-        description = propertyFields.get("description")
-        price = propertyFields.get("price")
-        bedrooms = propertyFields.get("bedrooms")
-        bathrooms = propertyFields.get("bathrooms")
-        area = propertyFields.get("area")
-        status = propertyFields.get("status")
-        rent_duration = int(propertyFields.get('rent_duration', 0))
-        rent_duration = rent_duration if status in ["for_rent", "For Rent"] else None
-        location = propertyFields.get("location")
-        availableDate = propertyFields.get("available_date")
-        user = User.objects.get(username=request.user.username)
+    propertyFields = request.POST
+    title = propertyFields.get("title")
+    description = propertyFields.get("description")
+    price = propertyFields.get("price")
+    bedrooms = propertyFields.get("bedrooms")
+    bathrooms = propertyFields.get("bathrooms")
+    area = propertyFields.get("area")
+    status = propertyFields.get("status")
+    rent_duration = int(propertyFields.get('rent_duration', 0))
+    rent_duration = rent_duration if status in ["for_rent", "For Rent"] else None
+    location = propertyFields.get("location")
+    availableDate = propertyFields.get("available_date")
+    user = User.objects.get(username=request.user.username)
 
-        # Ownership Document Hash
-        ownershipDocumentHash = (
-            request.FILES["ownership_document"].read()
-            if "ownership_document" in request.FILES
-            else None
-        )
+    # Ownership Document Hash
+    ownershipDocumentHash = (
+        request.FILES["ownership_document"].read()
+        if "ownership_document" in request.FILES
+        else None
+    )
 
-        # Proof of Identity Hash
-        proofOfIdentity = (
-            request.FILES["document"].read() if "document" in request.FILES else None
-        )
+    # Proof of Identity Hash
+    proofOfIdentity = (
+        request.FILES["document"].read() if "document" in request.FILES else None
+    )
 
-        # if either is not correct, do not proceed
+    # if either is not correct, do not proceed
+    if (
+        proofOfIdentity is None
+        or verifyUserDocument(user, proofOfIdentity) == False
+        or ownershipDocumentHash is None
+    ):
+        context["error_message"] = "Document hash mismatch. Please check your documents"
+        return render(request, "property/add_form.html", context=context) 
+
+    try:
         if (
-            proofOfIdentity is None
-            or verifyUserDocument(user, proofOfIdentity) == False
-            or ownershipDocumentHash is None
+            title
+            and description
+            and price
+            and bedrooms
+            and bathrooms
+            and area
+            and status
+            and location
+            and availableDate
+            and proofOfIdentity
+            and ownershipDocumentHash
         ):
-            context["error_message"] = "Document hash mismatch. Please check your documents"
-            return render(request, "property/add_form.html", context=context) 
+            if title.isnumeric():
+                context["error_message"] = "Title can not be just numbers"
+                return render(request, "property/add_form.html", context=context)
+            
+            if description.isnumeric():
+                context["error_message"] = "Description can not be just numbers"
+                return render(request, "property/add_form.html", context=context)
 
-        try:
+            if price <= 0 or area <= 0 or bedrooms <= 0 or bathrooms <= 0 :
+                context["error_message"] = "Numeric fields cannot be less than or equal to 0"
+                return render(request, "property/add_form.html", context=context)
+
             if (
-                title
-                and description
-                and price
-                and bedrooms
-                and bathrooms
-                and area
-                and status
-                and location
-                and availableDate
-                and proofOfIdentity
-                and ownershipDocumentHash
+                not isinstance(price, int) or
+                not isinstance(area, int) or
+                not isinstance(bedrooms, int) or
+                not isinstance(bathrooms, int)
             ):
-                if title.isnumeric():
-                    context["error_message"] = "Title can not be just numbers"
-                    return render(request, "property/add_form.html", context=context)
-                
-                if description.isnumeric():
-                    context["error_message"] = "Description can not be just numbers"
-                    return render(request, "property/add_form.html", context=context)
+                context["error_message"] = "Numeric fields should not contain text"
+                return render(request, "property/add_form.html", context=context)
 
-                if price <= 0 or area <= 0 or bedrooms <= 0 or bathrooms <= 0 :
-                    context["error_message"] = "Numeric fields cannot be less than or equal to 0"
-                    return render(request, "property/add_form.html", context=context)
+            if proofOfIdentity == ownershipDocumentHash:
+                context["error_message"] = "Proof of identity and ownership document cannot be the same"
+                return render(request, "property/add_form.html", context=context)
+            
+            locationCoordinates = geocode_location(location)
+            if locationCoordinates is None:
+                context["error_message"] = "Not a valid location"
+                return render(request, "property/add_form.html", context=context)
 
-                if (
-                    not isinstance(price, int) or
-                    not isinstance(area, int) or
-                    not isinstance(bedrooms, int) or
-                    not isinstance(bathrooms, int)
-                ):
-                    context["error_message"] = "Numeric fields should not contain text"
-                    return render(request, "property/add_form.html", context=context)
+            (latitude, longitude) = locationCoordinates
 
-                if proofOfIdentity == ownershipDocumentHash:
-                    context["error_message"] = "Proof of identity and ownership document cannot be the same"
-                    return render(request, "property/add_form.html", context=context)
-                
-                locationCoordinates = geocode_location(location)
-                if locationCoordinates is None:
-                    context["error_message"] = "Not a valid location"
-                    return render(request, "property/add_form.html", context=context)
-
-                (latitude, longitude) = locationCoordinates
-
-                locationObject = Location.objects.create(
-                    name=location,
-                    latitude=latitude,
-                    longitude=longitude,
-                )
-                locationObject.save()
-                print(rent_duration),
-                property = Property.objects.create(
-                    title=title,
-                    description=description,
-                    price=price,
-                    bedrooms=bedrooms,
-                    bathrooms=bathrooms,
-                    area=area,
-                    status=status,
-                    rent_duration=rent_duration,
-                    location=locationObject,
-                    owner=user,
-                    originalOwner=user,
-                    listed=True,
-                    ownershipDocumentHash=ownershipDocumentHash,
-                    availabilityDate=availableDate,
-                    propertyHashIdentifier=generatePropertyHash(
-                        ownershipDocumentHash,
-                        title,
-                        description,
-                        price,
-                        bedrooms,
-                        bathrooms,
-                        area,
-                        status,
-                        location,
-                        availableDate,
-                    ),
-                    currentBid=0,
-                    bidder=None,
-                )
-                property.save()
-                return HttpResponseRedirect("/")
-        except CustomException as exception:
-            pass
-        except Exception as exception:
-            print(exception)
+            locationObject = Location.objects.create(
+                name=location,
+                latitude=latitude,
+                longitude=longitude,
+            )
+            locationObject.save()
+            
+            property = Property.objects.create(
+                title=title,
+                description=description,
+                price=price,
+                bedrooms=bedrooms,
+                bathrooms=bathrooms,
+                area=area,
+                status=status,
+                rent_duration=rent_duration,
+                location=locationObject,
+                owner=user,
+                originalOwner=user,
+                listed=True,
+                ownershipDocumentHash=ownershipDocumentHash,
+                availabilityDate=availableDate,
+                propertyHashIdentifier=generatePropertyHash(
+                    ownershipDocumentHash,
+                    title,
+                    description,
+                    price,
+                    bedrooms,
+                    bathrooms,
+                    area,
+                    status,
+                    location,
+                    availableDate,
+                ),
+                currentBid=0,
+                bidder=None,
+            )
+            property.save()
+            return HttpResponseRedirect("/")
+        else:
+            context["error_message"] = "All fields are not filled"
+            return render(request, "property/add_form.html", context=context)
+    except CustomException as exception:
+        pass
+    except Exception as exception:
+        print(exception)
     return render(request, "property/add_form.html", context=context)
 
 
