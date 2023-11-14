@@ -85,8 +85,7 @@ def signup(request):
                 extractedRollSuffix = email.split("@")[0][-5:]
                 if extractedRollSuffix != rollNumber[-5:]:
                     # TODO: remember to uncomment what below
-                    # return USER_EMAIL_ROLLNUMBER_MISMATCH_RESPONSE
-                    pass
+                    return USER_EMAIL_ROLLNUMBER_MISMATCH_RESPONSE    
             except:
                 return USER_INVALID_EMAIL_FORMAT_RESPONSE
 
@@ -229,10 +228,6 @@ def signinWithPassword(request):
             try:
                 user = User.objects.get(rollNumber=rollNumber)
                 if user.verificationCode is not None:
-                    messages.error(
-                        request,
-                        "Caught commiting treason! Thou caught trying to signin before email verification",
-                    )
                     salt = user.password.split("$")[2]
                     if user.password == make_password(password, salt=salt):
                         login(request, user)

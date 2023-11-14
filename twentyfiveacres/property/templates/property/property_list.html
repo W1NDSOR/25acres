@@ -72,6 +72,9 @@
           </div>
         </div>
       </form>
+      {% if error_message %}
+        <div class="alert alert-danger" role="alert" style="margin-top:20px; width:50%;">{{ error_message|safe }}</div>
+      {% endif %}
       {# Properties #}
       <div style="width: 50%; margin-top: 100px">
         {% if properties %}
@@ -149,7 +152,7 @@
                       <footer class="blockquote-footer">No bid yet</footer>
                     {% endif %}
                   </blockquote>
-                  <form method="POST" action="../action/{{ property.propertyId }}/" enctype="multipart/form-data">
+                  <form method="POST" action="/property/action/{{ property.propertyId }}/" enctype="multipart/form-data">
                     {% csrf_token %}
                     <div class="mb-3">
                       <input type="file" class="form-control" name="document" />
@@ -157,7 +160,7 @@
                     <div class="hstack gap-3 mb-3">
                       <div class="input-group">
                         <div class="input-group-text">Place bid</div>
-                        <input type="number" class="form-control" name="bid_amount" min="{% if property.currentBid > property.price %}{{ property.currentBid }}{% else %}{{ property.price }}{% endif %}" placeholder="{% if property.currentBid > property.price %}{{ property.currentBid }}{% else %}{{ property.price }}{% endif %}" required />
+                        <input type="number" class="form-control" name="bid_amount" min="{% if property.currentBid > property.price %}{{ property.currentBid }}{% else %}{{ property.price }}{% endif %}" placeholder="{% if property.currentBid > property.price %}{{ property.currentBid }}{% else %}{{ property.price }}{% endif %}" />
                       </div>
                       <button class="btn btn-primary" name="action" value="place_bid" type="submit">Place&nbsp;Bid</button>
                       <div class="vr"></div>

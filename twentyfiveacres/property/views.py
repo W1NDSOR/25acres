@@ -1,7 +1,7 @@
 from django.contrib.auth.models import AnonymousUser
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render
-from django.http import JsonResponse, HttpResponseRedirect
+from django.http import JsonResponse
 from django.views.decorators.http import require_POST
 from twentyfiveacres.models import User, Property, Location
 from utils.geocoder import geocode_location
@@ -12,8 +12,6 @@ from django.shortcuts import redirect
 from property.viewmodel import generatePropertyHash
 from utils.responses import (
     USER_SIGNIN_RESPONSE,
-    USER_DOCUMENT_HASH_MISMATCH_RESPONSE,
-    CANNOT_BID_TO_OWN_PROPERTY_RESPONSE,
     BIDDING_CLOSED_RESPONSE,
     PROPERTY_DOES_NOT_EXIST_RESPONSE,
 )
@@ -25,8 +23,6 @@ def propertyList(request):
         return render(request, "property/property_list.html", {"properties": []})
 
     if request.method == "GET":
-        filter = request.GET
-        
         if selectedType := request.GET.get("type"): 
             properties = properties.filter(status=selectedType)
 
@@ -68,8 +64,7 @@ def propertyList(request):
 
     context = {
         "properties": properties,
-        "bid_success": request.GET.get("bid_success") == "True",
-        "bid_error": request.GET.get("bid_error") == "True"
+        "error_message": request.GET.get("message"),
     }
     return render(request, "property/property_list.html", context=context)
 
@@ -207,7 +202,7 @@ def addProperty(request):
                 bidder=None,
             )
             property.save()
-            return HttpResponseRedirect("/")
+            return redirect("/")
         else:
             context["error_message"] = "All fields are not filled"
             return render(request, "property/add_form.html", context=context)
@@ -225,7 +220,7 @@ def addBid(request, propertyId):
     """
 
     if isinstance(request.user, AnonymousUser):
-        return USER_SIGNIN_RESPONSE
+        return redirect("/property/list?message=Only signed users are permitted to bid")
 
     user = User.objects.get(username=request.user.username)
 
@@ -238,9 +233,10 @@ def addBid(request, propertyId):
         return
 
     bidAmount = request.POST.get("bid_amount")
+    if not bidAmount: return redirect("/property/list?message=Bid amount not present")
 
     if property.owner == user:
-        return redirect('/property/list/?bid_error=True')
+        return redirect('/property/list/?message=Owner cannot bid')
     if property.status in ("sold", "Sold", "rented", "Rented"):
         return BIDDING_CLOSED_RESPONSE
 
@@ -248,25 +244,22 @@ def addBid(request, propertyId):
         request.FILES["document"].read() if "document" in request.FILES else None
     )
     if proofOfIdentity is None or not verifyUserDocument(user, proofOfIdentity):
-            messages.error(request, "Document hash mismatch. Please check your documents.")
-            return redirect(propertyList) 
+        return redirect("/property/list?message=Document hash mismatch. Please check your documents.") 
 
-    if bidAmount and float(bidAmount) > max(property.currentBid, property.price):
+    if float(bidAmount) > max(property.currentBid, property.price):
         property.currentBid = float(bidAmount)
         property.bidder = user
-        messages.success(request, "Bid placed successfully")
         property.save()
-        return HttpResponseRedirect("/property/list?bid_success=True")
+        return redirect("/property/list?message=Bid placed successfully")
     else:
-        return HttpResponseRedirect("/property/list?bid_error=True")
-
+        return redirect("/property/list?message=Place higher than previous last bid and base price")
 
 @login_required
 @require_POST
 def report(request, propertyId):
     # check if the user is authenticated
     if isinstance(request.user, AnonymousUser):
-        return HttpResponseRedirect("../../")
+        return redirect("../../")
 
     # check whether propertyId provided is valid or not
     try:
@@ -278,7 +271,7 @@ def report(request, propertyId):
 
     propertyObj.reported = True
     propertyObj.save()
-    return HttpResponseRedirect("/property/list")
+    return redirect("/property/list?message=Property reported")
 
 
 def propertyAction(request, propertyId):
