@@ -61,9 +61,6 @@ def verifyEmail(request):
 
 
 def signup(request):
-    """
-    @desc: renders a form for signing up new user
-    """
     email = request.session.get("eKYC_email")
     if email is None:
         messages.error(request, "Please complete eKYC verification first.")
@@ -213,11 +210,7 @@ def eKYC(request):
 
 
 def signin(request):
-    """
-    @desc: renders a form for signing up new user
-    """
-    return render(request, "user/signin_form.html")
-
+    return render(request, "user/signin_form.html", context={"error_message": request.GET.get("message")})
 
 def signinWithPassword(request):
     if request.method == "POST":
@@ -227,32 +220,16 @@ def signinWithPassword(request):
         if rollNumber and password:
             try:
                 user = User.objects.get(rollNumber=rollNumber)
-                if user.verificationCode is not None:
+                if user.verificationCode is None:
                     salt = user.password.split("$")[2]
                     if user.password == make_password(password, salt=salt):
                         login(request, user)
-                        return HttpResponseRedirect("/")
-                    else:
-                        print(00000000000)
-                        messages.error(request, "Identity crisis! Invalid password")
-                        HttpResponseRedirect("/user/signin")
-                else:
-                    messages.error(
-                        request,
-                        "Identity crisis! Please verify your email first. <a href='/user/verify_email'>Verify now.</a>",
-                    )
-                    HttpResponseRedirect("/user/signin")
-            except User.DoesNotExist:
-                print("1212121212121212")
-                messages.error(
-                    request,
-                    "Identity crisis! User with provided roll number does not exists",
-                )
-                HttpResponseRedirect("/user/signin")
-        else:
-            messages.error(request, "Please enter both roll number and password")
-            HttpResponseRedirect("/user/signin")
-    return HttpResponseRedirect("/user/signin")
+                        return redirect("/?message=You are logged in")
+                    else: return redirect("/user/signin?message=Invalid password")
+                else: redirect("/user/verify_email")
+            except: return redirect("/user/signin?message=Invalid roll number")
+        else: return redirect("/user/signin?message=Please enter both roll numuber and password")
+    return redirect("/user/signin")
 
 
 def signinWithOTP(request):
@@ -280,9 +257,7 @@ def signinWithOTP(request):
                 print(otp)
                 print(user.verificationCode)
                 return render(request, "user/signin_form.html", {"otp_sent": "1"})
-            except:
-                messages.error(request, "Invalid roll number")
-                HttpResponseRedirect("/user/signin")
+            except: return redirect("/user/signin?message=Invalid roll number")
 
         if otp:
             print("are we even reachinghere or not")
@@ -292,14 +267,12 @@ def signinWithOTP(request):
                 print(user.verificationCode)
                 if otp == user.verificationCode:  
                     login(request, user)
-                    print("here you are logged in")
-                    return HttpResponseRedirect("/")
+                    user.verificationCode = None
+                    user.save()
+                    return redirect("/user/signin?message=You are logged in")
                 else:
-                    messages.error(request, "Invalid OTP")
-                    HttpResponseRedirect("/user/signin")
-            except:
-                messages.error(request, "Invalid roll number")
-                HttpResponseRedirect("/user/signin")
+                    return redirect("/user/signin?message=Invalid OTP")
+            except: return redirect("/user/signin?message=Invalid roll number")
     return HttpResponseRedirect("/user/signin")
 
 
@@ -328,10 +301,6 @@ def pay_monthly():
 
 
 def profile(request):
-    """
-    @desc: renders user profile
-    """
-
     if isinstance(request.user, AnonymousUser):
         return USER_SIGNIN_RESPONSE
 

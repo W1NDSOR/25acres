@@ -16,7 +16,6 @@ from utils.responses import (
     PROPERTY_DOES_NOT_EXIST_RESPONSE,
 )
 
-
 def propertyList(request):
     if isinstance(request.user, AnonymousUser):
         return redirect("/user/signin")

@@ -10,12 +10,8 @@
         <a href="../eKYC" class="btn btn-outline-secondary">Do not have an account; signup instead</a>
       </div>
 
-      {% if messages %}
-        <div class="alert alert-danger" role="alert" style="width: 50%; margin-top: 20px;">
-          {% for message in messages %}
-            {{ message|safe }}
-          {% endfor %}
-        </div>
+      {% if error_message %}
+        <div class="alert alert-danger" role="alert" style="margin-top:20px; width:50%;">{{ error_message|safe }}</div>
       {% endif %}
       <form action="/user/signin/password/" method="POST" style="margin-top:100px; width:50%;" enctype="multipart/form-data">
         {% csrf_token %}
@@ -43,7 +39,10 @@
         <div class="card mb-3" style="text-align: left; margin-top: 50px;">
           <div class="card-header">
             <h4 class="card-title">Signin via OTP</h4>
-            <small>Forgot your password then signin via OTP verification</small>
+            <small>
+              Forgot your password then signin via OTP verification by entering your rol number, 
+              then click on send OTP. After that enter your roll number again along with OTP.
+            </small>
           </div>
           <div class="card-body">
             <div class="input-group mb-2">
