@@ -16,7 +16,6 @@ from utils.responses import (
     PROPERTY_DOES_NOT_EXIST_RESPONSE,
 )
 
-
 def propertyList(request):
     properties = Property.objects.filter(listed=True)
     if len(Property.objects.all()) == 0:
