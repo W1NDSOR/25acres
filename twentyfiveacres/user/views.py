@@ -227,7 +227,7 @@ def signinWithPassword(request):
         if rollNumber and password:
             try:
                 user = User.objects.get(rollNumber=rollNumber)
-                if user.verificationCode is not None:
+                if user.verificationCode is None:
                     salt = user.password.split("$")[2]
                     if user.password == make_password(password, salt=salt):
                         login(request, user)
@@ -235,16 +235,18 @@ def signinWithPassword(request):
                     else:
                         messages.error(request, "Identity crisis! Invalid password")
                         HttpResponseRedirect("/user/signin")
+                else:
+                    HttpResponseRedirect("/user/verify_email")
             except User.DoesNotExist:
                 messages.error(
                     request,
                     "Identity crisis! User with provided roll number does not exists",
                 )
-                HttpResponseRedirect("/user/signin")
+                redirect("/user/signin")
         else:
             messages.error(request, "Please enter both roll number and password")
-            HttpResponseRedirect("/user/signin")
-    return HttpResponseRedirect("/user/signin")
+            redirect("/user/signin")
+    return redirect("/user/signin")
 
 
 def signinWithOTP(request):
