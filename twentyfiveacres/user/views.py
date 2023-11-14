@@ -85,8 +85,7 @@ def signup(request):
                 extractedRollSuffix = email.split("@")[0][-5:]
                 if extractedRollSuffix != rollNumber[-5:]:
                     # TODO: remember to uncomment what below
-                    # return USER_EMAIL_ROLLNUMBER_MISMATCH_RESPONSE
-                    pass
+                    return USER_EMAIL_ROLLNUMBER_MISMATCH_RESPONSE    
             except:
                 return USER_INVALID_EMAIL_FORMAT_RESPONSE
 
@@ -188,7 +187,7 @@ def eKYC(request):
 
             # Check the response from the eKYC API
             if (
-                response_data.get("status") == "success"
+                response_data.get("status") == "success" 
             ):  # assuming "success" indicates a successful verification
                 request.session["eKYC_email"] = email
                 return redirect("/user/signup")
@@ -229,10 +228,6 @@ def signinWithPassword(request):
             try:
                 user = User.objects.get(rollNumber=rollNumber)
                 if user.verificationCode is not None:
-                    messages.error(
-                        request,
-                        "Caught commiting treason! Thou caught trying to signin before email verification",
-                    )
                     salt = user.password.split("$")[2]
                     if user.password == make_password(password, salt=salt):
                         login(request, user)
@@ -287,7 +282,7 @@ def signinWithOTP(request):
                 user = User.objects.get(rollNumber=rollNumber)
                 print(otp)
                 print(user.verificationCode)
-                if otp == user.verificationCode:
+                if otp == user.verificationCode:  
                     login(request, user)
                     print("here you are logged in")
                     return HttpResponseRedirect("/")
@@ -563,13 +558,53 @@ def verifyContract(request):
 
     return HttpResponseRedirect("/user/profile")
 
-
 def process_payment(request):
     if request.method == "POST":
         property_id = request.POST.get("property_id")
         print(property_id)
+
         if property_id:
-            return HttpResponseRedirect(f"/transaction/paymentGateway/{property_id}/")
+            # Handle the file upload
+            if "ownership_document" in request.FILES:
+                ownershipDocument = request.FILES["ownership_document"]
+                ownershipDocumentHash = ownershipDocument.read()  # Generate hash from the uploaded document
+
+                try:
+                    # Retrieve the existing property
+                    property = Property.objects.get(propertyId=property_id)
+
+                    # Update the ownership document hash
+                    property.ownershipDocumentHash = ownershipDocumentHash
+
+                    # Generate a new property hash identifier
+                    property.propertyHashIdentifier = generatePropertyHash(
+                        ownershipDocumentHash,
+                        property.title,
+                        property.description,
+                        property.price,
+                        property.bedrooms,
+                        property.bathrooms,
+                        property.area,
+                        property.status,
+                        property.location.name,
+                        property.availabilityDate,
+                    )
+
+                    # Save the updated property
+                    property.save()
+
+                    # Redirect to the payment gateway
+                    return HttpResponseRedirect(f"/transaction/paymentGateway/{property_id}/")
+
+                except Property.DoesNotExist:
+                    return HttpResponse("Property not found")
+                except Exception as e:
+                    print(f"Exception occurred: {e}")
+                    return HttpResponse("An error occurred while processing the document")
+
+            else:
+                return HttpResponse("Ownership document is missing")
+
         else:
             return HttpResponse("Property ID is missing")
     else:

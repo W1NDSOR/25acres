@@ -32,7 +32,7 @@ def paymentGateway(request, propertyId):
 
         # Save the OTP in the session for later verification
         request.session["otp"] = str(otp)
-
+        print(otp)
         # Send the OTP via email
         # TODO: Get the user's email from the user model or from the session
         sendMail(

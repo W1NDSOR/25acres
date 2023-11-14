@@ -8,6 +8,13 @@
   </head>
   <body data-bs-theme="dark" style="margin: 20px;">
     <center>
+      <nav style="--bs-breadcrumb-divider: '>';  width:50%; margin-top:20px;" aria-label="breadcrumb">
+        <ol class="breadcrumb">
+          <li class="breadcrumb-item"><a href="/">Homepage</a></li>
+          <li class="breadcrumb-item"><a href="/property/list">Properties</a></li>
+          <li class="breadcrumb-item active" aria-current="page">New</li>
+        </ol>
+      </nav>
       {% if error_message %}
         <div class="alert alert-danger" role="alert" style="margin-top:20px; width:50%;">{{ error_message|safe }}</div>
       {% endif %}
