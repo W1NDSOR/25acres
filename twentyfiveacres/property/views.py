@@ -31,12 +31,9 @@ else:
 w3.middleware_onion.inject(geth_poa_middleware, layer=0)
 
 ethereum_account = '0x7c816034A35AC2BFd92f04F73C428C9805584f41'
-private_key = "" # private key
-lower_case_address = '0xba204c7da7b417f0553fef66f95c67aab0a1fc6f'
+private_key = "a77ad862efda0a3097d0a25ba6cd392468472adeb524316234c1d8f75cf91734" # private key
+lower_case_address = '0x6D88d408AA31Afb3f81E0908A1B01fdc3D274bAf'
 contract_address = Web3.to_checksum_address(lower_case_address)
-
-
-nonce = w3.eth.get_transaction_count(ethereum_account)
 
 contract_abi = [
 	{
@@ -52,24 +49,24 @@ contract_abi = [
 				"type": "string"
 			},
 			{
-				"internalType": "string",
+				"internalType": "int256",
 				"name": "price",
-				"type": "string"
+				"type": "int256"
 			},
 			{
-				"internalType": "string",
+				"internalType": "int256",
 				"name": "bedrooms",
-				"type": "string"
+				"type": "int256"
 			},
 			{
-				"internalType": "string",
+				"internalType": "int256",
 				"name": "bathrooms",
-				"type": "string"
+				"type": "int256"
 			},
 			{
-				"internalType": "string",
+				"internalType": "int256",
 				"name": "area",
-				"type": "string"
+				"type": "int256"
 			},
 			{
 				"internalType": "string",
@@ -113,24 +110,24 @@ contract_abi = [
 				"type": "string"
 			},
 			{
-				"internalType": "string",
+				"internalType": "int256",
 				"name": "price",
-				"type": "string"
+				"type": "int256"
 			},
 			{
-				"internalType": "string",
+				"internalType": "int256",
 				"name": "bedrooms",
-				"type": "string"
+				"type": "int256"
 			},
 			{
-				"internalType": "string",
+				"internalType": "int256",
 				"name": "bathrooms",
-				"type": "string"
+				"type": "int256"
 			},
 			{
-				"internalType": "string",
+				"internalType": "int256",
 				"name": "area",
-				"type": "string"
+				"type": "int256"
 			},
 			{
 				"internalType": "string",
@@ -355,19 +352,27 @@ def addProperty(request):
                 bidder=None,
             )
             property.save()
+
+
             # Blockchain
-                chain_id = w3.eth.chain_id
-                call_function = contract.functions.listProperty(title, description, price, bedrooms, bathrooms, area, status, location, availableDate).build_transaction({
-                'chainId': chain_id,
-                'nonce': nonce,
-                'gas': 1000000,
-                })
+            nonce_counter = 0
+            nonce = w3.eth.get_transaction_count(ethereum_account)
+            nonce = nonce + nonce_counter
+            
+            chain_id = w3.eth.chain_id
+            call_function = contract.functions.listProperty(title, description, int(price), int(bedrooms), int(bathrooms), int(area), status, location, availableDate).build_transaction({
+            'chainId': chain_id,
+            'nonce': nonce,
+            'gas': 1000000,
+            })
 
-                signed_tx = w3.eth.account.sign_transaction(call_function, private_key=private_key)
-                send_tx = w3.eth.send_raw_transaction(signed_tx.rawTransaction)
+            nonce_counter = nonce_counter + 1
 
-                tx_receipt = w3.eth.wait_for_transaction_receipt(send_tx)
-                print("receipt:", tx_receipt)
+            signed_tx = w3.eth.account.sign_transaction(call_function, private_key=private_key)
+            send_tx = w3.eth.send_raw_transaction(signed_tx.rawTransaction)
+
+            tx_receipt = w3.eth.wait_for_transaction_receipt(send_tx)
+            print("receipt:", tx_receipt)
             
             return redirect("/")
         else:
