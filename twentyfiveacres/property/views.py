@@ -6,7 +6,6 @@ from django.views.decorators.http import require_POST
 from twentyfiveacres.models import User, Property, Location
 from utils.geocoder import geocode_location
 from django.contrib import messages
-from utils.exceptions import CustomException
 from django.core.exceptions import ObjectDoesNotExist
 from user.viewmodel import verifyUserDocument
 from django.shortcuts import redirect
@@ -141,17 +140,22 @@ def addProperty(request):
                 context["error_message"] = "Description can not be just numbers"
                 return render(request, "property/add_form.html", context=context)
 
-            if price <= 0 or area <= 0 or bedrooms <= 0 or bathrooms <= 0 :
-                context["error_message"] = "Numeric fields cannot be less than or equal to 0"
-                return render(request, "property/add_form.html", context=context)
-
             if (
-                not isinstance(price, int) or
-                not isinstance(area, int) or
-                not isinstance(bedrooms, int) or
-                not isinstance(bathrooms, int)
+                not price.isnumeric() or
+                not area.isnumeric() or
+                not bedrooms.isnumeric() or 
+                not bathrooms.isnumeric()
             ):
                 context["error_message"] = "Numeric fields should not contain text"
+                return render(request, "property/add_form.html", context=context)
+
+            price = int(price)
+            area = int(area)
+            bedrooms = int(bedrooms)
+            bathrooms = int(bathrooms)
+
+            if price <= 0 or area <= 0 or bedrooms <= 0 or bathrooms <= 0 :
+                context["error_message"] = "Numeric fields cannot be less than or equal to 0"
                 return render(request, "property/add_form.html", context=context)
 
             if proofOfIdentity == ownershipDocumentHash:
@@ -207,10 +211,8 @@ def addProperty(request):
         else:
             context["error_message"] = "All fields are not filled"
             return render(request, "property/add_form.html", context=context)
-    except CustomException as exception:
-        pass
     except Exception as exception:
-        print(exception)
+        print(f"Exception is as follows {exception}")
     return render(request, "property/add_form.html", context=context)
 
 
