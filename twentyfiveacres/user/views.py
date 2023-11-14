@@ -61,9 +61,6 @@ def verifyEmail(request):
 
 
 def signup(request):
-    """
-    @desc: renders a form for signing up new user
-    """
     email = request.session.get("eKYC_email")
     if email is None:
         messages.error(request, "Please complete eKYC verification first.")
