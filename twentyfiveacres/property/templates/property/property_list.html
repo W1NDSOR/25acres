@@ -155,6 +155,7 @@
                   <form method="POST" action="/property/action/{{ property.propertyId }}/" enctype="multipart/form-data">
                     {% csrf_token %}
                     <div class="mb-3">
+                      <label for="document" class="form-label">Upload Identity document:</label>
                       <input type="file" class="form-control" name="document" />
                     </div>
                     <div class="hstack gap-3 mb-3">

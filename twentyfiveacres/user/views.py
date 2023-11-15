@@ -185,6 +185,7 @@ def eKYC(request):
             # Check the response from the eKYC API
             if (
                 response_data.get("status") == "success" 
+                # response_data.get("status") != "success"    # Testing purpose: Remove eKYC verification 
             ):  # assuming "success" indicates a successful verification
                 request.session["eKYC_email"] = email
                 return redirect("/user/signup")
