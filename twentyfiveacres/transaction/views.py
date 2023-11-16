@@ -113,6 +113,14 @@ def pay(request):
         seller = property.owner
 
         buyer.wallet = buyer.wallet - property.currentBid
+        try:
+            isMonthlyRent = list(map(int, property.isMonthlyRent .split()))
+            isMonthlyRent[0] = 1
+            isMonthlyRent = ' '.join(map(str, isMonthlyRent))
+            property.isMonthlyRent = isMonthlyRent
+        except:
+            pass
+
         buyer.save()
         transaction = Transaction.objects.create(
             user=buyer,

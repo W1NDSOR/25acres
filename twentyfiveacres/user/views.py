@@ -32,6 +32,7 @@ from utils.responses import (
     USER_NOT_BIDDER_NOR_OWNER_RESPONSE,
     TRESPASSING_RESPONSE,
     PROPERTY_OWNERSHIP_DOCUMENT_MISSING_RESPONSE,
+    USER_EMAIL_ROLLNUMBER_MISMATCH_RESPONSE,
 )
 from twentyfiveacres.models import (
     User,
@@ -288,7 +289,17 @@ def pay_monthly():
         today = datetime.strptime(str("2023-12-31"), "%Y-%m-%d").date()
         delta = today - property.availabilityDate
         months_passed = delta.days // 30
-
+        try:
+            isMonthPassed = list(map(int, property.isMonthlyRent.split()))
+            if isMonthPassed[months_passed] == 0:
+                property.owner.wallet -= property.price
+                property.originalOwner.wallet += property.price
+                property.owner.save()
+                property.originalOwner.save()
+            else:
+                pass
+        except:
+            pass
         months_remaining = property.rent_duration - months_passed
         # print(f"Property title: {property.title}, availability date:{property.availabilityDate} Rent Duration: {property.rent_duration}, Status: {property.status}, months remaining: {months_remaining}")
         if months_remaining <= 0:

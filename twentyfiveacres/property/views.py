@@ -238,6 +238,9 @@ def addProperty(request):
     status = propertyFields.get("status")
     rent_duration = int(propertyFields.get('rent_duration', 0))
     rent_duration = rent_duration if status in ["for_rent", "For Rent"] else None
+    isMonthlyRent = [0]*rent_duration if rent_duration else None
+
+    isMonthlyRent = ' '.join(map(str, isMonthlyRent)) if isMonthlyRent else None
     location = propertyFields.get("location")
     availableDate = propertyFields.get("available_date")
     user = User.objects.get(username=request.user.username)
@@ -330,6 +333,7 @@ def addProperty(request):
                 area=area,
                 status=status,
                 rent_duration=rent_duration,
+                isMonthlyRent=isMonthlyRent,
                 location=locationObject,
                 owner=user,
                 originalOwner=user,
@@ -368,11 +372,11 @@ def addProperty(request):
 
             # nonce_counter = nonce_counter + 1
 
-            signed_tx = w3.eth.account.sign_transaction(call_function, private_key=private_key)
-            send_tx = w3.eth.send_raw_transaction(signed_tx.rawTransaction)
+            # signed_tx = w3.eth.account.sign_transaction(call_function, private_key=private_key)
+            # send_tx = w3.eth.send_raw_transaction(signed_tx.rawTransaction)
 
-            tx_receipt = w3.eth.wait_for_transaction_receipt(send_tx)
-            print("receipt:", tx_receipt)
+            # tx_receipt = w3.eth.wait_for_transaction_receipt(send_tx)
+            # print("receipt:", tx_receipt)
             
             return redirect("/")
         else:
