@@ -378,8 +378,8 @@ def addProperty(request):
         else:
             context["error_message"] = "All fields are not filled"
             return render(request, "property/add_form.html", context=context)
-    except Exception as exception:
-        print(f"Exception is as follows {exception}")
+    except:
+        pass
     return render(request, "property/add_form.html", context=context)
 
 
