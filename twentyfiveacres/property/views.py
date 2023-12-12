@@ -173,7 +173,7 @@ def propertyList(request):
         return render(request, "property/property_list.html", {"properties": []})
 
     if request.method == "GET":
-        if selectedType := request.GET.get("type"): 
+        if selectedType := request.GET.get("type"):
             properties = properties.filter(status=selectedType)
 
         selectedBudget = request.GET.get("budget")
@@ -183,7 +183,7 @@ def propertyList(request):
             "Between 1,00,00,001 to 100,00,00,000": (1_00_00_001, 100_00_00_000),
         }
         if selectedBudget:
-            if priceRange := budgetRanges.get(selectedBudget): 
+            if priceRange := budgetRanges.get(selectedBudget):
                 properties = properties.filter(
                     price__gte=priceRange[0], price__lte=priceRange[1]
                 )
@@ -195,7 +195,7 @@ def propertyList(request):
             "Between 501 to 1000 acres": (501, 1000),
         }
         if selectedArea:
-            if areaRange := areaRanges.get(selectedArea): 
+            if areaRange := areaRanges.get(selectedArea):
                 properties = properties.filter(
                     area__gte=areaRange[0], area__lte=areaRange[1]
                 )
@@ -226,7 +226,7 @@ def addProperty(request):
 
     if request.method != "POST":
         return render(request, "property/add_form.html")
-        
+
     context = dict()
     propertyFields = request.POST
     title = propertyFields.get("title")
@@ -240,7 +240,7 @@ def addProperty(request):
     rent_duration = rent_duration if status in ["for_rent", "For Rent"] else None
     isMonthlyRent = [0]*rent_duration if rent_duration else None
 
-    isMonthlyRent = ' '.join(map(str, isMonthlyRent)) if isMonthlyRent else None
+    isMonthlyRent = ' '.join(map(str, isMonthlyRent)) if isMonthlyRent else "None"
     location = propertyFields.get("location")
     availableDate = propertyFields.get("available_date")
     user = User.objects.get(username=request.user.username)
@@ -264,7 +264,7 @@ def addProperty(request):
         or ownershipDocumentHash is None
     ):
         context["error_message"] = "Document hash mismatch. Please check your documents"
-        return render(request, "property/add_form.html", context=context) 
+        return render(request, "property/add_form.html", context=context)
 
     try:
         if (
@@ -283,7 +283,7 @@ def addProperty(request):
             if title.isnumeric():
                 context["error_message"] = "Title can not be just numbers"
                 return render(request, "property/add_form.html", context=context)
-            
+
             if description.isnumeric():
                 context["error_message"] = "Description can not be just numbers"
                 return render(request, "property/add_form.html", context=context)
@@ -291,7 +291,7 @@ def addProperty(request):
             if (
                 not price.isnumeric() or
                 not area.isnumeric() or
-                not bedrooms.isnumeric() or 
+                not bedrooms.isnumeric() or
                 not bathrooms.isnumeric()
             ):
                 context["error_message"] = "Numeric fields should not contain text"
@@ -309,7 +309,7 @@ def addProperty(request):
             if proofOfIdentity == ownershipDocumentHash:
                 context["error_message"] = "Proof of identity and ownership document cannot be the same"
                 return render(request, "property/add_form.html", context=context)
-            
+
             locationCoordinates = geocode_location(location)
             if locationCoordinates is None:
                 context["error_message"] = "Not a valid location"
@@ -323,7 +323,7 @@ def addProperty(request):
                 longitude=longitude,
             )
             locationObject.save()
-            
+
             property = Property.objects.create(
                 title=title,
                 description=description,
@@ -377,10 +377,11 @@ def addProperty(request):
 
             # tx_receipt = w3.eth.wait_for_transaction_receipt(send_tx)
             # print("receipt:", tx_receipt)
-            
+
             return redirect("/")
         else:
             context["error_message"] = "All fields are not filled"
+            print("something something")
             return render(request, "property/add_form.html", context=context)
     except Exception as exception:
         print(f"Exception is as follows {exception}")
@@ -420,7 +421,7 @@ def addBid(request, propertyId):
         request.FILES["document"].read() if "document" in request.FILES else None
     )
     if proofOfIdentity is None or not verifyUserDocument(user, proofOfIdentity):
-        return redirect("/property/list?message=Document hash mismatch. Please check your documents.") 
+        return redirect("/property/list?message=Document hash mismatch. Please check your documents.")
 
     if float(bidAmount) > max(property.currentBid, property.price):
         property.currentBid = float(bidAmount)

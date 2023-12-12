@@ -82,7 +82,6 @@ def signup(request):
             try:
                 extractedRollSuffix = email.split("@")[0][-5:]
                 if extractedRollSuffix != rollNumber[-5:]:
-                    # TODO: remember to uncomment what below
                     return USER_EMAIL_ROLLNUMBER_MISMATCH_RESPONSE
             except:
                 return USER_INVALID_EMAIL_FORMAT_RESPONSE
@@ -530,18 +529,18 @@ def handleContract(request, propertyId):
 
 def verifyContract(request):
     if request.method == "POST":
+        context = {"verification_result": "not sanctioned"}
         try:
             verificationText = request.POST.get("verification_string")
             signature = b64decode(verificationText)
             contractSha = request.POST.get("contract_sha")
             is_valid = verify_contract(contractSha, signature)
-
-            verification_result = "sanctioned" if is_valid else "not_sanctioned"
-            print(verification_result)
-            context = {"verification_result": verification_result}
-        # TO DO: i want to display the result to the front end someone please do it i am too tired make sure that if the reponse is sanctioned only then show sanctioned rest in all cases show not sanctioned even if there is some error
+            if is_valid:
+                context["verification_result"] = "sanctioned"
+            print(context["verification_result"])
         except Exception as exception:
             print(f"An error occurred: {exception}")
+        return render(request, "user/profile.html", context)
 
     return HttpResponseRedirect("/user/profile")
 
