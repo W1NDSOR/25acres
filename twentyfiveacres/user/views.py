@@ -62,10 +62,10 @@ def verifyEmail(request):
 
 
 def signup(request):
-    email = request.session.get("eKYC_email")
-    if email is None:
-        messages.error(request, "Please complete eKYC verification first.")
-        return redirect("/user/eKYC")
+    # email = request.session.get("eKYC_email")
+    # if email is None:
+    #     messages.error(request, "Please complete eKYC verification first.")
+    #     return redirect("/user/eKYC")
 
     if request.method == "POST":
         try:
@@ -83,7 +83,7 @@ def signup(request):
                 extractedRollSuffix = email.split("@")[0][-5:]
                 if extractedRollSuffix != rollNumber[-5:]:
                     # TODO: remember to uncomment what below
-                    return USER_EMAIL_ROLLNUMBER_MISMATCH_RESPONSE    
+                    return USER_EMAIL_ROLLNUMBER_MISMATCH_RESPONSE
             except:
                 return USER_INVALID_EMAIL_FORMAT_RESPONSE
 
@@ -145,7 +145,7 @@ def signup(request):
             return redirect("/user/signup")
 
     else:
-        return render(request, "user/signup_form.html", {"email": email})
+        return render(request, "user/signup_form.html")
     return render(request, "user/signup_form.html")
 
 
@@ -185,8 +185,8 @@ def eKYC(request):
 
             # Check the response from the eKYC API
             if (
-                response_data.get("status") == "success" 
-                # response_data.get("status") != "success"    # Testing purpose: Remove eKYC verification 
+                response_data.get("status") == "success"
+                # response_data.get("status") != "success"    # Testing purpose: Remove eKYC verification
             ):  # assuming "success" indicates a successful verification
                 request.session["eKYC_email"] = email
                 return redirect("/user/signup")
@@ -267,7 +267,7 @@ def signinWithOTP(request):
                 user = User.objects.get(rollNumber=rollNumber)
                 print(otp)
                 print(user.verificationCode)
-                if otp == user.verificationCode:  
+                if otp == user.verificationCode:
                     login(request, user)
                     user.verificationCode = None
                     user.save()
