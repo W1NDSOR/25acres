@@ -133,9 +133,9 @@ def signup(request):
                     message=f"Your verification code is {verificationCode}",
                     recipientEmails=[email],
                 )
-                del request.session[
-                    "eKYC_email"
-                ]  # clear email from session after successful signup
+                # del request.session[
+                #     "eKYC_email"
+                # ]  # clear email from session after successful signup
                 return HttpResponseRedirect("/user/verify_email")
         except IntegrityError:
             messages.error(
@@ -144,8 +144,6 @@ def signup(request):
             )
             return redirect("/user/signup")
 
-    else:
-        return render(request, "user/signup_form.html")
     return render(request, "user/signup_form.html")
 
 
